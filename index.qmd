@@ -1,0 +1,11 @@
+---
+title: "LCM Proteomics Pipeline"
+---
+
+Documentation for Millie's Proteomics project. 
+This site tracks the processing of LCM samples from initial QC to normalization.
+
+### Pipeline Stages
+
+1. [Initial QC](notebooks/01_initial_qc_spectronaut.qmd)
+2. [Log transform and Normalization](notebooks/02_normalisation.qmd)

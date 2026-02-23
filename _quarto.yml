@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - "**/*.qmd"  # The double asterisk tells it to check subfolders
+    - "!notebooks/ms_stats_initial.qmd"
+
+website:
+  title: "Millie's Proteomics Project"
+  sidebar:
+    style: "docked"
+    contents:
+      - section: "Initial QC"
+        contents:
+          - notebooks/01_initial_qc_spectronaut.qmd
+      - section: "Normalisation"
+        contents:
+          - notebooks/02_normalisation.qmd
+
+format:
+  html:
+    theme: cosmo
+    df-print: paged
+    toc: true
+    code-fold: show
+    code-copy: true

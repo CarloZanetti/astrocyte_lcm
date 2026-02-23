@@ -1,0 +1,108 @@
+---
+title: "ms_stats_initial"
+format: html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
+library(data.table)
+library(MSstats)
+library(qs2)
+library(dplyr)
+```
+
+```{r}
+
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run1"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+raw_dir <- file.path(base_dir, "data", "raw")
+
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+
+
+## Read in MS stats spectronaut output
+
+
+
+```{r}
+#raw_spectronaut <- fread(file.path(raw_dir, "20260218_092804_hela20_Report_msstats.tsv"), sep="\t", header=TRUE)
+```
+
+
+
+## Save as .qs2 object to save space
+
+
+
+```{r}
+#qs_save(raw_spectronaut,file.path(objects_dir, "msstats_report.qs2"))
+```
+
+
+
+## Read in .qs2 object
+
+
+
+```{r}
+raw_spectronaut <- qs_read(file.path(objects_dir, "msstats_report.qs2"))
+```
+
+
+
+## Read in metadata
+
+
+
+```{r}
+meta <- fread(file.path(raw_dir, "LCM_2025_metadata.csv"))
+```
+
+
+
+## Format conversion
+
+
+
+```{r}
+msstats_input <- SpectronauttoMSstatsFormat(
+  raw_spectronaut,
+  annotation = annot,
+  filter_with_Qvalue = TRUE,    # Keeps only high-confidence identifications
+  qvalue_cutoff = 0.01,         # 1% FDR
+  fewMeasurements = "remove",   # Drops peptides with too few data points to model
+  removeProtein_with1Feature = FALSE # Keep single-peptide proteins if desired
+)
+```
+
+```{r}
+unique(raw_spectronaut$R.FileName)
+
+###
+#mt_a1_3_S2-A1_1_5778"
+#hela digest been run -> can ignore all
+#mt-millie 
+#a1 = well
+#number after is the batch - but 5 is missing and instead S3 is 5 - need to replace with 5 instead
+#can ignore slide 
+#um2 is actual area of tissue cut 
+#8um thick for volume
+#issue -> if low area cut/ dodgy propulsion (not getting shot into tube straight away - excess stress)
+
+```
+
+```{r}
+meta
+```
+
+```{r}
+
+```
+

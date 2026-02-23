@@ -1,0 +1,23 @@
+# 1. Bioinformatics Data & Objects (NEVER upload these to GitHub)
+*.rds
+*.RData
+*.h5ad
+*.loom
+*.bam
+*.fastq.gz
+*.csv
+*.tsv
+data/
+results/
+
+# 2. renv Files (Ignore the heavy packages, but KEEP the lockfile)
+renv/library/
+renv/python/
+renv/staging/
+.Rprofile
+
+# 3. RStudio & Mac/Windows hidden files
+.Rproj.user/
+.DS_Store
+
+/.quarto/
