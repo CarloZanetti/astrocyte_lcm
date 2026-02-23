@@ -9,6 +9,7 @@
 *.tsv
 data/
 results/
+*.rmd
 
 # 2. renv Files (Ignore the heavy packages, but KEEP the lockfile)
 renv/library/
@@ -21,3 +22,4 @@ renv/staging/
 .DS_Store
 
 /.quarto/
+.ipynb
