@@ -3,7 +3,9 @@
 ## Project Overview
 Analysis of Laser Capture Microdissection (LCM) proteomics samples.
 **Run Number:** 01
-**Date:** 2026-02-21
+**Date:** 2026-02-24
+
+[📊 View the Project Website](https://CarloZanetti.github.io/astrocyte_lcm/)
 
 ## Navigation
 - `notebooks/`: Contains the `.qmd` analysis files.
