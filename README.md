@@ -9,7 +9,8 @@ Analysis of Laser Capture Microdissection (LCM) proteomics samples.
 - `notebooks/`: Contains the `.qmd` analysis files.
 - `docs/`: Rendered HTML website for viewing results.
 - `scripts/`: Modular R/Python scripts.
-- `data/`: (Not synced to GitHub) Raw and processed data stored at ``.
+- `data/`: (Not synced to GitHub) Raw and processed data stored at `/camp/home/zanettc/home/shared/zanettc/millie_proteomics/data
+`.
 
 ## Reproducibility
 This project uses `renv`. To restore the environment, run:
