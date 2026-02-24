@@ -15,7 +15,6 @@ results/
 renv/library/
 renv/python/
 renv/staging/
-.Rprofile
 
 # 3. RStudio & Mac/Windows hidden files
 .Rproj.user/
