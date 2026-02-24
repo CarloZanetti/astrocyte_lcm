@@ -2,10 +2,10 @@
 
 ## Project Overview
 Analysis of Laser Capture Microdissection (LCM) proteomics samples.
-**Run Number:** 01
-**Date:** 2026-02-24
+- **Run Number:** 01
+- **Date:** 2026-02-24
 
-[📊 View the Project Website](https://CarloZanetti.github.io/astrocyte_lcm/)
+[📊 Project Website](https://CarloZanetti.github.io/astrocyte_lcm/)
 
 ## Navigation
 - `notebooks/`: Contains the `.qmd` analysis files.
@@ -20,6 +20,6 @@ This project uses `renv`. To restore the environment, run:
 renv::restore()
 
 ### How to set up the environment
-1. Open the project in RStudio or `cd` into this directory in your terminal.
+1. Open the project in RStudio.
 2. If `renv` is not installed on your system, run: `install.packages("renv")`.
 3. Run `renv::restore()` to install the exact package versions used in this analysis.
