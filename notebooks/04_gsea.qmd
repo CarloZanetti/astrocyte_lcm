@@ -1,6 +1,5 @@
 ---
-title: "04_gsea"
-format: html
+title: "GSEA"
 ---
 
 ==================================================================
@@ -211,6 +210,8 @@ run_gsea_analysis <- function(ranks,
   
   dyn_h <- 2 + (nrow(top_gsea) * 0.3)
   dyn_w <- 5 + (max(nchar(as.character(top_gsea$pathway))) * 0.12)
+  
+  print(p_bar)
   
   ggsave(filename = file.path(current_graphs_dir, glue("Barplot_{geneset_name}.pdf")), 
          plot = p_bar, width = dyn_w, height = dyn_h, limitsize = FALSE)

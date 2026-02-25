@@ -12,7 +12,10 @@ website:
     contents:
       - section: "Initial QC"
         contents:
-          - notebooks/01_initial_qc_spectronaut.qmd
+          - notebooks/01a_initial_qc_spectronaut.qmd
+      - section: "DAA marker check"
+        contents:
+          - notebooks/01b_DAA_marker_check.qmd
       - section: "MS stats "
         contents:
           - notebooks/02_msstats.qmd

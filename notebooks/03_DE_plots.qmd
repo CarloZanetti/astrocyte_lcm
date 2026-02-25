@@ -1,6 +1,5 @@
 ---
 title: "03_DE_plots"
-format: html
 ---
 
 ## Libraries
