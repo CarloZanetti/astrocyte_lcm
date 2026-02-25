@@ -3,7 +3,7 @@ project:
   output-dir: docs
   render:
     - "**/*.qmd"  # The double asterisk tells it to check subfolders
-    - "!notebooks/ms_stats_initial.qmd"
+    - "!notebooks/test_normalisation.qmd"
 
 website:
   title: "Millie's Proteomics Project"
@@ -13,10 +13,14 @@ website:
       - section: "Initial QC"
         contents:
           - notebooks/01_initial_qc_spectronaut.qmd
-      - section: "Normalisation"
+      - section: "MS stats "
         contents:
-          - notebooks/02_normalisation.qmd
-
+          - notebooks/02_msstats.qmd
+      - section: "DE plots"
+        contents: 
+          - notebooks/03_DE_plots.qmd
+      - section: "GSEA"
+          - notebooks/04_gsea.qmd
 format:
   html:
     theme: cosmo

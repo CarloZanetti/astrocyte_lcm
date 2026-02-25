@@ -1,0 +1,98 @@
+---
+title: "check_for_markers"
+format: html
+---
+
+
+```{r}
+knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
+
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+```
+
+
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run1"
+
+# Pointing to where you saved the clean data, and where to output the plot
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+results_dir <- file.path(base_dir, "results", run_num)
+```
+
+
+
+```{r}
+clean_meta <- fread(file.path(objects_dir, "clean_metadata.csv"))
+clean_spec_raw <- fread(file.path(objects_dir, "clean_spec_raw.csv"))
+```
+
+
+  
+
+```{r}
+plot_target_genes <- function(genes_to_plot, raw_data, meta_data) {
+  
+  # 1. Subset raw data using regex pattern
+  pattern <- paste(genes_to_plot, collapse="|")
+  marker_raw <- raw_data[grepl(pattern, PG.Genes, ignore.case = TRUE)]
+  
+  if(nrow(marker_raw) == 0) {
+    stop("None of the specified genes were found in the dataset.")
+  }
+  
+  # 2. Pivot and clean
+  marker_long <- marker_raw %>%
+    select(PG.Genes, all_of(meta_data$Run)) %>%
+    pivot_longer(cols = -PG.Genes, names_to = "Run", values_to = "Intensity") %>%
+    # Extract the specific matched gene name for cleaner facet labels
+    mutate(Marker = str_extract(PG.Genes, regex(pattern, ignore_case = TRUE))) %>%
+    mutate(Marker = str_to_title(Marker)) %>% # Normalizes capitalization (e.g., gfap -> Gfap)
+    mutate(Log2_Intensity = log2(Intensity + 1)) %>%
+    mutate(Log2_Intensity = ifelse(Log2_Intensity == 0, NA, Log2_Intensity))
+  
+  # 3. Merge with metadata
+  marker_plot_data <- merge(marker_long, meta_data, by = "Run")
+  
+  # 4. Generate Plot: Boxes = Condition, Dots = Batch
+  p <- ggplot(marker_plot_data, aes(x = Condition, y = Log2_Intensity)) +
+    # Boxplot colored by Condition
+    geom_boxplot(aes(fill = Condition), outlier.shape = NA, alpha = 0.5) +
+    # Jittered dots colored by Batch
+    geom_jitter(aes(color = as.factor(Batch)), width = 0.2, size = 2, alpha = 0.8) +
+    facet_wrap(~ Marker, scales = "free_y") +
+    theme_minimal(base_size = 14) +
+    # Reusing your established condition colors
+    scale_fill_manual(values = c("control" = "#1b9e77", "plaque_near" = "#d95f02", "plaque_far" = "#7570b3")) +
+    # High-contrast palette for the batch dots
+    scale_color_brewer(palette = "Set1") +
+    labs(
+         x = "Biological Condition", 
+         y = "Log2 Intensity", 
+         fill = "Condition",
+         color = "Batch") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "bold"),
+          strip.text = element_text(face = "bold", size = 14))
+  
+  return(p)
+}
+```
+
+
+```{r}
+my_genes <- c("Gfap", "App", "Clu", "Apoe")
+
+# Run the function
+p_markers <- plot_target_genes(my_genes, clean_spec_raw, clean_meta)
+
+# Display inline
+print(p_markers)
+
+marker_pdf_path <- file.path(results_dir, "Target_Genes_Check.pdf")
+ggsave(marker_pdf_path, plot = p_markers, width = 10, height = 8)
+```
+
