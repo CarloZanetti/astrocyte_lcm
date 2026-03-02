@@ -1,0 +1,1 @@
+LD_LIBRARY_PATH=/camp/apps/eb/software/R/4.5.1-gfbf-2025a/lib64/R/lib:/camp/apps/eb/software/R/4.5.1-gfbf-2025a/lib64:$LD_LIBRARY_PATH

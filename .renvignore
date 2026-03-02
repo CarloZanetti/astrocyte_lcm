@@ -1,0 +1,6 @@
+data/
+results/
+docs/
+.gitignore
+.index.gmd
+proteomics_website.zip

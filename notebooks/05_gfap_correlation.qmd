@@ -1,0 +1,81 @@
+---
+title: "05_gfap_correlation"
+format: html
+---
+
+This script is meant to identify proteins whose expression levels correlate with GFAP, within the plaque near condition.
+
+## Libraries
+
+```{r}
+library(data.table)
+library(qs2)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+library(ggrepel)
+```
+
+## Directories
+
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run1"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## Load objects and extract summarised protein levels
+
+```{r}
+#Map protein IDs to readable gene IDs
+processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
+protein_dict <- fread(file.path(objects_dir, "clean_spec_raw.csv")) %>%
+  select(Protein = PG.ProteinGroups, Gene = PG.Genes) %>%
+  distinct()
+
+# --- Extract Summarized Abundances ---
+# Using ProteinLevelData (summarized by MSstats) for cleaner correlations
+
+#transform to wide format (rows per run, columns per gene) to calculate column-wise correlations
+
+wide_df <- processed_data$ProteinLevelData %>%
+  left_join(protein_dict, by = "Protein") %>%
+  mutate(Gene = ifelse(is.na(Gene) | Gene == "", Protein, Gene)) %>%
+  # Handle duplicates (e.g., multiple Protein IDs mapping to one Gene)
+  group_by(originalRUN, Gene) %>%
+  summarize(Abundance = mean(LogIntensities, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = Gene, values_from = Abundance) %>%
+  column_to_rownames("originalRUN")
+```
+
+## Correlate gene levels to Gfap
+
+```{r}
+final_clean_meta <- read.csv(file.path(objects_dir, "msstats_annotation.csv"))
+plaque_near_runs <- final_clean_meta$Run[final_clean_meta$Condition == "plaque_near"]
+
+# Subset the data to just plaque near samples
+pn_data <- wide_df[rownames(wide_df) %in% plaque_near_runs, ]
+
+#calculate R between every gene's abundance and GFAP. 
+pn_gfap_cors <- data.frame(Gene = colnames(pn_data)) %>%
+  mutate(
+    Pearson_R = sapply(Gene, function(x) {
+      if(sum(!is.na(pn_data$Gfap) & !is.na(pn_data[[x]])) > 3) {
+        cor(pn_data$Gfap, pn_data[[x]], use = "pairwise.complete.obs")
+      } else { NA }
+    })
+  ) %>%
+  filter(!is.na(Pearson_R)) %>%
+  arrange(desc(Pearson_R))
+
+# View the top 20
+#seems to just be garbage genes
+head(pn_gfap_cors, 20)
+```

@@ -4,7 +4,7 @@ title: "GSEA"
 
 ==================================================================
 
-# GSEA for protemoics data
+# GSEA for proteomics data
 
 Author: Carlo Zanetti
 
@@ -47,7 +47,6 @@ library(readxl)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-base_dir <- "/Volumes/lab-destrooperb/home/shared/zanettc/millie_proteomics"
 
 run_num <- "run1"
 
@@ -72,6 +71,8 @@ protein_dictionary <- clean_spec_raw %>%
          Gene = PG.Genes, 
          Description = PG.ProteinDescriptions) %>%
   distinct()
+
+res_df
 ```
 
 ## Define helper functions
@@ -90,11 +91,12 @@ prep_msstats_ranks <- function(msstats_res, dict, comp_label) {
     left_join(dict, by = "Protein") %>%
     filter(!is.na(Gene) & Gene != "") %>%
     mutate(Gene = toupper(Gene)) %>%
+    mutate(adj.pvalue = ifelse(adj.pvalue == 0, 1e-300, adj.pvalue)) %>%
     group_by(Gene) %>%
     slice_max(order_by = abs(log2FC), n = 1, with_ties = FALSE) %>%
     ungroup()
   
-  ranks <- df$log2FC
+  ranks <- df$log2FC * -log10(df$adj.pvalue)
   names(ranks) <- df$Gene
   
   # Remove any unexpected NAs in names or values
@@ -131,8 +133,8 @@ run_gsea_analysis <- function(ranks,
   plot_title <- glue("{clean_comp_title} ({geneset_name})")
 
   # --- Directories ---
-  current_objects_dir <- file.path(base_objects_dir, "GSEA_Analysis", comparison_name)
-  current_graphs_dir  <- file.path(base_graphs_dir, "GSEA_Analysis", comparison_name)
+  current_objects_dir <- file.path(base_objects_dir, "GSEA_Analysis_logfc_x_pval", comparison_name)
+  current_graphs_dir  <- file.path(base_graphs_dir, "GSEA_Analysis_logfc_x_pval", comparison_name)
   dir.create(current_objects_dir, recursive = TRUE, showWarnings = FALSE)
   dir.create(current_graphs_dir, recursive = TRUE, showWarnings = FALSE)
   
@@ -144,7 +146,8 @@ run_gsea_analysis <- function(ranks,
     stats    = ranks,
     minSize  = 15,
     maxSize  = 3000,
-    nproc    = 4  
+    nproc    = 4, 
+    nPermSimple = 10000 #changed this 
   )
   
   if (nrow(fgsea_res) == 0) {
@@ -269,7 +272,7 @@ GLOBAL_CONFIG <- list(
 # Load Gene Sets
 
 go_pathways <- gmtPathways("../../GO_human_all_genesets.gmt")
-kegg_df <- msigdbr(species = "Mus musculus", category = "C2", subcategory = "CP:KEGG_MEDICUS")
+kegg_df <- msigdbr(species = "Mus musculus", collection = "C2", subcollection = "CP:KEGG_MEDICUS")
 kegg_list <- split(x = kegg_df$gene_symbol, f = kegg_df$gs_name)
 go_kegg_list <- c(go_pathways, kegg_list)
 
@@ -278,8 +281,6 @@ c8_list <- split(x = c8_df$gene_symbol, f = c8_df$gs_name)
 
 # Ensure magda_list and mancuso_list exist before assembling
 gene_sets_master <- list(
-  "Mancuso" = mancuso_list, # Uncomment if loaded
-  "Magda"   = magda_list,   # Uncomment if loaded
   "GO_KEGG" = go_kegg_list,
   "cell_type_sigs_c8" = c8_list
 )

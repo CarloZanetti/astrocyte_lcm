@@ -2,6 +2,8 @@
 title: "ms_stats_initial"
 ---
 
+## Libraries
+
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
 library(data.table)
@@ -10,12 +12,13 @@ library(qs2)
 library(dplyr)
 library(ggplot2)
 library(ggrepel)
+library(stringr)
 ```
+
+## Set directories
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-base_dir <- "/Volumes/lab-destrooperb/home/shared/zanettc/millie_proteomics"
-
 run_num <- "run1"
 
 results_dir <- file.path(base_dir, "results", run_num)
@@ -30,6 +33,7 @@ dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
 ## Read in MS stats spectronaut output
 
 ```{r}
+#Raw TSV import - commented out as using .qs2 format saved below
 #raw_spectronaut <- fread(file.path(raw_dir, "20260218_092804_hela20_Report_msstats.tsv"), sep="\t", header=TRUE)
 ```
 
@@ -51,6 +55,8 @@ raw_spectronaut <- qs_read(file.path(objects_dir, "msstats_report.qs2"))
 clean_meta <- fread(file.path(objects_dir, "clean_metadata.csv"))
 ```
 
+## Map msstats filenames to Metadata
+
 ```{r}
 msstats_mapped <- raw_spectronaut %>%
   mutate(
@@ -64,32 +70,19 @@ msstats_mapped <- raw_spectronaut %>%
     Batch = as.numeric(str_replace(Batch_raw, "s3", "5"))
   ) %>%
   select(-Batch_raw)
-
-length(unique(msstats_mapped$R.FileName))
-
 ```
+
+## Joining raw data with metadata
 
 ```{r}
 msstats_clean <- msstats_mapped %>%
   inner_join(
-    # Select only the columns needed for mapping to avoid duplicating metadata
-    clean_meta %>% select(Run_wide = Run, Chip_location, Batch, Condition), 
+    clean_meta %>% select(Run_wide = Run, Chip_location, Batch, Condition, BioReplicate), 
     by = c("Chip_location", "Batch")
   ) %>%
   # Overwrite the mismatched MSstats Run name with your standardized wide Run name
   mutate(Run = Run_wide) %>%
-  select(-Run_wide)
-
-length(unique(msstats_clean$R.FileName))
-
-#Prepare the mapping from metadata - select unique identifiers
-meta_mapping_keys <- clean_meta %>% 
-  select(Chip_location, Batch, Condition, BioReplicate)
-
-# Update MSstats data and use its Run name as the primary ID
-msstats_clean <- msstats_mapped %>%
-  # Join to only keep the runs that passed your initial wide-format QC
-  inner_join(meta_mapping_keys, by = c("Chip_location", "Batch")) %>%
+  select(-Run_wide) %>%
   as.data.table()
 
 # 3. Overwrite the Metadata Run names to match the MSstats filenames
@@ -98,19 +91,14 @@ final_clean_meta <- msstats_clean %>%
   distinct() %>%
   as.data.table()
 
-head(msstats_clean)
-
-msstats_clean
-
-final_clean_meta
 cat("Original MSstats rows:", nrow(raw_spectronaut), "\n")
 cat("Cleaned MSstats rows:", nrow(msstats_clean), "\n")
 
 # Save the filtered and aligned MSstats input for downstream steps
-qs_save(msstats_clean, file.path(objects_dir, "clean_msstats_input.qs2"))
+#qs_save(msstats_clean, file.path(objects_dir, "clean_msstats_input.qs2"))
 ```
 
-## Aß tryptic peptide
+## Aß tryptic peptide check
 
 ```{r}
 # Define the target peptide based on your mouse model
@@ -146,19 +134,20 @@ ggsave(file.path(results_dir, "AB_Peptide_Batch_Verification.pdf"), p_ab_check, 
 print(p_ab_check)
 ```
 
-## Best option now is to continue analysis with just 1,3,4 
-
-Extremely hard to identify and map back to original data.
+## Best option now is to continue analysis with just 1,3,4
 
 ```{r}
+#Filter only for good batches
 good_batches <- c(1, 3, 4)
 
 #Filter the metadata
-final_clean_meta <- clean_meta %>%
+final_msstats_input <- msstats_clean %>%
   filter(Batch %in% good_batches) %>%
   as.data.table()
 
-msstats_annotation <- final_clean_meta %>%
+#Build annotation metrix MSstats needs from filtered data
+#MSstats requires Run, Condition, BioReplicate
+msstats_annotation <- final_msstats_input %>%
   mutate(Run = str_replace_all(Run, 
                                # 1. Matches leading "[101] "
                                # 2. Matches trailing ".d.PG.Quantity"
@@ -167,41 +156,22 @@ msstats_annotation <- final_clean_meta %>%
   select(Run, Condition, BioReplicate) %>%
   distinct()
 
-length(msstats_annotation$Run)
-
-if (all(sample_meta %in% unique(final_msstats_input$R.FileName))) {
-  cat("✅ Alignment Success: Metadata now matches MSstats R.FileName.\n")
-} else {
-  stop("❌ Alignment Failure")
-}
-
-
-
-
-
-
-
-
-
-# Filter the MSstats input data
-final_msstats_input <- msstats_clean %>%
-  filter(Batch %in% good_batches) %>%
-  as.data.table()
-
-cat("Remaining pristine samples in metadata:", nrow(final_clean_meta), "\n")
+cat("Remaining pristine samples in metadata:", nrow(msstats_annotation), "\n")
 cat("Remaining rows in MSstats data:", nrow(final_msstats_input), "\n")
 
-fwrite(final_clean_meta, file.path(objects_dir, "final_clean_metadata.csv"))
-frwrite(msstats_annotation, file.path(objects_dir, "msstats_annotation.csv"))
+#save final input files so don't have to re-run cleaning steps
 qs_save(final_msstats_input, file.path(objects_dir, "final_msstats_input.qs2"))
+fwrite(msstats_annotation, file.path(objects_dir, "msstats_annotation.csv"))
+
 ```
 
-## Format conversion
+## Convert to MSstats format
 
 ```{r}
+#Initial feature-level filtering and maps Spectronaut columns to MSstats required headers
 msstats_input <- SpectronauttoMSstatsFormat(
   final_msstats_input,
-  annotation = final_clean_meta,
+  annotation = msstats_annotation,
   filter_with_Qvalue = TRUE,    # Keeps only high-confidence identifications
   qvalue_cutoff = 0.01,         # 1% FDR
   fewMeasurements = "remove",   # Drops peptides with too few data points to model
@@ -209,7 +179,10 @@ msstats_input <- SpectronauttoMSstatsFormat(
 )
 ```
 
+## Data summarisation and normalisation
+
 ```{r}
+# Roll up the peptide intensities to protein-level abundances
 processed_data <- dataProcess(
   msstats_input,
   normalization = "equalizeMedians", # Matches the paper's median intensity normalization
@@ -224,9 +197,13 @@ processed_data <- dataProcess(
 qs_save(processed_data, file.path(objects_dir, "processed_msstats_data.qs2"))
 ```
 
+## Reload data in if needed
+
 ```{r}
 processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
 ```
+
+## Statistical modelling
 
 ```{r}
 # 1. Verify the alphabetical order of your conditions
@@ -245,7 +222,7 @@ comparison_matrix <- matrix(c(
 rownames(comparison_matrix) <- c("PlaqueNear_vs_Control", "PlaqueFar_vs_Control", "PlaqueNear_vs_PlaqueFar")
 colnames(comparison_matrix) <- condition_levels
 
-# 3. Run the statistical modeling
+# Run linear mixed-effects model across all proteins
 test_results <- groupComparison(contrast.matrix = comparison_matrix, data = processed_data)
 
 # Extract the results table
@@ -254,23 +231,3 @@ res_df <- test_results$ComparisonResult
 # Save the full and filtered results
 fwrite(res_df, file.path(results_dir, "Full_GroupComparison_Results.csv"))
 ```
-
-
-
-
-
-## correlate between Aß peptide and every other protein in dataset 
-looking for ptoeins highly correlated
-```{r}
-
-```
-
-
-
-
-## go gsea, MEGENA?
-```{r}
-
-```
-
-#correlate with single plaque paper? which proteins are new?

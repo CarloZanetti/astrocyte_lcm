@@ -172,3 +172,54 @@ for (comp in all_comparisons) {
   print(p)
 }
 ```
+
+## Interrogation of floor genes from Near vs Far plaque volcano plots
+```{r}
+res_df
+floor_check <- res_df %>%
+  filter(Label == "PlaqueNear_vs_Control", adj.pvalue > 0.99) %>%
+  select(Protein, log2FC, pvalue, adj.pvalue, SE, DF) %>%
+  arrange(desc(abs(log2FC)))
+
+# Look at the top results
+head(floor_check, 10)
+```
+
+```{r}
+#filtered for top 4 logFC proteins with >0.99 FDR
+target_proteins <- res_df %>%
+  filter(Label == "PlaqueNear_vs_PlaqueFar", adj.pvalue > 0.99) %>%
+  arrange(desc(abs(log2FC))) %>%
+  slice_head(n = 4) %>%
+  pull(Protein)
+
+#read in msstats data
+processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
+
+# extract their summarized abundances from the processed MSstats object
+abundance_data <- processed_data$ProteinLevelData %>%
+  filter(Protein %in% target_proteins) %>%
+  # Filter to just the two conditions of interest for clarity
+  filter(GROUP %in% c("plaque_near", "plaque_far")) %>%
+  group_by(Protein, GROUP, SUBJECT) %>%
+  summarise(LogIntensities = mean(LogIntensities, na.rm = TRUE), .groups = "drop")
+#plot abundances
+#each dot represents the summarised abundance for a biological replicate 
+p_abundance <- ggplot(abundance_data, aes(x = GROUP, y = LogIntensities, fill = GROUP)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.8) +
+  facet_wrap(~ Protein, scales = "free_y") +
+  theme_minimal(base_size = 14) +
+  scale_fill_manual(values = c("plaque_near" = "#d95f02", "plaque_far" = "#7570b3")) +
+  labs(
+    title = "Abundance Profile of High-FC 'Floor' Proteins",
+    subtitle = "FDR = 1.0 despite high Log2FC",
+    x = "Condition",
+    y = "Log2 Intensity"
+  ) +
+  theme(legend.position = "none")
+
+# Print the plot
+print(p_abundance)
+```
+

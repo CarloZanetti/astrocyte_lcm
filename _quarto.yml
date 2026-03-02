@@ -4,6 +4,8 @@ project:
   render:
     - "**/*.qmd"  # The double asterisk tells it to check subfolders
     - "!notebooks/test_normalisation.qmd"
+    - "!notebooks/megena.qmd"
+    - "!notebooks/02_msstats.qmd"
 
 website:
   title: "Millie's Proteomics Project"
@@ -16,14 +18,18 @@ website:
       - section: "DAA marker check"
         contents:
           - notebooks/01b_DAA_marker_check.qmd
-      - section: "MS stats "
-        contents:
-          - notebooks/02_msstats.qmd
+      # - section: "MS stats "
+      #   contents:
+      #     - notebooks/02_msstats.qmd
       - section: "DE plots"
         contents: 
           - notebooks/03_DE_plots.qmd
       - section: "GSEA"
+        contents:
           - notebooks/04_gsea.qmd
+      - section: "GFAP correlation"
+        contents:
+          - notebooks/05_gfap_correlation.qmd
 format:
   html:
     theme: cosmo

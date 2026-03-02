@@ -7,8 +7,7 @@ This site tracks the processing of LCM samples from initial QC to normalization.
 
 ### Pipeline Stages
 
-1. [Initial QC](notebooks/01_initial_qc_spectronaut.qmd)
+1. [Initial QC](notebooks/01a_initial_qc_spectronaut.qmd)
 2. [DAA marker sense check](notebooks/01b_DAA_marker_check.qmd)
-3. [MSstats](notebooks/02_msstats.qmd)
-4. [DE plots](notebooks/03_DE_plots.qmd)
-5. [GSEA](notebooks/04_DE_plots.qmd)
+3. [DE plots](notebooks/03_DE_plots.qmd)
+4. [GSEA](notebooks/04_gsea.qmd)
