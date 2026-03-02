@@ -2,7 +2,13 @@
 title: "DAA marker check"
 ---
 
+
+
+
 ## Libraries
+
+
+
 
 ```{r}
 knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
@@ -15,7 +21,13 @@ library(stringr)
 library(qs2)
 ```
 
+
+
+
 ## Directories
+
+
+
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
@@ -26,14 +38,26 @@ objects_dir <- file.path(base_dir, "data", "processed", run_num)
 results_dir <- file.path(base_dir, "results", run_num)
 ```
 
+
+
+
 ## Read in raw files
+
+
+
 
 ```{r}
 clean_meta <- fread(file.path(objects_dir, "clean_metadata.csv"))
 clean_spec_raw <- fread(file.path(objects_dir, "clean_spec_raw.csv"))
 ```
 
+
+
+
 ## Define function to calculate specific gene per condition, with the dot coloured by Batch
+
+
+
 
 ```{r}
 plot_target_genes <- function(genes_to_plot, raw_data, meta_data) {
@@ -83,9 +107,15 @@ plot_target_genes <- function(genes_to_plot, raw_data, meta_data) {
 }
 ```
 
+
+
+
 ## DAA markers are inverted to what would be expected for Batch 2 and 5
 
 Indicates some sort of Batch mix up.
+
+
+
 
 ```{r}
 my_genes <- c("Gfap", "App", "Clu", "Apoe")
@@ -100,7 +130,13 @@ marker_pdf_path <- file.path(results_dir, "Target_Genes_Check.pdf")
 ggsave(marker_pdf_path, plot = p_markers, width = 10, height = 8)
 ```
 
+
+
+
 ## Pull in MSstats data to display Aß tryptic peptide plot
+
+
+
 ```{r}
 target_peptide <- "LVFFAEDVGSNK"
 
