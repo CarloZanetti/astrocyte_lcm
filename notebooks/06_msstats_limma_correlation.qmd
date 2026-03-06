@@ -6,7 +6,11 @@ format: html
 
 ## Load libraries
 ```{r}
-
+library(data.table)
+library(qs2)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
 ```
 
 
@@ -14,13 +18,24 @@ format: html
 ## read in limma and msstats objects
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run1"
+results_dir <- file.path(base_dir, "results", run_num)
+
+
 millie_dir <- file.path(base_dir, "data", "processed_millie")
+millie_f_v_c <- read.csv(file.path(millie_dir, "limma_all_proteins_Plaque_far_vs_Control.csv"))
+millie_n_v_c <- read.csv(file.path(millie_dir, "limma_all_proteins_Plaque_near_vs_Control.csv"))
+millie_n_v_f <- read.csv(file.path(millie_dir, "limma_all_proteins_Plaque_near_vs_Far.csv"))
+
+res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
+
+
 ```
 
 
 ## make colnames clear which df is origin
 ```{r}
-
+res_df
 ```
 
 

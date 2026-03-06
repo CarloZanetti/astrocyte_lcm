@@ -202,9 +202,11 @@ run_gsea_analysis <- function(ranks,
       panel.border = element_rect(colour = "black", fill = NA, linewidth = 1.5),
       legend.position = "none",
       plot.title = element_text(hjust = 0.5, face = "bold", size = 16, margin = margin(b = 40)),
-      plot.margin = margin(t = 40, r = 20, b = 20, l = 150, unit = "pt")
+      plot.margin = margin(t = 40, r = 20, b = 20, l = 20, unit = "pt"),
+      #ensure y axis has enough room, and tightens lines together
+      axis.text.y = element_text(size = 9, lineheight = 0.8)
     ) +
-    scale_y_discrete(labels = function(x) str_wrap(gsub("_", " ", x), width = 50)) +
+    scale_y_discrete(labels = function(x) str_wrap(gsub("_", " ", x), width = 30)) +
     # Dynamic text annotations at the top of the plot
     annotate("text", x = -axis_zoom/2, y = Inf, 
              label = glue("^ {group_B_label}"), color = color_B, size = 5, fontface = "bold", vjust = -1.0) +
