@@ -106,7 +106,6 @@ target_peptide <- "LVFFAEDVGSNK"
 
 msstats_clean <- qs_read(file.path(objects_dir, "clean_msstats_input.qs2"))
 
-
 colnames(msstats_clean)
 # Filter the cleaned MSstats data for the Aß peptide
 ab_check_data <- msstats_clean %>%
@@ -128,7 +127,6 @@ p_ab_check <- ggplot(ab_check_data, aes(x = Condition, y = Log2_Intensity, fill 
   scale_fill_manual(values = c("control" = "#1b9e77", "plaque_near" = "#d95f02", "plaque_far" = "#7570b3")) +
   labs(
     title = "Amyloidome Verification: Aβ Tryptic Peptide",
-    subtitle = "Confirming sample swaps: expect high signal in 'plaque_near' [cite: 54, 203]",
     x = "Labelled Condition",
     y = "Log2(Aβ Peptide Intensity)"
   )

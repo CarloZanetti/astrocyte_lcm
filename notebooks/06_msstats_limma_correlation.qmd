@@ -1,0 +1,40 @@
+---
+title: "06_msstats_limma_correlation"
+format: html
+---
+
+
+## Load libraries
+```{r}
+
+```
+
+
+
+## read in limma and msstats objects
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+millie_dir <- file.path(base_dir, "data", "processed_millie")
+```
+
+
+## make colnames clear which df is origin
+```{r}
+
+```
+
+
+
+
+## inner join 
+```{r}
+
+```
+
+
+
+## plot comparisons
+```{r}
+
+```
+

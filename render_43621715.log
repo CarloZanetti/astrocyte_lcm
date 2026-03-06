@@ -1,5 +1,6 @@
-[1m[34m[1/6] index.qmd[39m[22m
-[1m[34m[2/6] notebooks/05_gfap_correlation.qmd[39m[22m
+[1m[34m[1/7] index.qmd[39m[22m
+[1m[34m[2/7] notebooks/06_msstats_limma_correlation.qmd[39m[22m
+[1m[34m[3/7] notebooks/05_gfap_correlation.qmd[39m[22m
 [31m
 
 processing file: 05_gfap_correlation.qmd
@@ -14,7 +15,7 @@ processing file: 05_gfap_correlation.qmd
 9/9                  
 [31moutput file: 05_gfap_correlation.knit.md
 
-[39m[1m[34m[3/6] notebooks/01b_DAA_marker_check.qmd[39m[22m
+[39m[1m[34m[4/7] notebooks/01b_DAA_marker_check.qmd[39m[22m
 [31m
 
 processing file: 01b_DAA_marker_check.qmd
@@ -33,7 +34,7 @@ processing file: 01b_DAA_marker_check.qmd
 13/13                  
 [31moutput file: 01b_DAA_marker_check.knit.md
 
-[39m[1m[34m[4/6] notebooks/04_gsea.qmd[39m[22m
+[39m[1m[34m[5/7] notebooks/04_gsea.qmd[39m[22m
 [31m
 
 processing file: 04_gsea.qmd
@@ -54,7 +55,7 @@ processing file: 04_gsea.qmd
 15/15                  
 [31moutput file: 04_gsea.knit.md
 
-[39m[1m[34m[5/6] notebooks/03_DE_plots.qmd[39m[22m
+[39m[1m[34m[6/7] notebooks/03_DE_plots.qmd[39m[22m
 [31m
 
 processing file: 03_DE_plots.qmd
@@ -77,7 +78,7 @@ processing file: 03_DE_plots.qmd
 17/17                  
 [31moutput file: 03_DE_plots.knit.md
 
-[39m[1m[34m[6/6] notebooks/01a_initial_qc_spectronaut.qmd[39m[22m
+[39m[1m[34m[7/7] notebooks/01a_initial_qc_spectronaut.qmd[39m[22m
 [31m
 
 processing file: 01a_initial_qc_spectronaut.qmd
