@@ -96,7 +96,8 @@ prep_msstats_ranks <- function(msstats_res, dict, comp_label) {
     slice_max(order_by = abs(log2FC), n = 1, with_ties = FALSE) %>%
     ungroup()
   
-  ranks <- df$log2FC * -log10(df$adj.pvalue)
+  #rank by logFC
+  ranks <- df$log2FC
   names(ranks) <- df$Gene
   
   # Remove any unexpected NAs in names or values
