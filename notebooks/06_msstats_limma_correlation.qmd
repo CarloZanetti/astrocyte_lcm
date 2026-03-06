@@ -61,7 +61,7 @@ msstats_ready <- res_df %>%
     # Define significance categories
     Status = case_when(
       adj.pvalue < 0.05 & log2FC > 0.5 ~ "Upregulated",
-      adj.pvalue < 0.05 & log2FC < 0.5 ~ "Downregulated",
+      adj.pvalue < 0.05 & log2FC < -0.5 ~ "Downregulated",
       TRUE ~ "Not Significant"
     )
   ) %>%
@@ -93,8 +93,8 @@ millie_combined <- bind_rows(
   ) %>%
   mutate(
     Status_limma = case_when(
-      adj.pvalue_limma < 0.05 & log2FC_limma > 0 ~ "Upregulated",
-      adj.pvalue_limma < 0.05 & log2FC_limma < -0 ~ "Downregulated",
+      adj.pvalue_limma < 0.05 & log2FC_limma > 0.5 ~ "Upregulated",
+      adj.pvalue_limma < 0.05 & log2FC_limma < -0.5 ~ "Downregulated",
       TRUE ~ "Not Significant"
     )
   ) %>%
@@ -351,11 +351,22 @@ limma_exclusive_sig <- comparison_df %>%
 print(limma_exclusive_sig)
 ```
 
+### check for how many msstats were FDR <0.05 but < 0.5 log2FC
 ```{r}
 check_cutoffs <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(adj.pvalue_msstats < 0.05 & Status_msstats == "Not Significant") %>%
   select(Gene, log2FC_msstats, adj.pvalue_msstats)
+
+print(check_cutoffs)
+```
+
+### check for how many msstats were FDR <0.05 but < 0.5 log2FC
+```{r}
+check_cutoffs <- comparison_df %>%
+  filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
+  filter(adj.pvalue_msstats < 0.05 & Status_limma == "Not Significant") %>%
+  select(Gene, log2FC_limma, adj.pvalue_limma)
 
 print(check_cutoffs)
 ```

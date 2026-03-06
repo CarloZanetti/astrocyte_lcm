@@ -3,7 +3,7 @@ title: "LCM Proteomics Pipeline"
 ---
 
 Documentation for Millie's Proteomics project. 
-This site tracks the processing of LCM samples from initial QC to normalization.
+This site tracks the processing of LCM samples from initial QC to Differential abundance anlaysis. 
 
 ### Pipeline Stages
 
@@ -11,3 +11,5 @@ This site tracks the processing of LCM samples from initial QC to normalization.
 2. [DAA marker sense check](notebooks/01b_DAA_marker_check.qmd)
 3. [DE plots](notebooks/03_DE_plots.qmd)
 4. [GSEA](notebooks/04_gsea.qmd)
+5. [GFAP correlation](notebooks/05_gfap_correlation.qmd)
+6. [MSstats limma correlation](notebooks/06_msstats_limma_correlation.qmd)

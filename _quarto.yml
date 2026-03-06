@@ -30,6 +30,9 @@ website:
       - section: "GFAP correlation"
         contents:
           - notebooks/05_gfap_correlation.qmd
+      - section: "Concordance between limma and MSstats"
+        contents:
+          - notebooks/06_msstats_limma_correlation.qmd
 format:
   html:
     theme: cosmo
