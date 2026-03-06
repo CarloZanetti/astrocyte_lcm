@@ -615,8 +615,9 @@ Attaching package: 'dplyr'</code></pre>
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Load Gene Sets</span></span>
 <span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>go_pathways <span class="ot">&lt;-</span> <span class="fu">gmtPathways</span>(<span class="st">"../../GO_human_all_genesets.gmt"</span>)</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>kegg_df <span class="ot">&lt;-</span> <span class="fu">msigdbr</span>(<span class="at">species =</span> <span class="st">"Mus musculus"</span>, <span class="at">collection =</span> <span class="st">"C2"</span>, <span class="at">subcollection =</span> <span class="st">"CP:KEGG_MEDICUS"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="co">#go and kegg sets</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>go_pathways <span class="ot">&lt;-</span> <span class="fu">gmtPathways</span>(<span class="st">"../../GO_human_all_genesets.gmt"</span>)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>kegg_df <span class="ot">&lt;-</span> <span class="fu">msigdbr</span>(<span class="at">species =</span> <span class="st">"Mus musculus"</span>, <span class="at">collection =</span> <span class="st">"C2"</span>, <span class="at">subcollection =</span> <span class="st">"CP:KEGG_MEDICUS"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Using human MSigDB with ortholog mapping to mouse. Use `db_species = "MM"` for mouse-native gene sets.
@@ -627,7 +628,8 @@ This message is displayed once per session.</code></pre>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>kegg_list <span class="ot">&lt;-</span> <span class="fu">split</span>(<span class="at">x =</span> kegg_df<span class="sc">$</span>gene_symbol, <span class="at">f =</span> kegg_df<span class="sc">$</span>gs_name)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>go_kegg_list <span class="ot">&lt;-</span> <span class="fu">c</span>(go_pathways, kegg_list)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>c8_df <span class="ot">&lt;-</span> <span class="fu">msigdbr</span>(<span class="at">species =</span> <span class="st">"Mus musculus"</span>, <span class="at">category =</span> <span class="st">"C8"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">#cell type signature sets</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>c8_df <span class="ot">&lt;-</span> <span class="fu">msigdbr</span>(<span class="at">species =</span> <span class="st">"Mus musculus"</span>, <span class="at">category =</span> <span class="st">"C8"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: The `category` argument of `msigdbr()` is deprecated as of msigdbr 10.0.0.
@@ -637,7 +639,7 @@ This message is displayed once per session.</code></pre>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>c8_list <span class="ot">&lt;-</span> <span class="fu">split</span>(<span class="at">x =</span> c8_df<span class="sc">$</span>gene_symbol, <span class="at">f =</span> c8_df<span class="sc">$</span>gs_name)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure magda_list and mancuso_list exist before assembling</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create master list</span></span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>gene_sets_master <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"GO_KEGG"</span> <span class="ot">=</span> go_kegg_list,</span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"cell_type_sigs_c8"</span> <span class="ot">=</span> c8_list</span>
@@ -737,18 +739,18 @@ This message is displayed once per session.</code></pre>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Flatten master gene list</span></span>
 <span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>all_pathways_flat <span class="ot">&lt;-</span> <span class="fu">do.call</span>(c, <span class="fu">unname</span>(gene_sets_master))</span>
 <span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Check if the term exists before looping</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if the term exists before looping - in case typo</span></span>
 <span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>term_to_plot <span class="sc">%in%</span> <span class="fu">names</span>(all_pathways_flat)) {</span>
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="fu">glue</span>(<span class="st">"Could not find pathway '{term_to_plot}' in gene_sets_master."</span>))</span>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>pathway_genes <span class="ot">&lt;-</span> all_pathways_flat[[term_to_plot]]</span>
 <span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Create a specific output folder</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a specific output folder</span></span>
 <span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>specific_graphs_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(results_dir, <span class="st">"Specific_Pathway_Plots"</span>)</span>
 <span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(specific_graphs_dir, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Loop and Plot</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop and Plot</span></span>
 <span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk2</span>(comparisons_master, <span class="fu">names</span>(comparisons_master), <span class="cf">function</span>(ranks, comp_name) {</span>
 <span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="fu">glue</span>(<span class="st">"Plotting {term_to_plot} for {comp_name}..."</span>))</span>

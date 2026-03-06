@@ -275,15 +275,17 @@ GLOBAL_CONFIG <- list(
 
 # Load Gene Sets
 
+#go and kegg sets
 go_pathways <- gmtPathways("../../GO_human_all_genesets.gmt")
 kegg_df <- msigdbr(species = "Mus musculus", collection = "C2", subcollection = "CP:KEGG_MEDICUS")
 kegg_list <- split(x = kegg_df$gene_symbol, f = kegg_df$gs_name)
 go_kegg_list <- c(go_pathways, kegg_list)
 
+#cell type signature sets
 c8_df <- msigdbr(species = "Mus musculus", category = "C8")
 c8_list <- split(x = c8_df$gene_symbol, f = c8_df$gs_name)
 
-# Ensure magda_list and mancuso_list exist before assembling
+# Create master list
 gene_sets_master <- list(
   "GO_KEGG" = go_kegg_list,
   "cell_type_sigs_c8" = c8_list
@@ -335,18 +337,18 @@ term_to_plot <- "GOCC_LYSOSOMAL_LUMEN"
 # 1. Flatten master gene list
 all_pathways_flat <- do.call(c, unname(gene_sets_master))
 
-# 2. Check if the term exists before looping
+# Check if the term exists before looping - in case typo
 if (!term_to_plot %in% names(all_pathways_flat)) {
   stop(glue("Could not find pathway '{term_to_plot}' in gene_sets_master."))
 }
 
 pathway_genes <- all_pathways_flat[[term_to_plot]]
 
-# 3. Create a specific output folder
+# Create a specific output folder
 specific_graphs_dir <- file.path(results_dir, "Specific_Pathway_Plots")
 dir.create(specific_graphs_dir, showWarnings = FALSE, recursive = TRUE)
 
-# 4. Loop and Plot
+# Loop and Plot
 purrr::walk2(comparisons_master, names(comparisons_master), function(ranks, comp_name) {
   
   message(glue("Plotting {term_to_plot} for {comp_name}..."))

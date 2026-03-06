@@ -39,7 +39,7 @@ protein_dict <- fread(file.path(objects_dir, "clean_spec_raw.csv")) %>%
   select(Protein = PG.ProteinGroups, Gene = PG.Genes) %>%
   distinct()
 
-# --- Extract Summarized Abundances ---
+# Extract Summarized Abundances
 # Using ProteinLevelData (summarized by MSstats) for cleaner correlations
 
 #transform to wide format (rows per run, columns per gene) to calculate column-wise correlations

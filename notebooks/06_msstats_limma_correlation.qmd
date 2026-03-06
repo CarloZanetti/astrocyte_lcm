@@ -3,8 +3,44 @@ title: "06_msstats_limma_correlation"
 format: html
 ---
 
+==================================================================
+
+# MSstats vs limma Concordance Analysis
+
+Author: Carlo Zanetti
+
+This script evaluates the consistency between MSstats and limma. It merges results from both methods to identify shared biological signals and pipeline specific differences.
+
+### Workflow overview
+
+1.  **Data loading and visualisation**
+
+    Import Msstats and limma data
+
+2.  **Gene mapping and Annotation**
+
+    Only necessary for Msstats
+
+3.  **Thresholding and categorisation**
+
+    Apply significance cut-offs (FDR \<0.05, \|log2FC\| \> 0.5)
+
+4.  **Concordance analysis**
+
+    Calculate pearson correlation between log2FC values of the 2 pipelines for each comparison
+
+5.  **Visualisation**
+
+    Plots concordance scatter plots between each pipeline and comparison.
+
+    Labels top 30 most highly changed genes using ggrepel
+
+    Produces tables summarising detction overlap and pipeline-specific abundant proteins
+
+==================================================================
 
 ## Load libraries
+
 ```{r}
 library(data.table)
 library(qs2)
@@ -15,9 +51,8 @@ library(purrr)
 library(stringr)
 ```
 
+## Read in limma and msstats objects
 
-
-## read in limma and msstats objects
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
 run_num <- "run1"
@@ -37,8 +72,8 @@ clean_spec_raw <- fread(file.path(objects_dir, "clean_spec_raw.csv"))
 
 ```
 
+## Convert msstats to gene names
 
-## convert msstats to gene names
 ```{r}
 protein_dictionary <- clean_spec_raw %>%
   select(Protein = PG.ProteinGroups, 
@@ -75,10 +110,8 @@ msstats_ready <- res_df %>%
 msstats_ready
 ```
 
+## Combine millie's dataframes into a mega merged one
 
-
-
-## create millie df
 ```{r}
 # Add labels to Millie's data to match MSstats 'Label' names
 # Check your msstats_ready$Label to ensure these strings match exactly!
@@ -103,7 +136,7 @@ millie_combined <- bind_rows(
 millie_combined
 ```
 
-
+## combine both msstats and limma dataframes
 
 ```{r}
 comparison_df <- msstats_ready %>%
@@ -124,22 +157,8 @@ table(comparison_df$Status_msstats, comparison_df$Status_limma)
 comparison_df
 ```
 
-```{r}
-plot_data <- comparison_df %>%
-  filter(Label == "PlaqueNear_vs_Control") %>% # Matches your Millie DF assignment
-  mutate(
-    Category = case_when(
-      Status_msstats != "Not Significant" & Status_limma != "Not Significant" ~ "Both",
-      Status_msstats != "Not Significant" & Status_limma == "Not Significant" ~ "MSstats Only",
-      Status_msstats == "Not Significant" & Status_limma != "Not Significant" ~ "limma Only",
-      TRUE ~ "Not Significant"
-    ),
-    LabelGene = ifelse(Category != "Not Significant", Gene, NA)
-  )
-```
+## Plot concordance results
 
-
-## Plot concordance
 ```{r}
 
 plot_data <- comparison_df %>%
@@ -289,7 +308,9 @@ cat("All plots generated and saved successfully to:", graphs_dir, "\n")
 ```
 
 ## Print summary table comparing the two methods
+
 Summarises the overlap in detection and significance.
+
 ```{r}
 summary_table <- comparison_df %>%
   group_by(Label) %>%
@@ -315,18 +336,20 @@ summary_table <- comparison_df %>%
   # Clean up the Label for readability
   mutate(Label = gsub("_", " ", Label))
 
-print(summary_table)
+summary_table
 ```
-eins 
-### How many signficant proteins from MSstats pipeline did the limma pipeline detect as present?
+
+## How many signficant proteins from MSstats pipeline did the limma pipeline detect as present?
+
 ```{r}
+#Filter for signficant msstats proteins and check if detected by Millie
 msstats_sig_analysis <- comparison_df %>%
   filter(Status_msstats != "Not Significant") %>%
   mutate(
     Detected_by_Millie = ifelse(!is.na(log2FC_limma), "Yes", "No")
   )
 
-# 2. Summarize the findings per comparison
+# Summarize the findings per comparison
 detection_overlap <- msstats_sig_analysis %>%
   group_by(Label, Detected_by_Millie) %>%
   tally(name = "Protein_Count") %>%
@@ -337,7 +360,10 @@ print(detection_overlap)
 
 ### What were the signficant proteins that were detected in the limma analysis but not msstats?
 
-These proteins all seem like very solid candidates
+These proteins all seem like very solid candidates.
+
+Limma seems to be more powerful for the near vs far comparison
+
 ```{r}
 limma_exclusive_sig <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
@@ -347,27 +373,27 @@ limma_exclusive_sig <- comparison_df %>%
          log2FC_msstats, adj.pvalue_msstats) %>%
   arrange(adj.pvalue_limma)
 
-# View the proteins
-print(limma_exclusive_sig)
+limma_exclusive_sig
 ```
 
-### check for how many msstats were FDR <0.05 but < 0.5 log2FC
+### Check for how many MSstats proteins were FDR \<0.05 but \< 0.5 log2FC
+
 ```{r}
-check_cutoffs <- comparison_df %>%
+check_cutoffs_msstats <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(adj.pvalue_msstats < 0.05 & Status_msstats == "Not Significant") %>%
   select(Gene, log2FC_msstats, adj.pvalue_msstats)
 
-print(check_cutoffs)
+check_cutoffs_msstats
 ```
 
-### check for how many msstats were FDR <0.05 but < 0.5 log2FC
+### Check for how many limma proteins were FDR \<0.05 but \< 0.5 log2FC
+
 ```{r}
-check_cutoffs <- comparison_df %>%
+check_cutoffs_limma <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(adj.pvalue_msstats < 0.05 & Status_limma == "Not Significant") %>%
   select(Gene, log2FC_limma, adj.pvalue_limma)
 
-print(check_cutoffs)
+check_cutoffs_limma
 ```
-
