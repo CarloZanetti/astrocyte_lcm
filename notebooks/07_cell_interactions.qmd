@@ -47,13 +47,6 @@ lr_with_evidence <- lr_network %>%
     mutate(paper_count = nchar(as.character(references)) - nchar(gsub(";", "", as.character(references))) + 1) %>%
     # Replace NAs with 0
     mutate(across(c(curation_count, paper_count), ~replace_na(.x, 0)))
-
-lr_with_evidence
-# ) %>% 
-#   # Keep only the gene symbols for the ligand (source) and receptor (target)
-#   select(source_genesymbol, target_genesymbol) %>%
-#   distinct() %>%
-#   rename(Ligand = source_genesymbol, Receptor = target_genesymbol)
 ```
 ## Reaad in msstats results 
 ```{r}
@@ -114,7 +107,7 @@ all_cross_talk <- lr_with_evidence %>%
 
 ```
 
-##Extract co-upregulated pairs per comparison
+## Extract co-upregulated pairs per comparison
 ```{r}
 co_upregulated_all <- all_cross_talk %>%
   filter(logFC_Ligand > 0 & logFC_Receptor > 0) %>%
@@ -126,7 +119,7 @@ co_upregulated_all <- all_cross_talk %>%
 co_upregulated_all
 ```
 
-## check number of interactions for each comparison
+## comparison of number of interactions for each comparison
 ```{r}
 interaction_summary <- co_upregulated_all %>%
   count(Label, name = "Significant_Interactions")
@@ -134,7 +127,7 @@ print(interaction_summary)
 #aplp2 cd14
 
 ```
-
+## Plaque near vs control l-r interactions
 ```{r}
 near_vs_ctrl <- all_cross_talk %>% 
   filter(Label == "PlaqueNear_vs_Control") %>%

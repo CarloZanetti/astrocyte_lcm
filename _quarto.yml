@@ -8,6 +8,9 @@ project:
     - "!notebooks/02a_msstats.qmd"
     - "!notebooks/02b_msstats_plots.qmd"
 
+execute:
+  freeze: auto
+  
 website:
   title: "Millie's Proteomics Project"
   sidebar:

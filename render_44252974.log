@@ -91,9 +91,9 @@ processing file: 07_cell_interactions.qmd
 4/19 [unnamed-chunk-2]
 5/19                  
 6/19 [unnamed-chunk-3]
-[31m[2026-03-13 18:02:11] [SUCCESS] [OmnipathR] Loaded 139054 interactions from cache.
-[39m[31m[2026-03-13 18:02:12] [SUCCESS] [OmnipathR] Loaded 15663 intercellular communication role records from cache.
-[39m[31m[2026-03-13 18:02:12] [SUCCESS] [OmnipathR] Loaded 35316 intercellular communication role records from cache.
+[31m[2026-03-13 20:05:42] [SUCCESS] [OmnipathR] Loaded 139054 interactions from cache.
+[39m[31m[2026-03-13 20:05:42] [SUCCESS] [OmnipathR] Loaded 15663 intercellular communication role records from cache.
+[39m[31m[2026-03-13 20:05:42] [SUCCESS] [OmnipathR] Loaded 35316 intercellular communication role records from cache.
 [39m7/19                  
 8/19 [unnamed-chunk-4]
 9/19                  
