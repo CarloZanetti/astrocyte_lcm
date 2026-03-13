@@ -2,8 +2,8 @@
 
 ## Project Overview
 Analysis of Laser Capture Microdissection (LCM) proteomics samples.
-- **Run Number:** 01
-- **Date:** 2026-02-24
+- **Run Number:** 03
+- **Date:** 2026-03-13
 
 [📊 Project Website](https://CarloZanetti.github.io/astrocyte_lcm/)
 
@@ -12,7 +12,7 @@ Analysis of Laser Capture Microdissection (LCM) proteomics samples.
 - `docs/`: Rendered HTML website for viewing results.
 - `scripts/`: Modular R/Python scripts.
 - `data/`: (Not synced to GitHub) Raw and processed data stored at `/camp/home/zanettc/home/shared/zanettc/millie_proteomics/data
-`.
+- `archive`: Rendered PDFs from Run1
 
 ## Reproducibility
 This project uses `renv`. To restore the environment, run:

@@ -1,5 +1,5 @@
 ---
-title: "DAA marker check"
+title: "1b: DAA marker check"
 ---
 
 ## Libraries
@@ -118,21 +118,55 @@ ab_check_data <- msstats_clean %>%
   ) %>%
   mutate(Log2_Intensity = log2(Total_Intensity + 1))
 
-# Generate the facet plot to expose the batch swap
+
+# 1. Clean up the data labels (Factor names)
+ab_check_data$Condition <- factor(ab_check_data$Condition, 
+                                  levels = c("control", "plaque_far", "plaque_near"),
+                                  labels = c("Control", "Plaque Far", "Plaque Near"))
+
+# 2. Update the plot
 p_ab_check <- ggplot(ab_check_data, aes(x = Condition, y = Log2_Intensity, fill = Condition)) +
   geom_boxplot(outlier.shape = NA, alpha = 0.7) +
   geom_jitter(width = 0.2, alpha = 0.8) +
-  facet_wrap(~ Batch, scales = "free_y") + 
+  facet_wrap(~ Batch, scales = "free_y", labeller = label_both) + 
   theme_minimal() +
-  scale_fill_manual(values = c("control" = "#1b9e77", "plaque_near" = "#d95f02", "plaque_far" = "#7570b3")) +
+  theme(
+    legend.position = "top",
+    legend.justification = "center",
+    # Bold and larger Batch labels
+    strip.text = element_text(face = "bold", size = 12),
+    
+    # Bold Axis Titles
+    axis.title.x = element_text(face = "bold", size = 12, margin = margin(t = 10)),
+    axis.title.y = element_text(face = "bold", size = 12, margin = margin(r = 10)),
+    
+    # Smaller, tilted X-axis labels to prevent overlap
+    axis.text.x = element_text(size = 9, angle = 45, vjust = 1, hjust = 1),
+    axis.text.y = element_text(size = 10),
+    
+    # Larger Legend
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.key.size = unit(1.2, "lines"),
+    
+    # Remove plot title
+    plot.title = element_blank()
+  ) +
+  # Map colors to the new "text-friendly" label names
+  scale_fill_manual(values = c(
+    "Control" = "#1b9e77", 
+    "Plaque Far" = "#7570b3",
+    "Plaque Near" = "#d95f02"
+  )) +
   labs(
-    title = "Amyloidome Verification: Aβ Tryptic Peptide",
     x = "Labelled Condition",
-    y = "Log2(Aβ Peptide Intensity)"
+    y = "Log2(AB Peptide Intensity)",
+    fill = "Condition"
   )
 
-# Save the plot
-ggsave(file.path(results_dir, "AB_Peptide_Batch_Verification.pdf"), p_ab_check, width = 10, height = 6)
 print(p_ab_check)
+
+# Save the plot
+ggsave(file.path(results_dir, "AB_Peptide_Batch_Verification.pdf"), p_ab_check, width = 6, height = 6)
 ```
 

@@ -21,7 +21,7 @@ library(ggrepel)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run1"
+run_num <- "run3"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -35,7 +35,7 @@ dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
 ```{r}
 #Map protein IDs to readable gene IDs
 processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
-protein_dict <- fread(file.path(objects_dir, "clean_spec_raw.csv")) %>%
+protein_dict <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv")) %>%
   select(Protein = PG.ProteinGroups, Gene = PG.Genes) %>%
   distinct()
 
@@ -54,16 +54,16 @@ wide_df <- processed_data$ProteinLevelData %>%
   column_to_rownames("originalRUN")
 ```
 
-## Correlate gene levels to Gfap
+## Correlate gene (protein) levels to Gfap
 
 ```{r}
-final_clean_meta <- read.csv(file.path(objects_dir, "msstats_annotation.csv"))
+final_clean_meta <- read.csv(file.path(base_dir,"data/processed/run1/msstats_annotation.csv"))
 plaque_near_runs <- final_clean_meta$Run[final_clean_meta$Condition == "plaque_near"]
 
 # Subset the data to just plaque near samples
 pn_data <- wide_df[rownames(wide_df) %in% plaque_near_runs, ]
 
-#calculate R between every gene's abundance and GFAP. 
+#calculate R between every protein's abundance and GFAP. 
 pn_gfap_cors <- data.frame(Gene = colnames(pn_data)) %>%
   mutate(
     Pearson_R = sapply(Gene, function(x) {
@@ -75,7 +75,32 @@ pn_gfap_cors <- data.frame(Gene = colnames(pn_data)) %>%
   filter(!is.na(Pearson_R)) %>%
   arrange(desc(Pearson_R))
 
-# View the top 20
-#seems to just be garbage genes
-head(pn_gfap_cors, 20)
+pn_gfap_cors
+
+write.csv(pn_gfap_cors, file.path(objects_dir, "gfap_correlation.csv"))
 ```
+
+## View Cd44 correlation with Gfap
+```{r}
+pn_gfap_cors %>% filter(Gene == "Cd44")
+```
+
+## correlate proteins to Cd44
+
+```{r}
+pn_cd44_cors <- data.frame(Gene = colnames(pn_data)) %>%
+  mutate(
+    Pearson_R = sapply(Gene, function(x) {
+      if(sum(!is.na(pn_data$Cd44) & !is.na(pn_data[[x]])) > 3) {
+        cor(pn_data$Cd44, pn_data[[x]], use = "pairwise.complete.obs")
+      } else { NA }
+    })
+  ) %>%
+  filter(!is.na(Pearson_R)) %>%
+  arrange(desc(Pearson_R))
+
+pn_cd44_cors
+
+write.csv(pn_cd44_cors, file.path(objects_dir, "cd44_correlation.csv"))
+```
+

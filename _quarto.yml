@@ -5,34 +5,29 @@ project:
     - "**/*.qmd"  # The double asterisk tells it to check subfolders
     - "!notebooks/test_normalisation.qmd"
     - "!notebooks/megena.qmd"
-    - "!notebooks/02_msstats.qmd"
+    - "!notebooks/02a_msstats.qmd"
+    - "!notebooks/02b_msstats_plots.qmd"
 
 website:
   title: "Millie's Proteomics Project"
   sidebar:
     style: "docked"
     contents:
-      - section: "Initial QC"
-        contents:
-          - notebooks/01a_initial_qc_spectronaut.qmd
-      - section: "DAA marker check"
-        contents:
-          - notebooks/01b_DAA_marker_check.qmd
+      - text: "1a. Initial QC"
+        file: notebooks/01a_initial_qc_spectronaut.qmd
+      - text: "1b. DAA marker check"
+        file: notebooks/01b_DAA_marker_check.qmd
       # - section: "MS stats "
       #   contents:
       #     - notebooks/02_msstats.qmd
-      - section: "DE plots"
-        contents: 
-          - notebooks/03_DE_plots.qmd
-      - section: "GSEA"
-        contents:
-          - notebooks/04_gsea.qmd
-      - section: "GFAP correlation"
-        contents:
-          - notebooks/05_gfap_correlation.qmd
-      - section: "Concordance between limma and MSstats"
-        contents:
-          - notebooks/06_msstats_limma_correlation.qmd
+      - text: "3. DE plots"
+        file: notebooks/03_DE_plots.qmd
+      - text: "4. GSEA"
+        file: notebooks/04_gsea.qmd
+      - text: "5. GFAP correlation"
+        file: notebooks/05_gfap_correlation.qmd
+      - text: "6. Concordance between limma and MSstats"
+        file: notebooks/06_msstats_limma_correlation.qmd
 format:
   html:
     theme: cosmo

@@ -3,7 +3,11 @@ title: "LCM Proteomics Pipeline"
 ---
 
 Documentation for Millie's Proteomics project. 
-This site tracks the processing of LCM samples from initial QC to Differential abundance anlaysis. 
+This site tracks the processing of LCM samples from initial QC to Differential abundance analysis. 
+
+## Update Parameter changes (run3) - 13/03/26
+Updated data filtering criteria to be more stringent:
+* **Filtering Rule:** Proteins must have ≥ 50% non-missing values in at least one condition, ensuring that differential abundance analysis is on robustly detected features. 
 
 ### Pipeline Stages
 
@@ -13,3 +17,4 @@ This site tracks the processing of LCM samples from initial QC to Differential a
 4. [GSEA](notebooks/04_gsea.qmd)
 5. [GFAP correlation](notebooks/05_gfap_correlation.qmd)
 6. [MSstats limma correlation](notebooks/06_msstats_limma_correlation.qmd)
+

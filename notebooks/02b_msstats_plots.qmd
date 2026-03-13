@@ -1,0 +1,271 @@
+---
+title: "MSstats plots"
+format: html
+editor: visual
+---
+
+## Libraries
+
+```{r}
+library(data.table)
+library(MSstats)
+library(qs2)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(stringr)
+library(glue)
+```
+
+## Directories
+
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run3"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+raw_dir <- file.path(base_dir, "data", "raw")
+millie_dir <- file.path(base_dir, "data", "processed_millie")
+
+
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+# Read in processed MSstats results
+
+```{r}
+msstats_results <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
+msstats_comparison <- qs_read(file.path(objects_dir, "comparison_results.qs2"))
+millie_combined <- fread(file.path(millie_dir, "millie_combined.csv"))
+```
+
+## Map protein IDs to genes
+
+```{r}
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
+
+protein_dictionary <- clean_spec_raw %>%
+  select(PROTEIN = PG.ProteinGroups, 
+         Gene = PG.Genes, 
+         Description = PG.ProteinDescriptions) %>%
+  distinct()
+
+msstats_results$FeatureLevelData
+# Update feature level data for profile plots
+msstats_results$FeatureLevelData <- msstats_results$FeatureLevelData %>%
+  left_join(protein_dictionary, by = "PROTEIN") %>%
+  mutate(PROTEIN = ifelse(!is.na(Gene), paste(Gene, PROTEIN, sep = "_"), PROTEIN)) %>%
+  select(-Gene)
+
+
+
+#Update ProteinLevelData -> necessary for condition plots
+msstats_results$ProteinLevelData <- msstats_results$ProteinLevelData %>%
+  left_join(protein_dictionary, by = c("Protein" = "PROTEIN")) %>%
+  mutate(Protein = ifelse(!is.na(Gene) & Gene != "", 
+                          paste(Gene, Protein, sep = "_"), 
+                          Protein)) %>%
+  select(-Gene)
+
+
+#update comparison object  
+msstats_comparison$ComparisonResult <- msstats_comparison$ComparisonResult %>%
+  mutate(Protein = as.character(Protein)) %>% # Convert to character to join/edit
+  rename(PROTEIN = Protein) %>%
+  left_join(protein_dictionary, by = "PROTEIN") %>%
+  mutate(PROTEIN = ifelse(!is.na(Gene), 
+                          paste(Gene, PROTEIN, sep = "_"), 
+                          PROTEIN)) %>%
+  select(-Gene) %>%
+  rename(Protein = PROTEIN) %>%
+  mutate(Protein = factor(Protein))
+
+#update ModelQC object
+msstats_comparison$ModelQC <- msstats_comparison$ModelQC %>%
+  mutate(Protein = as.character(Protein)) %>% # Convert to character to join/edit
+  left_join(protein_dictionary, by = c("Protein" = "PROTEIN")) %>%
+  mutate(Protein = ifelse(!is.na(Gene) & Gene != "", 
+                          paste(Gene, Protein, sep = "_"), 
+                          Protein)) %>%
+  select(-Gene, -Description) %>%
+  mutate(Protein = factor(Protein))
+```
+
+## Get significant Millie genes for Plaque Near vs Far
+
+```{r}
+sig_limma_genes <- millie_combined %>%
+  filter(Label == "PlaqueNear_vs_PlaqueFar" & Status_limma != "Not Significant") %>%
+  pull(Gene)
+
+target_ids <- protein_dictionary %>%
+  filter(Gene %in% sig_limma_genes) %>%
+  mutate(Combined = paste(Gene, PROTEIN, sep = "_")) %>%
+  pull(Combined)
+
+```
+
+## Visualisation of processed data
+
+### QC profile and condition plots
+
+```{r}
+# Condition Plot: Visualizes the mean and 95% CI per condition
+limma_path <- file.path(results_dir, "msstats_plots", "limma")
+dir.create(pdf_path, recursive = TRUE, showWarnings = FALSE)
+
+pdf_path <- file.path(results_dir, "msstats_plots",  "limma", "ConditionPlot.pdf")
+pdf(pdf_path, width = 10, height = 7)
+
+# Loop through your specific target IDs
+for (prot in target_ids) {
+  if (!(prot %in% msstats_results$ProteinLevelData$Protein)) {
+    message("Skipping ConditionPlot for: ", prot, " - Not found in msstats_results.")
+    next 
+  }
+
+  dataProcessPlots(data = msstats_results,
+                   type = "Conditionplot",
+                   which.Protein = prot, # This MUST be a single string from your vector
+                   address = FALSE)      # Plots to the open 'pdf' device
+}
+dev.off()
+
+# QC plot
+
+pdf_path <- file.path(results_dir, "msstats_plots",  "limma", "qc_summaries.pdf")
+pdf(pdf_path, width = 10, height = 7)
+for (prot in target_ids) {
+  if (!(prot %in% msstats_results$ProteinLevelData$Protein)) {
+    message("Skipping ConditionPlot for: ", prot, " - Not found in msstats_results.")
+    next 
+  }
+  dataProcessPlots(data = msstats_results,
+                   type = "QCplot",
+                   which.Protein = prot,
+                   address = FALSE)
+}
+dev.off()
+
+#Profile Plot: Shows individual feature trends
+pdf_path <- file.path(results_dir, "msstats_plots",  "limma", "profile_features.pdf")
+pdf(pdf_path, width = 10, height = 7)
+
+for (prot in target_ids) {
+  if (!(prot %in% msstats_results$ProteinLevelData$Protein)) {
+    message("Skipping ConditionPlot for: ", prot, " - Not found in msstats_results.")
+    next 
+  }
+  dataProcessPlots(data = msstats_results,
+                   type = "Profileplot",
+                   which.Protein = prot,
+                   address = FALSE)
+  }
+dev.off()
+  
+#Profile Plot: Shows individual peptide trends
+pdf_path <- file.path(results_dir, "msstats_plots",  "limma", "profile_peptides.pdf")
+
+pdf(pdf_path, width = 10, height = 7)
+
+for (prot in target_ids) {
+  if (!(prot %in% msstats_results$ProteinLevelData$Protein)) {
+    message("Skipping ConditionPlot for: ", prot, " - Not found in msstats_results.")
+    next 
+  }
+  dataProcessPlots(data = msstats_results,
+                   type = "Profileplot",
+                   featureName = "peptide",
+                   which.Protein = prot,
+                   address = FALSE)
+  }
+dev.off()
+```
+
+# Model-based analysis plots
+
+Linear mixed effect models make two big assumptions:
+
+1.  Errors are normally distributed
+2.  Variance is constant
+
+Ensures that signficant proteins aren't statistical artifacts
+
+Generated custom plots as have gene names + proteins labelled here for easy checking
+
+## Generate custom residual plots
+
+Residuals should be random
+
+```{r}
+pdf_path_res <- file.path(results_dir, "msstats_plots", "limma", "custom_residual_plots.pdf")
+pdf(pdf_path_res, width = 10, height = 7)
+
+for (prot in target_ids) {
+  # Filter data for the current protein
+  prot_data <- msstats_comparison$ModelQC %>% 
+    filter(Protein == prot)
+  
+  # Safety check: skip to the next protein if no data is found
+  if (nrow(prot_data) == 0) {
+    message("No ModelQC data found for: ", prot, " - Skipping.")
+    next
+  }
+  
+  message("Plotting Custom Residuals for: ", prot)
+  
+  # Build the residual plot
+  p_res <- ggplot(prot_data, aes(x = fitted, y = residuals)) +
+    geom_point(alpha = 0.6, size = 2.5, color = "dimgrey") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "darkred", linewidth = 0.8) +
+    labs(title = paste("Residual Plot:", prot), 
+         x = "Predicted Abundance (Fitted)", 
+         y = "Residuals") +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold", size = 14, hjust = 0.5))
+  
+  # print to the open PDF device
+  print(p_res)
+}
+dev.off()
+```
+
+## QQ plots
+
+Checks normal distribution
+
+```{r}
+pdf_path_qq <- file.path(results_dir, "msstats_plots", "limma", "custom_qq_plots.pdf")
+pdf(pdf_path_qq, width = 10, height = 7)
+
+for (prot in target_ids) {
+  # Filter data for the current protein
+  prot_data <- msstats_comparison$ModelQC %>% 
+    filter(Protein == prot)
+  #safety check
+  if (nrow(prot_data) == 0) next
+  
+  message("Plotting Custom QQ for: ", prot)
+  
+  # Build the qq plot
+  p_qq <- ggplot(prot_data, aes(sample = residuals)) +
+    stat_qq(alpha = 0.6, size = 2.5, color = "dimgrey") +
+    stat_qq_line(color = "dodgerblue", linewidth = 0.8) +
+    labs(title = paste("QQ Plot:", prot),
+         x = "Theoretical Quantiles",
+         y = "Sample Quantiles") +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold", size = 14, hjust = 0.5))
+  
+  # print to the open PDF device
+  print(p_qq)
+}
+dev.off()
+
+
+
+msstats_results$ProteinLevelData
+```

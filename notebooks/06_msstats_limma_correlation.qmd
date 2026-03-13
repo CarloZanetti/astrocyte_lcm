@@ -1,5 +1,5 @@
 ---
-title: "06_msstats_limma_correlation"
+title: "06: MSstats limma correlation"
 format: html
 ---
 
@@ -55,7 +55,7 @@ library(stringr)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run1"
+run_num <- "run3"
 results_dir <- file.path(base_dir, "results", run_num)
 
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -68,7 +68,7 @@ millie_n_v_c <- read.csv(file.path(millie_dir, "limma_all_proteins_Plaque_near_v
 millie_n_v_f <- read.csv(file.path(millie_dir, "limma_all_proteins_Plaque_near_vs_Far.csv"))
 
 res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
-clean_spec_raw <- fread(file.path(objects_dir, "clean_spec_raw.csv"))
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
 
 ```
 
@@ -107,7 +107,9 @@ msstats_ready <- res_df %>%
   ungroup()
 
 
-msstats_ready
+msstats_ready %>% 
+  filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
+  filter(log2FC > 0.5 & adj.pvalue < 0.05)
 ```
 
 ## Combine millie's dataframes into a mega merged one
@@ -134,6 +136,8 @@ millie_combined <- bind_rows(
   select(Gene, Label, log2FC_limma, adj.pvalue_limma, Status_limma)
 
 millie_combined
+
+write.csv(millie_combined, file.path(millie_dir, "millie_combined.csv"))
 ```
 
 ## combine both msstats and limma dataframes
@@ -154,7 +158,7 @@ comparison_df <- msstats_ready %>%
 # Preview the overlap
 table(comparison_df$Status_msstats, comparison_df$Status_limma)
 
-comparison_df
+comparison_df %>% filter(Gene== "Cd44")
 ```
 
 ## Plot concordance results
@@ -376,6 +380,29 @@ limma_exclusive_sig <- comparison_df %>%
 limma_exclusive_sig
 ```
 
+### What were the signficant proteins that were detected in the msstats analysis but not limma?
+
+```{r}
+msstats_exclusive_sig <- comparison_df %>%
+  filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
+  filter(Status_limma == "Not Significant" & Status_msstats != "Not Significant") %>%
+  select(Gene, 
+         log2FC_limma, adj.pvalue_limma, 
+         log2FC_msstats, adj.pvalue_msstats) %>%
+  arrange(adj.pvalue_limma)
+
+msstats_exclusive_sig
+```
+
+
+```{r}
+msstats_exclusive_sig %>%
+  pull(Gene)
+```
+
+
+
+
 ### Check for how many MSstats proteins were FDR \<0.05 but \< 0.5 log2FC
 
 ```{r}
@@ -393,7 +420,12 @@ check_cutoffs_msstats
 check_cutoffs_limma <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(adj.pvalue_msstats < 0.05 & Status_limma == "Not Significant") %>%
-  select(Gene, log2FC_limma, adj.pvalue_limma)
+  select(Gene, log2FC_limma, adj.pvalue_limma, log2FC_msstats, adj.pvalue_msstats)
 
 check_cutoffs_limma
+```
+
+
+```{r}
+ 
 ```

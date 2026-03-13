@@ -8,6 +8,7 @@ title: "ms_stats_initial"
 knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
 library(data.table)
 library(MSstats)
+options(MSstatsLog = "ERROR")
 library(qs2)
 library(dplyr)
 library(ggplot2)
@@ -19,7 +20,7 @@ library(stringr)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run1"
+run_num <- "run3"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -46,13 +47,13 @@ dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
 ## Read in .qs2 object
 
 ```{r}
-raw_spectronaut <- qs_read(file.path(objects_dir, "msstats_report.qs2"))
+raw_spectronaut <- qs_read(file.path(base_dir, "data/processed/run1/msstats_report.qs2"))
 ```
 
 ## Read in metadata
 
 ```{r}
-clean_meta <- fread(file.path(objects_dir, "clean_metadata.csv"))
+clean_meta <- fread(file.path(base_dir, "data/processed/run1/clean_metadata.csv"))
 ```
 
 ## Map msstats filenames to Metadata
@@ -163,7 +164,26 @@ cat("Remaining rows in MSstats data:", nrow(final_msstats_input), "\n")
 qs_save(final_msstats_input, file.path(objects_dir, "final_msstats_input.qs2"))
 fwrite(msstats_annotation, file.path(objects_dir, "msstats_annotation.csv"))
 
+
 ```
+
+
+##Rerun - load data and make directories
+```{r}
+final_msstats_input <- qs_read(file.path(objects_dir, "final_msstats_input.qs2"))
+msstats_annotation <- fread(file.path(objects_dir, "msstats_annotation.csv"))
+
+run_num <- "run3"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+
+
 
 ## Convert to MSstats format
 
@@ -177,21 +197,62 @@ msstats_input <- SpectronauttoMSstatsFormat(
   fewMeasurements = "remove",   # Drops peptides with too few data points to model
   removeProtein_with1Feature = FALSE # Keep single-peptide proteins if desired
 )
+qs_save(msstats_input, file.path(objects_dir, "msstats_input.qs2"))
 ```
+
+## input filtering at the condition level
+```{r}
+msstats_input <- qs_read(file.path(objects_dir, "msstats_input.qs2"))
+
+# 1. Convert to a standard data frame
+input_df <- as.data.frame(msstats_input)
+
+# 2. Set threshold
+threshold <- 0.5
+
+# 3. Filter and join with the extra "Condition" key to prevent many-to-many errors
+msstats_input_filtered <- input_df %>%
+  group_by(ProteinName, PeptideSequence, PrecursorCharge, FragmentIon, ProductCharge, Condition) %>%
+  summarize(
+    n_obs = sum(!is.na(Intensity) & Intensity > 0),
+    n_total = n(),
+    prop = n_obs / n_total,
+    .groups = "drop"
+  ) %>%
+  # Keep features that meet the 30% threshold in AT LEAST one condition
+  group_by(ProteinName, PeptideSequence, PrecursorCharge, FragmentIon, ProductCharge) %>%
+  filter(any(prop >= threshold)) %>%
+  ungroup() %>%
+  # Join back using ALL keys including Condition to ensure 1-to-1 matching
+  inner_join(input_df, by = c("ProteinName", "PeptideSequence", "PrecursorCharge", 
+                              "FragmentIon", "ProductCharge", "Condition"))
+
+# Diagnostic
+message("Original Rows: ", nrow(input_df))
+message("Filtered Rows: ", nrow(msstats_input_filtered))
+
+```
+
+
+
+
+
+
 
 ## Data summarisation and normalisation
 
 ```{r}
 # Roll up the peptide intensities to protein-level abundances
+
 processed_data <- dataProcess(
-  msstats_input,
-  normalization = "equalizeMedians", # Matches the paper's median intensity normalization
-  summaryMethod = "TMP",             # Robust summarization
-  censoredInt = "NA",                # Spectronaut outputs NA for missing/below LOD
-  MBimpute = FALSE,                  # IMPROVEMENT: Do not blindly impute missing values to avoid over-interpretation
-  featureSubset = "highQuality",     # IMPROVEMENT: Drop noisy peptides before summarizing
-  remove_uninformative_feature_outlier = TRUE # Helps clean up LCM noise
-)
+  msstats_input_filtered,
+  normalization = "equalizeMedians",
+  summaryMethod = "TMP",
+  censoredInt = "NA",
+  MBimpute = FALSE,
+  featureSubset = "highQuality",
+  remove_uninformative_feature_outlier = TRUE
+  )
 
 # Save the processed object 
 qs_save(processed_data, file.path(objects_dir, "processed_msstats_data.qs2"))
@@ -224,6 +285,8 @@ colnames(comparison_matrix) <- condition_levels
 
 # Run linear mixed-effects model across all proteins
 test_results <- groupComparison(contrast.matrix = comparison_matrix, data = processed_data)
+
+qs_save(test_results, file.path(objects_dir, "comparison_results.qs2"))
 
 # Extract the results table
 res_df <- test_results$ComparisonResult

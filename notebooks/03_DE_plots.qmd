@@ -11,13 +11,14 @@ library(qs2)
 library(dplyr)
 library(ggplot2)
 library(ggrepel)
+library(MSstats)
 ```
 
 ## Directories
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run1"
+run_num <- "run3"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -37,7 +38,7 @@ res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
 ## Mapping protein IDs to gene names
 
 ```{r}
-clean_spec_raw <- fread(file.path(objects_dir, "clean_spec_raw.csv"))
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
 
 protein_dictionary <- clean_spec_raw %>%
   select(Protein = PG.ProteinGroups, 
@@ -56,7 +57,7 @@ volcano_cols <- c("Upregulated" = "firebrick3",
                   "Downregulated" = "navy", 
                   "Not Significant" = "grey80")
 
-generate_swanky_volcano <- function(msstats_results, dict, comparison_label, logfc_cutoff = 0.58, graphs_dir = "results") {
+generate_swanky_volcano <- function(msstats_results, dict, comparison_label, logfc_cutoff = 0.5, graphs_dir = "results") {
   
   # --- Data Processing ---
   volcano_data <- msstats_results %>%
@@ -161,7 +162,7 @@ for (comp in all_comparisons) {
     msstats_results = res_df, 
     dict = protein_dictionary, 
     comparison_label = comp, 
-    logfc_cutoff = 0.58, 
+    logfc_cutoff = 0.5, 
     graphs_dir = results_dir
   )
   
@@ -222,4 +223,3 @@ p_abundance <- ggplot(abundance_data, aes(x = GROUP, y = LogIntensities, fill = 
 # Print the plot
 print(p_abundance)
 ```
-
