@@ -1,0 +1,148 @@
+---
+title: "07_cell_cell_interactions"
+format: html
+---
+
+```{r}
+library(OmnipathR)
+library(dplyr)
+library(tidyr)
+library(data.table)
+library(qs2)
+```
+
+## Set directories
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run3"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+raw_dir <- file.path(base_dir, "data", "raw")
+
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## Retrieve intercellullar communication database
+```{r}
+lr_network <- intercell_network(
+  transmitter_param = list(categories = c('ligand')),
+  receiver_param = list(categories = c('receptor')),
+  resources = NULL,
+  references_by_resource = TRUE)
+
+lr_with_evidence <- lr_network %>%
+    select(
+        Ligand = source_genesymbol, 
+        Receptor = target_genesymbol, 
+        sources, 
+        references
+    ) %>%
+    distinct() %>%
+    # Count how many databases confirm this interaction
+    mutate(curation_count = nchar(as.character(sources)) - nchar(gsub(";", "", as.character(sources))) + 1) %>%
+    # Count how many individual PMIDs (papers) support it
+    mutate(paper_count = nchar(as.character(references)) - nchar(gsub(";", "", as.character(references))) + 1) %>%
+    # Replace NAs with 0
+    mutate(across(c(curation_count, paper_count), ~replace_na(.x, 0)))
+
+lr_with_evidence
+# ) %>% 
+#   # Keep only the gene symbols for the ligand (source) and receptor (target)
+#   select(source_genesymbol, target_genesymbol) %>%
+#   distinct() %>%
+#   rename(Ligand = source_genesymbol, Receptor = target_genesymbol)
+```
+## Reaad in msstats results 
+```{r}
+res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
+
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
+
+protein_dictionary <- clean_spec_raw %>%
+  select(Protein = PG.ProteinGroups, 
+         Gene = PG.Genes, 
+         Description = PG.ProteinDescriptions) %>%
+  distinct()
+
+msstats_results <- res_df %>%
+  # handle NAs
+  filter(!is.na(adj.pvalue), is.finite(log2FC)) %>%
+  
+  # Join with dictionary
+  left_join(protein_dictionary, by = "Protein") %>%
+  
+  # Clean up Gene names and define significance
+  mutate(
+    # Fallback to Protein ID if Gene name is missing or empty
+    #Change to upper case to match with human gene symbols
+    Gene = toupper(ifelse(is.na(Gene) | Gene == "", Protein, Gene)),
+  )
+```
+
+## Create ligand and receptor dataframes
+```{r}
+#Ligands data
+ligands_data <- msstats_results %>%
+  select(Label, Ligand = Gene, logFC_Ligand = log2FC, pval_Ligand = adj.pvalue)
+
+#Receptor data
+receptors_data <- msstats_results %>%
+  select(Label, Receptor = Gene, logFC_Receptor = log2FC, pval_Receptor = adj.pvalue)
+```
+
+## Multi-comparison merge
+Join network with ligands, then join with receptors matching botht he receptor name and the label.
+Ensures evaluating ligand X and receptor Y within the same MSstats comparison
+
+```{r}
+
+all_cross_talk <- lr_with_evidence %>%
+  #keeps only rows that exist in both
+  inner_join(ligands_data, by = "Ligand", relationship = "many-to-many") %>%
+  #match both receptor name and the label (condition of interest) - keeps only rows where the recieving recedptor was also detected, in that specific condition
+  inner_join(receptors_data, by = c("Receptor", "Label")) %>%
+  # Filter to keep only rows where BOTH proteins were detected and statistically significant
+  filter(pval_Ligand < 0.05 & pval_Receptor < 0.05) %>%
+  arrange(desc(curation_count))
+
+#4839 length when inner joining to ligand
+#2135 length when inner joining to receptor and label too.
+#147 legnth when filtering to sig for both. 
+
+```
+
+##Extract co-upregulated pairs per comparison
+```{r}
+co_upregulated_all <- all_cross_talk %>%
+  filter(logFC_Ligand > 0 & logFC_Receptor > 0) %>%
+  group_by(Label) %>%
+  arrange(desc(logFC_Ligand + logFC_Receptor)) %>%
+  ungroup() %>%
+  select(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)
+
+co_upregulated_all
+```
+
+## check number of interactions for each comparison
+```{r}
+interaction_summary <- co_upregulated_all %>%
+  count(Label, name = "Significant_Interactions")
+print(interaction_summary)
+#aplp2 cd14
+
+```
+
+```{r}
+near_vs_ctrl <- all_cross_talk %>% 
+  filter(Label == "PlaqueNear_vs_Control") %>%
+  filter(pval_Ligand <0.05 & pval_Receptor <0.05) %>%
+  arrange(desc(abs(logFC_Ligand + logFC_Receptor))) %>%
+  select(-c(sources, references))
+
+near_vs_ctrl
+
+```
+

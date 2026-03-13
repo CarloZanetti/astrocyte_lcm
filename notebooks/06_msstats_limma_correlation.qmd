@@ -49,6 +49,10 @@ library(ggplot2)
 library(ggrepel)
 library(purrr)
 library(stringr)
+library(clusterProfiler)
+library(org.Mm.eg.db)
+library(enrichplot)
+library(ggVennDiagram)
 ```
 
 ## Read in limma and msstats objects
@@ -76,7 +80,7 @@ clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.
 
 ```{r}
 protein_dictionary <- clean_spec_raw %>%
-  select(Protein = PG.ProteinGroups, 
+  dplyr::select(Protein = PG.ProteinGroups, 
          Gene = PG.Genes, 
          Description = PG.ProteinDescriptions) %>%
   distinct()
@@ -122,18 +126,18 @@ millie_combined <- bind_rows(
   millie_n_v_c %>% mutate(Label = "PlaqueNear_vs_Control"),
   millie_n_v_f %>% mutate(Label = "PlaqueNear_vs_PlaqueFar")
 ) %>%
-  rename(
-    log2FC_limma = logFC,
-    adj.pvalue_limma = adj.P.Val
-  ) %>%
-  mutate(
-    Status_limma = case_when(
-      adj.pvalue_limma < 0.05 & log2FC_limma > 0.5 ~ "Upregulated",
-      adj.pvalue_limma < 0.05 & log2FC_limma < -0.5 ~ "Downregulated",
-      TRUE ~ "Not Significant"
-    )
-  ) %>%
-  select(Gene, Label, log2FC_limma, adj.pvalue_limma, Status_limma)
+dplyr::rename(
+  log2FC_limma = logFC,
+  adj.pvalue_limma = adj.P.Val
+) %>%
+mutate(
+  Status_limma = case_when(
+    adj.pvalue_limma < 0.05 & log2FC_limma > 0.5 ~ "Upregulated",
+    adj.pvalue_limma < 0.05 & log2FC_limma < -0.5 ~ "Downregulated",
+    TRUE ~ "Not Significant"
+  )
+) %>%
+dplyr::select(Gene, Label, log2FC_limma, adj.pvalue_limma, Status_limma)
 
 millie_combined
 
@@ -144,7 +148,7 @@ write.csv(millie_combined, file.path(millie_dir, "millie_combined.csv"))
 
 ```{r}
 comparison_df <- msstats_ready %>%
-  select(Protein, Gene, Label, log2FC_msstats = log2FC, adj.pvalue_msstats = adj.pvalue, Status_msstats = Status) %>%
+  dplyr::select(Protein, Gene, Label, log2FC_msstats = log2FC, adj.pvalue_msstats = adj.pvalue, Status_msstats = Status) %>%
   full_join(millie_combined, by = c("Gene", "Label")) %>%
   mutate(
     # Create a column to easily find discrepancies
@@ -364,15 +368,11 @@ print(detection_overlap)
 
 ### What were the signficant proteins that were detected in the limma analysis but not msstats?
 
-These proteins all seem like very solid candidates.
-
-Limma seems to be more powerful for the near vs far comparison
-
 ```{r}
 limma_exclusive_sig <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(Status_limma != "Not Significant" & Status_msstats == "Not Significant") %>%
-  select(Gene, 
+  dplyr::select(Gene, 
          log2FC_limma, adj.pvalue_limma, 
          log2FC_msstats, adj.pvalue_msstats) %>%
   arrange(adj.pvalue_limma)
@@ -386,7 +386,7 @@ limma_exclusive_sig
 msstats_exclusive_sig <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(Status_limma == "Not Significant" & Status_msstats != "Not Significant") %>%
-  select(Gene, 
+  dplyr::select(Gene, 
          log2FC_limma, adj.pvalue_limma, 
          log2FC_msstats, adj.pvalue_msstats) %>%
   arrange(adj.pvalue_limma)
@@ -394,38 +394,105 @@ msstats_exclusive_sig <- comparison_df %>%
 msstats_exclusive_sig
 ```
 
-
-```{r}
-msstats_exclusive_sig %>%
-  pull(Gene)
-```
-
-
-
-
 ### Check for how many MSstats proteins were FDR \<0.05 but \< 0.5 log2FC
 
 ```{r}
 check_cutoffs_msstats <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(adj.pvalue_msstats < 0.05 & Status_msstats == "Not Significant") %>%
-  select(Gene, log2FC_msstats, adj.pvalue_msstats)
+  dplyr::select(Gene, log2FC_msstats, adj.pvalue_msstats)
 
 check_cutoffs_msstats
 ```
 
-### Check for how many limma proteins were FDR \<0.05 but \< 0.5 log2FC
+### Check for how many limma proteins were FDR <0.05 but < 0.5 log2FC
 
 ```{r}
 check_cutoffs_limma <- comparison_df %>%
   filter(Label == "PlaqueNear_vs_PlaqueFar") %>%
   filter(adj.pvalue_msstats < 0.05 & Status_limma == "Not Significant") %>%
-  select(Gene, log2FC_limma, adj.pvalue_limma, log2FC_msstats, adj.pvalue_msstats)
+  dplyr::select(Gene, log2FC_limma, adj.pvalue_limma, log2FC_msstats, adj.pvalue_msstats)
 
 check_cutoffs_limma
 ```
 
+## Identify genes that are up in both plaque distances
 
 ```{r}
- 
+
+# 1. Isolate significant genes for Near vs Control (MSstats)
+near_vs_control_sig <- comparison_df %>%
+  filter(Label == "PlaqueNear_vs_Control" & Status_msstats != "Not Significant") %>%
+  pull(Gene) %>%
+  unique()
+
+# 2. Isolate significant genes for Far vs Control (MSstats)
+far_vs_control_sig <- comparison_df %>%
+  filter(Label == "PlaqueFar_vs_Control" & Status_msstats != "Not Significant") %>%
+  pull(Gene) %>%
+  unique()
+
+# 3. Calculate intersections and differences
+shared_msstats_genes <- intersect(near_vs_control_sig, far_vs_control_sig)
+unique_to_near <- setdiff(near_vs_control_sig, far_vs_control_sig)
+unique_to_far <- setdiff(far_vs_control_sig, near_vs_control_sig)
+
+cat("MSstats Significance Overlap Summary:\n")
+cat("-------------------------------------\n")
+cat("Total Significant in Near vs Control:", length(near_vs_control_sig), "\n")
+cat("Total Significant in Far vs Control:", length(far_vs_control_sig), "\n")
+cat("Shared between both (Intersection):", length(shared_msstats_genes), "\n")
+cat("Unique to Near vs Control:", length(unique_to_near), "\n")
+cat("Unique to Far vs Control:", length(unique_to_far), "\n\n")
 ```
+## Plot on venn diagram genes that are up in both plaque distances
+```{r}
+# 1. Group the significant gene lists into a named list
+msstats_venn_list <- list(
+  "Near vs Control" = near_vs_control_sig,
+  "Far vs Control"  = far_vs_control_sig
+)
+
+# 2. Generate the Venn Diagram
+venn_plot <- ggVennDiagram(msstats_venn_list, 
+                           label_alpha = 0, 
+                           set_color = "black",
+                           label = "both") + # Shows count and percentage
+  scale_fill_gradient(low = "white", high = "#00BFC4") + 
+  theme_void(base_size = 14) +
+  labs(title = "MSstats: Significant Proteins Overlap", fill = "Gene Count") +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    # Add large margins (Top, Right, Bottom, Left) to prevent label clipping
+    plot.margin = margin(20, 60, 20, 60) 
+  ) +
+  # This allows labels to draw outside the "official" plot area
+  coord_cartesian(clip = "off")
+# Print the plot
+print(venn_plot)
+
+# 4. Save the plot to your graphs directory
+ggsave(
+  filename = file.path(graphs_dir, "MSstats_Near_vs_Far_Venn.pdf"),
+  plot = venn_plot,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+## Far vs control only
+```{r}
+msstats_far_only_df <- comparison_df %>%
+  filter(Label == "PlaqueFar_vs_Control") %>%
+  filter(Gene %in% unique_to_far) %>%
+  dplyr::select(Gene, log2FC_msstats, adj.pvalue_msstats, Status_msstats) %>%
+  arrange(adj.pvalue_msstats)
+
+# 2. Preview the top of the list
+cat("Top 10 proteins unique to Plaque Far vs Control (MSstats):\n")
+msstats_far_only_df
+
+fwrite(msstats_far_only_df, file.path(results_dir, "msstats_plaque_far_vs_control_only.csv"))
+```
+

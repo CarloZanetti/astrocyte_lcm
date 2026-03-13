@@ -176,6 +176,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">6. Concordance between limma and MSstats</span></a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/07_cell_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7: Putative cell-cell interactions</span></a>
+  </div>
+</li>
     </ul>
     </div>
 </nav>
@@ -203,7 +209,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#check-for-how-many-msstats-proteins-were-fdr-0.05-but-0.5-log2fc" id="toc-check-for-how-many-msstats-proteins-were-fdr-0.05-but-0.5-log2fc" class="nav-link" data-scroll-target="#check-for-how-many-msstats-proteins-were-fdr-0.05-but-0.5-log2fc">Check for how many MSstats proteins were FDR &lt;0.05 but &lt; 0.5 log2FC</a></li>
   <li><a href="#check-for-how-many-limma-proteins-were-fdr-0.05-but-0.5-log2fc" id="toc-check-for-how-many-limma-proteins-were-fdr-0.05-but-0.5-log2fc" class="nav-link" data-scroll-target="#check-for-how-many-limma-proteins-were-fdr-0.05-but-0.5-log2fc">Check for how many limma proteins were FDR &lt;0.05 but &lt; 0.5 log2FC</a></li>
   </ul></li>
-  <li><a href="#save-limma-sig-genes-for-msstats-plotting-2b" id="toc-save-limma-sig-genes-for-msstats-plotting-2b" class="nav-link" data-scroll-target="#save-limma-sig-genes-for-msstats-plotting-2b">Save limma sig genes for msstats plotting (2b)</a></li>
+  <li><a href="#identify-genes-that-are-up-in-both-plaque-distances" id="toc-identify-genes-that-are-up-in-both-plaque-distances" class="nav-link" data-scroll-target="#identify-genes-that-are-up-in-both-plaque-distances">Identify genes that are up in both plaque distances</a></li>
+  <li><a href="#plot-on-venn-diagram-genes-that-are-up-in-both-plaque-distances" id="toc-plot-on-venn-diagram-genes-that-are-up-in-both-plaque-distances" class="nav-link" data-scroll-target="#plot-on-venn-diagram-genes-that-are-up-in-both-plaque-distances">Plot on venn diagram genes that are up in both plaque distances</a></li>
+  <li><a href="#far-vs-control-only" id="toc-far-vs-control-only" class="nav-link" data-scroll-target="#far-vs-control-only">Far vs control only</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -304,7 +312,193 @@ Attaching package: 'purrr'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(clusterProfiler)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>clusterProfiler v4.18.4 Learn more at https://yulab-smu.top/contribution-knowledge-mining/
+
+Please cite:
+
+Guangchuang Yu, Li-Gen Wang, Yanyan Han and Qing-Yu He.
+clusterProfiler: an R package for comparing biological themes among
+gene clusters. OMICS: A Journal of Integrative Biology. 2012,
+16(5):284-287</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'clusterProfiler'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:purrr':
+
+    simplify</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:stats':
+
+    filter</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(org.Mm.eg.db)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: AnnotationDbi</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: stats4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: BiocGenerics</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: generics</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'generics'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:dplyr':
+
+    explain</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    as.difftime, as.factor, as.ordered, intersect, is.element, setdiff,
+    setequal, union</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'BiocGenerics'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:dplyr':
+
+    combine</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    IQR, mad, sd, var, xtabs</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, saveRDS, table, tapply, unique,
+    unsplit, which.max, which.min</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Biobase</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: IRanges</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: S4Vectors</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'S4Vectors'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:clusterProfiler':
+
+    rename</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:dplyr':
+
+    first, rename</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:data.table':
+
+    first, second</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:utils':
+
+    findMatches</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    expand.grid, I, unname</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'IRanges'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:clusterProfiler':
+
+    slice</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:purrr':
+
+    reduce</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:dplyr':
+
+    collapse, desc, slice</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:data.table':
+
+    shift</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'AnnotationDbi'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:clusterProfiler':
+
+    select</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:dplyr':
+
+    select</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(enrichplot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>enrichplot v1.30.4 Learn more at https://yulab-smu.top/contribution-knowledge-mining/
+
+Please cite:
+
+Qianwen Wang, Ming Li, Tianzhi Wu, Li Zhan, Lin Li, Meijun Chen, Wenqin
+Xie, Zijing Xie, Erqiang Hu, Shuangbin Xu, Guangchuang Yu. Exploring
+epigenomic datasets by ChIPseeker. Current Protocols. 2022, 2(10): e585</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggVennDiagram)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -313,21 +507,21 @@ Attaching package: 'purrr'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>base_dir <span class="ot">&lt;-</span> <span class="st">"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run3"</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"results"</span>, run_num)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>objects_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed"</span>, run_num)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>millie_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed_millie"</span>)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>graphs_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(results_dir, <span class="st">"concordance"</span>)</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>millie_f_v_c <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(millie_dir, <span class="st">"limma_all_proteins_Plaque_far_vs_Control.csv"</span>))</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>millie_n_v_c <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(millie_dir, <span class="st">"limma_all_proteins_Plaque_near_vs_Control.csv"</span>))</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>millie_n_v_f <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(millie_dir, <span class="st">"limma_all_proteins_Plaque_near_vs_Far.csv"</span>))</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(results_dir, <span class="st">"Full_GroupComparison_Results.csv"</span>))</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>clean_spec_raw <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/clean_spec_raw.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>base_dir <span class="ot">&lt;-</span> <span class="st">"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run3"</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"results"</span>, run_num)</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>objects_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed"</span>, run_num)</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>millie_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed_millie"</span>)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>graphs_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(results_dir, <span class="st">"concordance"</span>)</span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>millie_f_v_c <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(millie_dir, <span class="st">"limma_all_proteins_Plaque_far_vs_Control.csv"</span>))</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>millie_n_v_c <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(millie_dir, <span class="st">"limma_all_proteins_Plaque_near_vs_Control.csv"</span>))</span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>millie_n_v_f <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(millie_dir, <span class="st">"limma_all_proteins_Plaque_near_vs_Far.csv"</span>))</span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(results_dir, <span class="st">"Full_GroupComparison_Results.csv"</span>))</span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>clean_spec_raw <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/clean_spec_raw.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -336,41 +530,41 @@ Attaching package: 'purrr'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>protein_dictionary <span class="ot">&lt;-</span> clean_spec_raw <span class="sc">%&gt;%</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">Protein =</span> PG.ProteinGroups, </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">Gene =</span> PG.Genes, </span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">Description =</span> PG.ProteinDescriptions) <span class="sc">%&gt;%</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>msstats_ready <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter for your specific comparison (Label) and handle NAs</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue), <span class="fu">is.finite</span>(log2FC)) <span class="sc">%&gt;%</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Join with dictionary</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(protein_dictionary, <span class="at">by =</span> <span class="st">"Protein"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up Gene names and define significance</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fallback to Protein ID if Gene name is missing or empty</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Gene =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Gene) <span class="sc">|</span> Gene <span class="sc">==</span> <span class="st">""</span>, Protein, Gene),</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Define significance categories</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">Status =</span> <span class="fu">case_when</span>(</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>      adj.pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Upregulated"</span>,</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>      adj.pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC <span class="sc">&lt;</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Downregulated"</span>,</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Not Significant"</span></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Ranking for plotting/reporting</span></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Status) <span class="sc">%&gt;%</span></span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Rank =</span> <span class="fu">rank</span>(adj.pvalue, <span class="at">ties.method =</span> <span class="st">"first"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>msstats_ready <span class="sc">%&gt;%</span> </span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(log2FC <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">&amp;</span> adj.pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>protein_dictionary <span class="ot">&lt;-</span> clean_spec_raw <span class="sc">%&gt;%</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">Protein =</span> PG.ProteinGroups, </span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">Gene =</span> PG.Genes, </span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">Description =</span> PG.ProteinDescriptions) <span class="sc">%&gt;%</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>msstats_ready <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter for your specific comparison (Label) and handle NAs</span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue), <span class="fu">is.finite</span>(log2FC)) <span class="sc">%&gt;%</span></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Join with dictionary</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(protein_dictionary, <span class="at">by =</span> <span class="st">"Protein"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up Gene names and define significance</span></span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fallback to Protein ID if Gene name is missing or empty</span></span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Gene =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Gene) <span class="sc">|</span> Gene <span class="sc">==</span> <span class="st">""</span>, Protein, Gene),</span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Define significance categories</span></span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">Status =</span> <span class="fu">case_when</span>(</span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>      adj.pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Upregulated"</span>,</span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a>      adj.pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC <span class="sc">&lt;</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Downregulated"</span>,</span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Not Significant"</span></span>
+<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-27"><a href="#cb52-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Ranking for plotting/reporting</span></span>
+<span id="cb52-28"><a href="#cb52-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Status) <span class="sc">%&gt;%</span></span>
+<span id="cb52-29"><a href="#cb52-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Rank =</span> <span class="fu">rank</span>(adj.pvalue, <span class="at">ties.method =</span> <span class="st">"first"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb52-30"><a href="#cb52-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb52-31"><a href="#cb52-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-32"><a href="#cb52-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-33"><a href="#cb52-33" aria-hidden="true" tabindex="-1"></a>msstats_ready <span class="sc">%&gt;%</span> </span>
+<span id="cb52-34"><a href="#cb52-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb52-35"><a href="#cb52-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(log2FC <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">&amp;</span> adj.pvalue <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -386,27 +580,27 @@ Attaching package: 'purrr'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels to Millie's data to match MSstats 'Label' names</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Check your msstats_ready$Label to ensure these strings match exactly!</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>millie_combined <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  millie_f_v_c <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="st">"PlaqueFar_vs_Control"</span>),</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  millie_n_v_c <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="st">"PlaqueNear_vs_Control"</span>),</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  millie_n_v_f <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">log2FC_limma =</span> logFC,</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">adj.pvalue_limma =</span> adj.P.Val</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Status_limma =</span> <span class="fu">case_when</span>(</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>      adj.pvalue_limma <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC_limma <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Upregulated"</span>,</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>      adj.pvalue_limma <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC_limma <span class="sc">&lt;</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Downregulated"</span>,</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Not Significant"</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Gene, Label, log2FC_limma, adj.pvalue_limma, Status_limma)</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>millie_combined</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels to Millie's data to match MSstats 'Label' names</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Check your msstats_ready$Label to ensure these strings match exactly!</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>millie_combined <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  millie_f_v_c <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="st">"PlaqueFar_vs_Control"</span>),</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  millie_n_v_c <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="st">"PlaqueNear_vs_Control"</span>),</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  millie_n_v_f <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>)</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">rename</span>(</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">log2FC_limma =</span> logFC,</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">adj.pvalue_limma =</span> adj.P.Val</span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(</span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Status_limma =</span> <span class="fu">case_when</span>(</span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>    adj.pvalue_limma <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC_limma <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Upregulated"</span>,</span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>    adj.pvalue_limma <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> log2FC_limma <span class="sc">&lt;</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="sc">~</span> <span class="st">"Downregulated"</span>,</span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Not Significant"</span></span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, Label, log2FC_limma, adj.pvalue_limma, Status_limma)</span>
+<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a>millie_combined</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -417,7 +611,7 @@ Attaching package: 'purrr'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(millie_combined, <span class="fu">file.path</span>(millie_dir, <span class="st">"millie_combined.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(millie_combined, <span class="fu">file.path</span>(millie_dir, <span class="st">"millie_combined.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -426,20 +620,20 @@ Attaching package: 'purrr'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>comparison_df <span class="ot">&lt;-</span> msstats_ready <span class="sc">%&gt;%</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Protein, Gene, Label, <span class="at">log2FC_msstats =</span> log2FC, <span class="at">adj.pvalue_msstats =</span> adj.pvalue, <span class="at">Status_msstats =</span> Status) <span class="sc">%&gt;%</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(millie_combined, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Gene"</span>, <span class="st">"Label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create a column to easily find discrepancies</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Agreement =</span> <span class="fu">case_when</span>(</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">==</span> Status_limma <span class="sc">~</span> <span class="st">"Consistent"</span>,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">|</span> Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Pipeline Specific"</span>,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Contradictory"</span> <span class="co"># One says Up, one says Down</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview the overlap</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(comparison_df<span class="sc">$</span>Status_msstats, comparison_df<span class="sc">$</span>Status_limma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>comparison_df <span class="ot">&lt;-</span> msstats_ready <span class="sc">%&gt;%</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Protein, Gene, Label, <span class="at">log2FC_msstats =</span> log2FC, <span class="at">adj.pvalue_msstats =</span> adj.pvalue, <span class="at">Status_msstats =</span> Status) <span class="sc">%&gt;%</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(millie_combined, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Gene"</span>, <span class="st">"Label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create a column to easily find discrepancies</span></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Agreement =</span> <span class="fu">case_when</span>(</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">==</span> Status_limma <span class="sc">~</span> <span class="st">"Consistent"</span>,</span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">|</span> Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Pipeline Specific"</span>,</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Contradictory"</span> <span class="co"># One says Up, one says Down</span></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview the overlap</span></span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(comparison_df<span class="sc">$</span>Status_msstats, comparison_df<span class="sc">$</span>Status_limma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>                 
@@ -450,7 +644,7 @@ Attaching package: 'purrr'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>comparison_df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Gene<span class="sc">==</span> <span class="st">"Cd44"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>comparison_df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Gene<span class="sc">==</span> <span class="st">"Cd44"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -466,148 +660,148 @@ Attaching package: 'purrr'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. Determine Significance categories based on your previous Status columns</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Significance =</span> <span class="fu">case_when</span>(</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Significant in Both"</span>,</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Significant in MSstats only"</span>,</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Significant in limma only"</span>,</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Not Significant"</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Calculate distance from origin (Magnitude in both) to pick top labels</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Using coalesce to handle NAs just in case a protein is only in one pipeline</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">dist =</span> <span class="fu">sqrt</span>(<span class="fu">coalesce</span>(log2FC_msstats, <span class="dv">0</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fu">coalesce</span>(log2FC_limma, <span class="dv">0</span>)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Define your colors to match the exact spelling of categories</span></span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>sig_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Significant in Both"</span>         <span class="ot">=</span> <span class="st">"purple"</span>,</span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Significant in MSstats only"</span> <span class="ot">=</span> <span class="st">"#00BFC4"</span>, <span class="co"># Cyan/Blue</span></span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Significant in limma only"</span>   <span class="ot">=</span> <span class="st">"#F8766D"</span>, <span class="co"># Coral/Red</span></span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Not Significant"</span>             <span class="ot">=</span> <span class="st">"grey80"</span></span>
-<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="co"># --- STEP 2: Loop through each comparison and plot ---</span></span>
-<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>comparisons <span class="ot">&lt;-</span> <span class="fu">unique</span>(plot_data<span class="sc">$</span>Label)</span>
-<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> comparisons) {</span>
-<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Plotting:"</span>, comp, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Subset data for the current comparison</span></span>
-<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>  df_sub <span class="ot">&lt;-</span> plot_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Label <span class="sc">==</span> comp)</span>
-<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if we have data to plot before proceeding</span></span>
-<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">nrow</span>(df_sub <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_msstats) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma))) <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="fu">paste</span>(<span class="st">"No overlapping data found for:"</span>, comp, <span class="st">"- skipping."</span>))</span>
-<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">next</span> </span>
-<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get top 30 genes to label based on distance from origin</span></span>
-<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>  genes_to_label <span class="ot">&lt;-</span> df_sub <span class="sc">%&gt;%</span></span>
-<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Significance <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_max</span>(<span class="at">order_by =</span> dist, <span class="at">n =</span> <span class="dv">30</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb19-43"><a href="#cb19-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-44"><a href="#cb19-44" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate Pearson correlation for the subtitle </span></span>
-<span id="cb19-45"><a href="#cb19-45" aria-hidden="true" tabindex="-1"></a>  cor_val <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">cor</span>(df_sub<span class="sc">$</span>log2FC_msstats, df_sub<span class="sc">$</span>log2FC_limma, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>)</span>
-<span id="cb19-46"><a href="#cb19-46" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-47"><a href="#cb19-47" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up the comparison name for the plot title (e.g., "PlaqueNear_vs_Control" -&gt; "Plaque Near vs Control")</span></span>
-<span id="cb19-48"><a href="#cb19-48" aria-hidden="true" tabindex="-1"></a>  clean_title <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, comp)</span>
-<span id="cb19-49"><a href="#cb19-49" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Optional: Add spaces before capital letters if your label is CamelCase</span></span>
-<span id="cb19-50"><a href="#cb19-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># clean_title &lt;- gsub("([a-z])([A-Z])", "\\1 \\2", clean_title) </span></span>
-<span id="cb19-51"><a href="#cb19-51" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-52"><a href="#cb19-52" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-53"><a href="#cb19-53" aria-hidden="true" tabindex="-1"></a>  <span class="do">#### settings to make plot look pretty -&gt; so all genes fit nicely in plot</span></span>
-<span id="cb19-54"><a href="#cb19-54" aria-hidden="true" tabindex="-1"></a>  x_bulk <span class="ot">&lt;-</span> <span class="fu">quantile</span>(df_sub<span class="sc">$</span>log2FC_limma, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb19-55"><a href="#cb19-55" aria-hidden="true" tabindex="-1"></a>  y_bulk <span class="ot">&lt;-</span> <span class="fu">quantile</span>(df_sub<span class="sc">$</span>log2FC_msstats, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb19-56"><a href="#cb19-56" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-57"><a href="#cb19-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Get the range of the proteins we actually want to label</span></span>
-<span id="cb19-58"><a href="#cb19-58" aria-hidden="true" tabindex="-1"></a>  x_label_range <span class="ot">&lt;-</span> <span class="fu">range</span>(genes_to_label<span class="sc">$</span>log2FC_limma, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb19-59"><a href="#cb19-59" aria-hidden="true" tabindex="-1"></a>  y_label_range <span class="ot">&lt;-</span> <span class="fu">range</span>(genes_to_label<span class="sc">$</span>log2FC_msstats, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb19-60"><a href="#cb19-60" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-61"><a href="#cb19-61" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 3. Final Limits: Use the wider of the two ranges so labels aren't cut off</span></span>
-<span id="cb19-62"><a href="#cb19-62" aria-hidden="true" tabindex="-1"></a>  final_xlim <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">min</span>(x_bulk[<span class="dv">1</span>], x_label_range[<span class="dv">1</span>]), <span class="fu">max</span>(x_bulk[<span class="dv">2</span>], x_label_range[<span class="dv">2</span>]))</span>
-<span id="cb19-63"><a href="#cb19-63" aria-hidden="true" tabindex="-1"></a>  final_ylim <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">min</span>(y_bulk[<span class="dv">1</span>], y_label_range[<span class="dv">1</span>]), <span class="fu">max</span>(y_bulk[<span class="dv">2</span>], y_label_range[<span class="dv">2</span>]))</span>
-<span id="cb19-64"><a href="#cb19-64" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-65"><a href="#cb19-65" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add 15% padding so labels have room to "repel" into</span></span>
-<span id="cb19-66"><a href="#cb19-66" aria-hidden="true" tabindex="-1"></a>  x_pad <span class="ot">&lt;-</span> <span class="fu">diff</span>(final_xlim) <span class="sc">*</span> <span class="fl">0.15</span></span>
-<span id="cb19-67"><a href="#cb19-67" aria-hidden="true" tabindex="-1"></a>  y_pad <span class="ot">&lt;-</span> <span class="fu">diff</span>(final_ylim) <span class="sc">*</span> <span class="fl">0.15</span></span>
-<span id="cb19-68"><a href="#cb19-68" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-69"><a href="#cb19-69" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-70"><a href="#cb19-70" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-71"><a href="#cb19-71" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build The Plot</span></span>
-<span id="cb19-72"><a href="#cb19-72" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df_sub, <span class="fu">aes</span>(<span class="at">x =</span> log2FC_limma, <span class="at">y =</span> log2FC_msstats)) <span class="sc">+</span></span>
-<span id="cb19-73"><a href="#cb19-73" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-74"><a href="#cb19-74" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Diagonal and Axes</span></span>
-<span id="cb19-75"><a href="#cb19-75" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"solid"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb19-76"><a href="#cb19-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
-<span id="cb19-77"><a href="#cb19-77" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
-<span id="cb19-78"><a href="#cb19-78" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-79"><a href="#cb19-79" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Scatter Points</span></span>
-<span id="cb19-80"><a href="#cb19-80" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> Significance), <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb19-81"><a href="#cb19-81" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-82"><a href="#cb19-82" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. Optimized Labels (Mapped to your "Gene" column)</span></span>
-<span id="cb19-83"><a href="#cb19-83" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_label_repel</span>(</span>
-<span id="cb19-84"><a href="#cb19-84" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> genes_to_label, </span>
-<span id="cb19-85"><a href="#cb19-85" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">label =</span> Gene, <span class="at">color =</span> Significance),</span>
-<span id="cb19-86"><a href="#cb19-86" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="dv">4</span>,                  </span>
-<span id="cb19-87"><a href="#cb19-87" aria-hidden="true" tabindex="-1"></a>      <span class="at">fontface =</span> <span class="st">"bold"</span>,         </span>
-<span id="cb19-88"><a href="#cb19-88" aria-hidden="true" tabindex="-1"></a>      <span class="at">box.padding =</span> <span class="fl">0.5</span>,         </span>
-<span id="cb19-89"><a href="#cb19-89" aria-hidden="true" tabindex="-1"></a>      <span class="at">point.padding =</span> <span class="fl">0.3</span>,       </span>
-<span id="cb19-90"><a href="#cb19-90" aria-hidden="true" tabindex="-1"></a>      <span class="at">force =</span> <span class="dv">2</span>,                 </span>
-<span id="cb19-91"><a href="#cb19-91" aria-hidden="true" tabindex="-1"></a>      <span class="at">max.overlaps =</span> <span class="cn">Inf</span>,        </span>
-<span id="cb19-92"><a href="#cb19-92" aria-hidden="true" tabindex="-1"></a>      <span class="at">min.segment.length =</span> <span class="dv">0</span>,    </span>
-<span id="cb19-93"><a href="#cb19-93" aria-hidden="true" tabindex="-1"></a>      <span class="at">show.legend =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb19-94"><a href="#cb19-94" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> <span class="st">"white"</span></span>
-<span id="cb19-95"><a href="#cb19-95" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb19-96"><a href="#cb19-96" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-97"><a href="#cb19-97" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. Styling</span></span>
-<span id="cb19-98"><a href="#cb19-98" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> sig_colors) <span class="sc">+</span></span>
-<span id="cb19-99"><a href="#cb19-99" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(</span>
-<span id="cb19-100"><a href="#cb19-100" aria-hidden="true" tabindex="-1"></a>      <span class="at">xlim =</span> <span class="fu">c</span>(final_xlim[<span class="dv">1</span>] <span class="sc">-</span> x_pad, final_xlim[<span class="dv">2</span>] <span class="sc">+</span> x_pad),</span>
-<span id="cb19-101"><a href="#cb19-101" aria-hidden="true" tabindex="-1"></a>      <span class="at">ylim =</span> <span class="fu">c</span>(final_ylim[<span class="dv">1</span>] <span class="sc">-</span> y_pad, final_ylim[<span class="dv">2</span>] <span class="sc">+</span> y_pad),</span>
-<span id="cb19-102"><a href="#cb19-102" aria-hidden="true" tabindex="-1"></a>      <span class="at">expand =</span> <span class="cn">FALSE</span> <span class="co"># Keeps our manual padding exact</span></span>
-<span id="cb19-103"><a href="#cb19-103" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span> </span>
-<span id="cb19-104"><a href="#cb19-104" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">16</span>) <span class="sc">+</span> </span>
-<span id="cb19-105"><a href="#cb19-105" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-106"><a href="#cb19-106" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb19-107"><a href="#cb19-107" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Concordance:"</span>, clean_title),</span>
-<span id="cb19-108"><a href="#cb19-108" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"limma vs. MSstats | Pearson r ="</span>, cor_val),</span>
-<span id="cb19-109"><a href="#cb19-109" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"limma Log2FC"</span>,</span>
-<span id="cb19-110"><a href="#cb19-110" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"MSstats Log2FC"</span>,</span>
-<span id="cb19-111"><a href="#cb19-111" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="st">"Significance (FDR &lt; 0.05)"</span></span>
-<span id="cb19-112"><a href="#cb19-112" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb19-113"><a href="#cb19-113" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-114"><a href="#cb19-114" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
-<span id="cb19-115"><a href="#cb19-115" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
-<span id="cb19-116"><a href="#cb19-116" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
-<span id="cb19-117"><a href="#cb19-117" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb19-118"><a href="#cb19-118" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-119"><a href="#cb19-119" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">18</span>),</span>
-<span id="cb19-120"><a href="#cb19-120" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
-<span id="cb19-121"><a href="#cb19-121" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span> </span>
-<span id="cb19-122"><a href="#cb19-122" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(</span>
-<span id="cb19-123"><a href="#cb19-123" aria-hidden="true" tabindex="-1"></a>      <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">5</span>), </span>
-<span id="cb19-124"><a href="#cb19-124" aria-hidden="true" tabindex="-1"></a>      <span class="at">nrow =</span> <span class="dv">2</span></span>
-<span id="cb19-125"><a href="#cb19-125" aria-hidden="true" tabindex="-1"></a>    ))</span>
-<span id="cb19-126"><a href="#cb19-126" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-127"><a href="#cb19-127" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Print to RStudio viewer/console so you can see them as they generate</span></span>
-<span id="cb19-128"><a href="#cb19-128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(p)</span>
-<span id="cb19-129"><a href="#cb19-129" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-130"><a href="#cb19-130" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sanitize filename (replace spaces/special chars with underscores)</span></span>
-<span id="cb19-131"><a href="#cb19-131" aria-hidden="true" tabindex="-1"></a>  safe_filename <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(comp, <span class="st">"[^A-Za-z0-9]+"</span>, <span class="st">"_"</span>)</span>
-<span id="cb19-132"><a href="#cb19-132" aria-hidden="true" tabindex="-1"></a>  safe_filename <span class="ot">&lt;-</span> <span class="fu">str_replace</span>(safe_filename, <span class="st">"_$"</span>, <span class="st">""</span>)</span>
-<span id="cb19-133"><a href="#cb19-133" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb19-134"><a href="#cb19-134" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Save to PDF</span></span>
-<span id="cb19-135"><a href="#cb19-135" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggsave</span>(</span>
-<span id="cb19-136"><a href="#cb19-136" aria-hidden="true" tabindex="-1"></a>    <span class="at">filename =</span> <span class="fu">file.path</span>(graphs_dir, <span class="fu">paste0</span>(<span class="st">"MSstats_vs_limma_concordance_"</span>, safe_filename, <span class="st">".pdf"</span>)),</span>
-<span id="cb19-137"><a href="#cb19-137" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot =</span> p,</span>
-<span id="cb19-138"><a href="#cb19-138" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="dv">10</span>,</span>
-<span id="cb19-139"><a href="#cb19-139" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="dv">10</span>,</span>
-<span id="cb19-140"><a href="#cb19-140" aria-hidden="true" tabindex="-1"></a>    <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb19-141"><a href="#cb19-141" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-142"><a href="#cb19-142" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. Determine Significance categories based on your previous Status columns</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Significance =</span> <span class="fu">case_when</span>(</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Significant in Both"</span>,</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Significant in MSstats only"</span>,</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>      Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">~</span> <span class="st">"Significant in limma only"</span>,</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Not Significant"</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Calculate distance from origin (Magnitude in both) to pick top labels</span></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Using coalesce to handle NAs just in case a protein is only in one pipeline</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">dist =</span> <span class="fu">sqrt</span>(<span class="fu">coalesce</span>(log2FC_msstats, <span class="dv">0</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fu">coalesce</span>(log2FC_limma, <span class="dv">0</span>)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Define your colors to match the exact spelling of categories</span></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>sig_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Significant in Both"</span>         <span class="ot">=</span> <span class="st">"purple"</span>,</span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Significant in MSstats only"</span> <span class="ot">=</span> <span class="st">"#00BFC4"</span>, <span class="co"># Cyan/Blue</span></span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Significant in limma only"</span>   <span class="ot">=</span> <span class="st">"#F8766D"</span>, <span class="co"># Coral/Red</span></span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Not Significant"</span>             <span class="ot">=</span> <span class="st">"grey80"</span></span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a><span class="co"># --- STEP 2: Loop through each comparison and plot ---</span></span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>comparisons <span class="ot">&lt;-</span> <span class="fu">unique</span>(plot_data<span class="sc">$</span>Label)</span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> comparisons) {</span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Plotting:"</span>, comp, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Subset data for the current comparison</span></span>
+<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>  df_sub <span class="ot">&lt;-</span> plot_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Label <span class="sc">==</span> comp)</span>
+<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if we have data to plot before proceeding</span></span>
+<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">nrow</span>(df_sub <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_msstats) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma))) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="fu">paste</span>(<span class="st">"No overlapping data found for:"</span>, comp, <span class="st">"- skipping."</span>))</span>
+<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">next</span> </span>
+<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get top 30 genes to label based on distance from origin</span></span>
+<span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>  genes_to_label <span class="ot">&lt;-</span> df_sub <span class="sc">%&gt;%</span></span>
+<span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Significance <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_max</span>(<span class="at">order_by =</span> dist, <span class="at">n =</span> <span class="dv">30</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate Pearson correlation for the subtitle </span></span>
+<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>  cor_val <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">cor</span>(df_sub<span class="sc">$</span>log2FC_msstats, df_sub<span class="sc">$</span>log2FC_limma, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>)</span>
+<span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up the comparison name for the plot title (e.g., "PlaqueNear_vs_Control" -&gt; "Plaque Near vs Control")</span></span>
+<span id="cb58-48"><a href="#cb58-48" aria-hidden="true" tabindex="-1"></a>  clean_title <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, comp)</span>
+<span id="cb58-49"><a href="#cb58-49" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Optional: Add spaces before capital letters if your label is CamelCase</span></span>
+<span id="cb58-50"><a href="#cb58-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># clean_title &lt;- gsub("([a-z])([A-Z])", "\\1 \\2", clean_title) </span></span>
+<span id="cb58-51"><a href="#cb58-51" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-52"><a href="#cb58-52" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-53"><a href="#cb58-53" aria-hidden="true" tabindex="-1"></a>  <span class="do">#### settings to make plot look pretty -&gt; so all genes fit nicely in plot</span></span>
+<span id="cb58-54"><a href="#cb58-54" aria-hidden="true" tabindex="-1"></a>  x_bulk <span class="ot">&lt;-</span> <span class="fu">quantile</span>(df_sub<span class="sc">$</span>log2FC_limma, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb58-55"><a href="#cb58-55" aria-hidden="true" tabindex="-1"></a>  y_bulk <span class="ot">&lt;-</span> <span class="fu">quantile</span>(df_sub<span class="sc">$</span>log2FC_msstats, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb58-56"><a href="#cb58-56" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-57"><a href="#cb58-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Get the range of the proteins we actually want to label</span></span>
+<span id="cb58-58"><a href="#cb58-58" aria-hidden="true" tabindex="-1"></a>  x_label_range <span class="ot">&lt;-</span> <span class="fu">range</span>(genes_to_label<span class="sc">$</span>log2FC_limma, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb58-59"><a href="#cb58-59" aria-hidden="true" tabindex="-1"></a>  y_label_range <span class="ot">&lt;-</span> <span class="fu">range</span>(genes_to_label<span class="sc">$</span>log2FC_msstats, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb58-60"><a href="#cb58-60" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-61"><a href="#cb58-61" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 3. Final Limits: Use the wider of the two ranges so labels aren't cut off</span></span>
+<span id="cb58-62"><a href="#cb58-62" aria-hidden="true" tabindex="-1"></a>  final_xlim <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">min</span>(x_bulk[<span class="dv">1</span>], x_label_range[<span class="dv">1</span>]), <span class="fu">max</span>(x_bulk[<span class="dv">2</span>], x_label_range[<span class="dv">2</span>]))</span>
+<span id="cb58-63"><a href="#cb58-63" aria-hidden="true" tabindex="-1"></a>  final_ylim <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">min</span>(y_bulk[<span class="dv">1</span>], y_label_range[<span class="dv">1</span>]), <span class="fu">max</span>(y_bulk[<span class="dv">2</span>], y_label_range[<span class="dv">2</span>]))</span>
+<span id="cb58-64"><a href="#cb58-64" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-65"><a href="#cb58-65" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add 15% padding so labels have room to "repel" into</span></span>
+<span id="cb58-66"><a href="#cb58-66" aria-hidden="true" tabindex="-1"></a>  x_pad <span class="ot">&lt;-</span> <span class="fu">diff</span>(final_xlim) <span class="sc">*</span> <span class="fl">0.15</span></span>
+<span id="cb58-67"><a href="#cb58-67" aria-hidden="true" tabindex="-1"></a>  y_pad <span class="ot">&lt;-</span> <span class="fu">diff</span>(final_ylim) <span class="sc">*</span> <span class="fl">0.15</span></span>
+<span id="cb58-68"><a href="#cb58-68" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-69"><a href="#cb58-69" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-70"><a href="#cb58-70" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-71"><a href="#cb58-71" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build The Plot</span></span>
+<span id="cb58-72"><a href="#cb58-72" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df_sub, <span class="fu">aes</span>(<span class="at">x =</span> log2FC_limma, <span class="at">y =</span> log2FC_msstats)) <span class="sc">+</span></span>
+<span id="cb58-73"><a href="#cb58-73" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb58-74"><a href="#cb58-74" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Diagonal and Axes</span></span>
+<span id="cb58-75"><a href="#cb58-75" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"solid"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb58-76"><a href="#cb58-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb58-77"><a href="#cb58-77" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb58-78"><a href="#cb58-78" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb58-79"><a href="#cb58-79" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Scatter Points</span></span>
+<span id="cb58-80"><a href="#cb58-80" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> Significance), <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb58-81"><a href="#cb58-81" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb58-82"><a href="#cb58-82" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. Optimized Labels (Mapped to your "Gene" column)</span></span>
+<span id="cb58-83"><a href="#cb58-83" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_label_repel</span>(</span>
+<span id="cb58-84"><a href="#cb58-84" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> genes_to_label, </span>
+<span id="cb58-85"><a href="#cb58-85" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">label =</span> Gene, <span class="at">color =</span> Significance),</span>
+<span id="cb58-86"><a href="#cb58-86" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="dv">4</span>,                  </span>
+<span id="cb58-87"><a href="#cb58-87" aria-hidden="true" tabindex="-1"></a>      <span class="at">fontface =</span> <span class="st">"bold"</span>,         </span>
+<span id="cb58-88"><a href="#cb58-88" aria-hidden="true" tabindex="-1"></a>      <span class="at">box.padding =</span> <span class="fl">0.5</span>,         </span>
+<span id="cb58-89"><a href="#cb58-89" aria-hidden="true" tabindex="-1"></a>      <span class="at">point.padding =</span> <span class="fl">0.3</span>,       </span>
+<span id="cb58-90"><a href="#cb58-90" aria-hidden="true" tabindex="-1"></a>      <span class="at">force =</span> <span class="dv">2</span>,                 </span>
+<span id="cb58-91"><a href="#cb58-91" aria-hidden="true" tabindex="-1"></a>      <span class="at">max.overlaps =</span> <span class="cn">Inf</span>,        </span>
+<span id="cb58-92"><a href="#cb58-92" aria-hidden="true" tabindex="-1"></a>      <span class="at">min.segment.length =</span> <span class="dv">0</span>,    </span>
+<span id="cb58-93"><a href="#cb58-93" aria-hidden="true" tabindex="-1"></a>      <span class="at">show.legend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb58-94"><a href="#cb58-94" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> <span class="st">"white"</span></span>
+<span id="cb58-95"><a href="#cb58-95" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb58-96"><a href="#cb58-96" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb58-97"><a href="#cb58-97" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. Styling</span></span>
+<span id="cb58-98"><a href="#cb58-98" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> sig_colors) <span class="sc">+</span></span>
+<span id="cb58-99"><a href="#cb58-99" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(</span>
+<span id="cb58-100"><a href="#cb58-100" aria-hidden="true" tabindex="-1"></a>      <span class="at">xlim =</span> <span class="fu">c</span>(final_xlim[<span class="dv">1</span>] <span class="sc">-</span> x_pad, final_xlim[<span class="dv">2</span>] <span class="sc">+</span> x_pad),</span>
+<span id="cb58-101"><a href="#cb58-101" aria-hidden="true" tabindex="-1"></a>      <span class="at">ylim =</span> <span class="fu">c</span>(final_ylim[<span class="dv">1</span>] <span class="sc">-</span> y_pad, final_ylim[<span class="dv">2</span>] <span class="sc">+</span> y_pad),</span>
+<span id="cb58-102"><a href="#cb58-102" aria-hidden="true" tabindex="-1"></a>      <span class="at">expand =</span> <span class="cn">FALSE</span> <span class="co"># Keeps our manual padding exact</span></span>
+<span id="cb58-103"><a href="#cb58-103" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span> </span>
+<span id="cb58-104"><a href="#cb58-104" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">16</span>) <span class="sc">+</span> </span>
+<span id="cb58-105"><a href="#cb58-105" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb58-106"><a href="#cb58-106" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb58-107"><a href="#cb58-107" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Concordance:"</span>, clean_title),</span>
+<span id="cb58-108"><a href="#cb58-108" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"limma vs. MSstats | Pearson r ="</span>, cor_val),</span>
+<span id="cb58-109"><a href="#cb58-109" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"limma Log2FC"</span>,</span>
+<span id="cb58-110"><a href="#cb58-110" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"MSstats Log2FC"</span>,</span>
+<span id="cb58-111"><a href="#cb58-111" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="st">"Significance (FDR &lt; 0.05)"</span></span>
+<span id="cb58-112"><a href="#cb58-112" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb58-113"><a href="#cb58-113" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb58-114"><a href="#cb58-114" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb58-115"><a href="#cb58-115" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
+<span id="cb58-116"><a href="#cb58-116" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
+<span id="cb58-117"><a href="#cb58-117" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb58-118"><a href="#cb58-118" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb58-119"><a href="#cb58-119" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">18</span>),</span>
+<span id="cb58-120"><a href="#cb58-120" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb58-121"><a href="#cb58-121" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span> </span>
+<span id="cb58-122"><a href="#cb58-122" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(</span>
+<span id="cb58-123"><a href="#cb58-123" aria-hidden="true" tabindex="-1"></a>      <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">5</span>), </span>
+<span id="cb58-124"><a href="#cb58-124" aria-hidden="true" tabindex="-1"></a>      <span class="at">nrow =</span> <span class="dv">2</span></span>
+<span id="cb58-125"><a href="#cb58-125" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb58-126"><a href="#cb58-126" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-127"><a href="#cb58-127" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Print to RStudio viewer/console so you can see them as they generate</span></span>
+<span id="cb58-128"><a href="#cb58-128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(p)</span>
+<span id="cb58-129"><a href="#cb58-129" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-130"><a href="#cb58-130" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sanitize filename (replace spaces/special chars with underscores)</span></span>
+<span id="cb58-131"><a href="#cb58-131" aria-hidden="true" tabindex="-1"></a>  safe_filename <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(comp, <span class="st">"[^A-Za-z0-9]+"</span>, <span class="st">"_"</span>)</span>
+<span id="cb58-132"><a href="#cb58-132" aria-hidden="true" tabindex="-1"></a>  safe_filename <span class="ot">&lt;-</span> <span class="fu">str_replace</span>(safe_filename, <span class="st">"_$"</span>, <span class="st">""</span>)</span>
+<span id="cb58-133"><a href="#cb58-133" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-134"><a href="#cb58-134" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Save to PDF</span></span>
+<span id="cb58-135"><a href="#cb58-135" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggsave</span>(</span>
+<span id="cb58-136"><a href="#cb58-136" aria-hidden="true" tabindex="-1"></a>    <span class="at">filename =</span> <span class="fu">file.path</span>(graphs_dir, <span class="fu">paste0</span>(<span class="st">"MSstats_vs_limma_concordance_"</span>, safe_filename, <span class="st">".pdf"</span>)),</span>
+<span id="cb58-137"><a href="#cb58-137" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot =</span> p,</span>
+<span id="cb58-138"><a href="#cb58-138" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="dv">10</span>,</span>
+<span id="cb58-139"><a href="#cb58-139" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="dv">10</span>,</span>
+<span id="cb58-140"><a href="#cb58-140" aria-hidden="true" tabindex="-1"></a>    <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb58-141"><a href="#cb58-141" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb58-142"><a href="#cb58-142" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Plotting: PlaqueNear_vs_Control </code></pre>
@@ -661,7 +855,7 @@ Removed 258 rows containing missing values or values outside the scale range
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"All plots generated and saved successfully to:"</span>, graphs_dir, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"All plots generated and saved successfully to:"</span>, graphs_dir, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>All plots generated and saved successfully to: /nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics/results/run3/concordance </code></pre>
@@ -674,31 +868,31 @@ Removed 258 rows containing missing values or values outside the scale range
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Total Detected overall (union of both methods)</span></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Detected_Overall =</span> <span class="fu">n</span>(),</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Detected by specific methods</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Detected_MSstats =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_msstats)),</span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Detected_limma   =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma)),</span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. Both Detected (Shared column)</span></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Both_Detected    =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_msstats) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma)),</span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. Significant (FDR &lt; 0.05)</span></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sig_MSstats      =</span> <span class="fu">sum</span>(Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sig_limma        =</span> <span class="fu">sum</span>(Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 5. Both Significant (Shared column)</span></span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">Both_Significant =</span> <span class="fu">sum</span>(Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> </span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>                           Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up the Label for readability</span></span>
-<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, Label))</span>
-<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>summary_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Total Detected overall (union of both methods)</span></span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Detected_Overall =</span> <span class="fu">n</span>(),</span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Detected by specific methods</span></span>
+<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Detected_MSstats =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_msstats)),</span>
+<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Detected_limma   =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma)),</span>
+<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-11"><a href="#cb68-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. Both Detected (Shared column)</span></span>
+<span id="cb68-12"><a href="#cb68-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Both_Detected    =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_msstats) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma)),</span>
+<span id="cb68-13"><a href="#cb68-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-14"><a href="#cb68-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. Significant (FDR &lt; 0.05)</span></span>
+<span id="cb68-15"><a href="#cb68-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sig_MSstats      =</span> <span class="fu">sum</span>(Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb68-16"><a href="#cb68-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sig_limma        =</span> <span class="fu">sum</span>(Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb68-17"><a href="#cb68-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-18"><a href="#cb68-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 5. Both Significant (Shared column)</span></span>
+<span id="cb68-19"><a href="#cb68-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">Both_Significant =</span> <span class="fu">sum</span>(Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> </span>
+<span id="cb68-20"><a href="#cb68-20" aria-hidden="true" tabindex="-1"></a>                           Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb68-21"><a href="#cb68-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb68-22"><a href="#cb68-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up the Label for readability</span></span>
+<span id="cb68-23"><a href="#cb68-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Label =</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, Label))</span>
+<span id="cb68-24"><a href="#cb68-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-25"><a href="#cb68-25" aria-hidden="true" tabindex="-1"></a>summary_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -714,20 +908,20 @@ Removed 258 rows containing missing values or values outside the scale range
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Filter for signficant msstats proteins and check if detected by Millie</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>msstats_sig_analysis <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Detected_by_Millie =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma), <span class="st">"Yes"</span>, <span class="st">"No"</span>)</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize the findings per comparison</span></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>detection_overlap <span class="ot">&lt;-</span> msstats_sig_analysis <span class="sc">%&gt;%</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Detected_by_Millie) <span class="sc">%&gt;%</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tally</span>(<span class="at">name =</span> <span class="st">"Protein_Count"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Detected_by_Millie, <span class="at">values_from =</span> Protein_Count, <span class="at">names_prefix =</span> <span class="st">"Detected_by_limma_"</span>)</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(detection_overlap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Filter for signficant msstats proteins and check if detected by Millie</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>msstats_sig_analysis <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Detected_by_Millie =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(log2FC_limma), <span class="st">"Yes"</span>, <span class="st">"No"</span>)</span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize the findings per comparison</span></span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a>detection_overlap <span class="ot">&lt;-</span> msstats_sig_analysis <span class="sc">%&gt;%</span></span>
+<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Detected_by_Millie) <span class="sc">%&gt;%</span></span>
+<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tally</span>(<span class="at">name =</span> <span class="st">"Protein_Count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Detected_by_Millie, <span class="at">values_from =</span> Protein_Count, <span class="at">names_prefix =</span> <span class="st">"Detected_by_limma_"</span>)</span>
+<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(detection_overlap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3 × 3
@@ -741,20 +935,18 @@ Removed 258 rows containing missing values or values outside the scale range
 </div>
 <section id="what-were-the-signficant-proteins-that-were-detected-in-the-limma-analysis-but-not-msstats" class="level3">
 <h3 class="anchored" data-anchor-id="what-were-the-signficant-proteins-that-were-detected-in-the-limma-analysis-but-not-msstats">What were the signficant proteins that were detected in the limma analysis but not msstats?</h3>
-<p>These proteins all seem like very solid candidates.</p>
-<p>Limma seems to be more powerful for the near vs far comparison</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>limma_exclusive_sig <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Gene, </span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>         log2FC_limma, adj.pvalue_limma, </span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>         log2FC_msstats, adj.pvalue_msstats) <span class="sc">%&gt;%</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_limma)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>limma_exclusive_sig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>limma_exclusive_sig <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Status_limma <span class="sc">!=</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, </span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>         log2FC_limma, adj.pvalue_limma, </span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>         log2FC_msstats, adj.pvalue_msstats) <span class="sc">%&gt;%</span></span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_limma)</span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>limma_exclusive_sig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -770,15 +962,15 @@ Removed 258 rows containing missing values or values outside the scale range
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>msstats_exclusive_sig <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Gene, </span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>         log2FC_limma, adj.pvalue_limma, </span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>         log2FC_msstats, adj.pvalue_msstats) <span class="sc">%&gt;%</span></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_limma)</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>msstats_exclusive_sig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>msstats_exclusive_sig <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, </span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>         log2FC_limma, adj.pvalue_limma, </span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>         log2FC_msstats, adj.pvalue_msstats) <span class="sc">%&gt;%</span></span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_limma)</span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>msstats_exclusive_sig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -788,29 +980,18 @@ Removed 258 rows containing missing values or values outside the scale range
 </div>
 </div>
 </div>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>msstats_exclusive_sig <span class="sc">%&gt;%</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(Gene)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "Tmem192" "Itgb2"   "Idua"    "Gm2a"    "Cd44"    "Tle5"    "Tmem175"
-[8] "Lcp1"   </code></pre>
-</div>
-</div>
 </section>
 <section id="check-for-how-many-msstats-proteins-were-fdr-0.05-but-0.5-log2fc" class="level3">
 <h3 class="anchored" data-anchor-id="check-for-how-many-msstats-proteins-were-fdr-0.05-but-0.5-log2fc">Check for how many MSstats proteins were FDR &lt;0.05 but &lt; 0.5 log2FC</h3>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>check_cutoffs_msstats <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Gene, log2FC_msstats, adj.pvalue_msstats)</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>check_cutoffs_msstats</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>check_cutoffs_msstats <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">==</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, log2FC_msstats, adj.pvalue_msstats)</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>check_cutoffs_msstats</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -826,12 +1007,12 @@ Removed 258 rows containing missing values or values outside the scale range
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>check_cutoffs_limma <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Gene, log2FC_limma, adj.pvalue_limma, log2FC_msstats, adj.pvalue_msstats)</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>check_cutoffs_limma</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>check_cutoffs_limma <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_PlaqueFar"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Status_limma <span class="sc">==</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, log2FC_limma, adj.pvalue_limma, log2FC_msstats, adj.pvalue_msstats)</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>check_cutoffs_limma</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -843,8 +1024,166 @@ Removed 258 rows containing missing values or values outside the scale range
 </div>
 </section>
 </section>
-<section id="save-limma-sig-genes-for-msstats-plotting-2b" class="level2">
-<h2 class="anchored" data-anchor-id="save-limma-sig-genes-for-msstats-plotting-2b">Save limma sig genes for msstats plotting (2b)</h2>
+<section id="identify-genes-that-are-up-in-both-plaque-distances" class="level2">
+<h2 class="anchored" data-anchor-id="identify-genes-that-are-up-in-both-plaque-distances">Identify genes that are up in both plaque distances</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Isolate significant genes for Near vs Control (MSstats)</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>near_vs_control_sig <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_Control"</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(Gene) <span class="sc">%&gt;%</span></span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Isolate significant genes for Far vs Control (MSstats)</span></span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>far_vs_control_sig <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueFar_vs_Control"</span> <span class="sc">&amp;</span> Status_msstats <span class="sc">!=</span> <span class="st">"Not Significant"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(Gene) <span class="sc">%&gt;%</span></span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Calculate intersections and differences</span></span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>shared_msstats_genes <span class="ot">&lt;-</span> <span class="fu">intersect</span>(near_vs_control_sig, far_vs_control_sig)</span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a>unique_to_near <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(near_vs_control_sig, far_vs_control_sig)</span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>unique_to_far <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(far_vs_control_sig, near_vs_control_sig)</span>
+<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"MSstats Significance Overlap Summary:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>MSstats Significance Overlap Summary:</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"-------------------------------------</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>-------------------------------------</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Total Significant in Near vs Control:"</span>, <span class="fu">length</span>(near_vs_control_sig), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total Significant in Near vs Control: 474 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Total Significant in Far vs Control:"</span>, <span class="fu">length</span>(far_vs_control_sig), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total Significant in Far vs Control: 326 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Shared between both (Intersection):"</span>, <span class="fu">length</span>(shared_msstats_genes), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Shared between both (Intersection): 143 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Unique to Near vs Control:"</span>, <span class="fu">length</span>(unique_to_near), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Unique to Near vs Control: 331 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Unique to Far vs Control:"</span>, <span class="fu">length</span>(unique_to_far), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Unique to Far vs Control: 183 </code></pre>
+</div>
+</div>
+</section>
+<section id="plot-on-venn-diagram-genes-that-are-up-in-both-plaque-distances" class="level2">
+<h2 class="anchored" data-anchor-id="plot-on-venn-diagram-genes-that-are-up-in-both-plaque-distances">Plot on venn diagram genes that are up in both plaque distances</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Group the significant gene lists into a named list</span></span>
+<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>msstats_venn_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Near vs Control"</span> <span class="ot">=</span> near_vs_control_sig,</span>
+<span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Far vs Control"</span>  <span class="ot">=</span> far_vs_control_sig</span>
+<span id="cb89-5"><a href="#cb89-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb89-6"><a href="#cb89-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-7"><a href="#cb89-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Generate the Venn Diagram</span></span>
+<span id="cb89-8"><a href="#cb89-8" aria-hidden="true" tabindex="-1"></a>venn_plot <span class="ot">&lt;-</span> <span class="fu">ggVennDiagram</span>(msstats_venn_list, </span>
+<span id="cb89-9"><a href="#cb89-9" aria-hidden="true" tabindex="-1"></a>                           <span class="at">label_alpha =</span> <span class="dv">0</span>, </span>
+<span id="cb89-10"><a href="#cb89-10" aria-hidden="true" tabindex="-1"></a>                           <span class="at">set_color =</span> <span class="st">"black"</span>,</span>
+<span id="cb89-11"><a href="#cb89-11" aria-hidden="true" tabindex="-1"></a>                           <span class="at">label =</span> <span class="st">"both"</span>) <span class="sc">+</span> <span class="co"># Shows count and percentage</span></span>
+<span id="cb89-12"><a href="#cb89-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"#00BFC4"</span>) <span class="sc">+</span> </span>
+<span id="cb89-13"><a href="#cb89-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb89-14"><a href="#cb89-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"MSstats: Significant Proteins Overlap"</span>, <span class="at">fill =</span> <span class="st">"Gene Count"</span>) <span class="sc">+</span></span>
+<span id="cb89-15"><a href="#cb89-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb89-16"><a href="#cb89-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb89-17"><a href="#cb89-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add large margins (Top, Right, Bottom, Left) to prevent label clipping</span></span>
+<span id="cb89-18"><a href="#cb89-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">20</span>, <span class="dv">60</span>, <span class="dv">20</span>, <span class="dv">60</span>) </span>
+<span id="cb89-19"><a href="#cb89-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb89-20"><a href="#cb89-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This allows labels to draw outside the "official" plot area</span></span>
+<span id="cb89-21"><a href="#cb89-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">clip =</span> <span class="st">"off"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Coordinate system already present.
+ℹ Adding new coordinate system, which will replace the existing one.</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the plot</span></span>
+<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(venn_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_msstats_limma_correlation_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Save the plot to your graphs directory</span></span>
+<span id="cb92-2"><a href="#cb92-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb92-3"><a href="#cb92-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">filename =</span> <span class="fu">file.path</span>(graphs_dir, <span class="st">"MSstats_Near_vs_Far_Venn.pdf"</span>),</span>
+<span id="cb92-4"><a href="#cb92-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> venn_plot,</span>
+<span id="cb92-5"><a href="#cb92-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">8</span>,</span>
+<span id="cb92-6"><a href="#cb92-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">6</span>,</span>
+<span id="cb92-7"><a href="#cb92-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb92-8"><a href="#cb92-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="far-vs-control-only" class="level2">
+<h2 class="anchored" data-anchor-id="far-vs-control-only">Far vs control only</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>msstats_far_only_df <span class="ot">&lt;-</span> comparison_df <span class="sc">%&gt;%</span></span>
+<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueFar_vs_Control"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Gene <span class="sc">%in%</span> unique_to_far) <span class="sc">%&gt;%</span></span>
+<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, log2FC_msstats, adj.pvalue_msstats, Status_msstats) <span class="sc">%&gt;%</span></span>
+<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_msstats)</span>
+<span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Preview the top of the list</span></span>
+<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Top 10 proteins unique to Plaque Far vs Control (MSstats):</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 10 proteins unique to Plaque Far vs Control (MSstats):</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>msstats_far_only_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["log2FC_msstats"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["adj.pvalue_msstats"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Status_msstats"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"Cnnm1","2":"0.5370536","3":"0.004121336","4":"Upregulated"},{"1":"Cadps2","2":"0.5321830","3":"0.004121336","4":"Upregulated"},{"1":"Pigs","2":"0.5104173","3":"0.004669382","4":"Upregulated"},{"1":"Ube2k","2":"0.5094502","3":"0.004983404","4":"Upregulated"},{"1":"Fgf1","2":"0.5021921","3":"0.004983404","4":"Upregulated"},{"1":"Shank3","2":"0.5402648","3":"0.004983404","4":"Upregulated"},{"1":"Rpl14","2":"0.5575651","3":"0.004983404","4":"Upregulated"},{"1":"Magi2","2":"0.5125464","3":"0.004983404","4":"Upregulated"},{"1":"Agpat1","2":"0.6302209","3":"0.005678576","4":"Upregulated"},{"1":"Aarsd1","2":"0.5311229","3":"0.005752741","4":"Upregulated"},{"1":"Rab15","2":"0.5175631","3":"0.005752741","4":"Upregulated"},{"1":"Rabggta","2":"0.5003819","3":"0.005752741","4":"Upregulated"},{"1":"Tpbg","2":"0.6385069","3":"0.005752741","4":"Upregulated"},{"1":"Arl3","2":"0.5725579","3":"0.006256385","4":"Upregulated"},{"1":"Ppp2r5c","2":"0.6222538","3":"0.006313843","4":"Upregulated"},{"1":"Srm","2":"0.5337912","3":"0.006313843","4":"Upregulated"},{"1":"Madd","2":"0.5498271","3":"0.006313843","4":"Upregulated"},{"1":"Shank1","2":"0.5316700","3":"0.006397917","4":"Upregulated"},{"1":"Rab6b","2":"0.5571006","3":"0.006397917","4":"Upregulated"},{"1":"Agap2","2":"0.5459492","3":"0.006397917","4":"Upregulated"},{"1":"Sdr39u1","2":"0.5256176","3":"0.006397917","4":"Upregulated"},{"1":"Actr3b","2":"0.5106802","3":"0.006397917","4":"Upregulated"},{"1":"Ablim2","2":"0.5146274","3":"0.006397917","4":"Upregulated"},{"1":"Lsamp","2":"0.5923400","3":"0.006397917","4":"Upregulated"},{"1":"Tppp3","2":"0.5345260","3":"0.006397917","4":"Upregulated"},{"1":"Cdipt","2":"0.5122471","3":"0.006462716","4":"Upregulated"},{"1":"Aldh2","2":"0.5123712","3":"0.006812643","4":"Upregulated"},{"1":"Stxbp3","2":"0.5599675","3":"0.006812643","4":"Upregulated"},{"1":"Smap2","2":"0.5586240","3":"0.006812643","4":"Upregulated"},{"1":"Tuba8","2":"0.5618974","3":"0.006812643","4":"Upregulated"},{"1":"Glo1","2":"0.5596007","3":"0.006941892","4":"Upregulated"},{"1":"Czib","2":"0.5063882","3":"0.006991846","4":"Upregulated"},{"1":"Shc3","2":"0.5389927","3":"0.007160337","4":"Upregulated"},{"1":"Dmtn","2":"0.5543462","3":"0.007356974","4":"Upregulated"},{"1":"Spr","2":"0.5036933","3":"0.007393705","4":"Upregulated"},{"1":"Dlgap1","2":"0.5031675","3":"0.007418095","4":"Upregulated"},{"1":"Lpcat4","2":"0.5598198","3":"0.007599010","4":"Upregulated"},{"1":"Ak5","2":"0.6567965","3":"0.008097830","4":"Upregulated"},{"1":"Brsk1","2":"0.5481209","3":"0.008154491","4":"Upregulated"},{"1":"Syngap1","2":"0.5832116","3":"0.008587318","4":"Upregulated"},{"1":"Dr1","2":"0.6124647","3":"0.009179616","4":"Upregulated"},{"1":"Arhgap1","2":"0.5086752","3":"0.009458449","4":"Upregulated"},{"1":"Hras","2":"0.5138015","3":"0.009458449","4":"Upregulated"},{"1":"Cntnap1","2":"0.5105266","3":"0.009699639","4":"Upregulated"},{"1":"Emb","2":"0.5211435","3":"0.009785378","4":"Upregulated"},{"1":"Dclk2","2":"0.5008275","3":"0.009785378","4":"Upregulated"},{"1":"Prkcb","2":"0.5275889","3":"0.009958340","4":"Upregulated"},{"1":"Nudt3","2":"0.5771873","3":"0.009958340","4":"Upregulated"},{"1":"Rgs12","2":"0.6158933","3":"0.010084112","4":"Upregulated"},{"1":"Mink1","2":"0.5256805","3":"0.010084112","4":"Upregulated"},{"1":"Thrap3","2":"0.5104672","3":"0.010385636","4":"Upregulated"},{"1":"Sri","2":"0.5050955","3":"0.010407988","4":"Upregulated"},{"1":"Tbck","2":"0.5445305","3":"0.010407988","4":"Upregulated"},{"1":"Dclk1","2":"0.5781899","3":"0.010407988","4":"Upregulated"},{"1":"Gabbr1","2":"0.5028156","3":"0.010407988","4":"Upregulated"},{"1":"Cnrip1","2":"0.5152626","3":"0.010434256","4":"Upregulated"},{"1":"Ap2s1","2":"0.5688935","3":"0.011163367","4":"Upregulated"},{"1":"Xpnpep3","2":"0.7213550","3":"0.011344430","4":"Upregulated"},{"1":"Mat2a","2":"0.5430893","3":"0.011415489","4":"Upregulated"},{"1":"Mif","2":"0.5084203","3":"0.011434200","4":"Upregulated"},{"1":"Acaa1a","2":"0.5681126","3":"0.011434200","4":"Upregulated"},{"1":"Sv2a","2":"0.5285236","3":"0.011434200","4":"Upregulated"},{"1":"Pgs1","2":"0.5024694","3":"0.011550667","4":"Upregulated"},{"1":"Rph3a","2":"0.5156804","3":"0.011609054","4":"Upregulated"},{"1":"Cyria","2":"0.5324349","3":"0.011609054","4":"Upregulated"},{"1":"Cnot9","2":"0.5860156","3":"0.011833810","4":"Upregulated"},{"1":"Nrgn","2":"0.9660822","3":"0.012241500","4":"Upregulated"},{"1":"Gabrb2","2":"0.5039520","3":"0.012409546","4":"Upregulated"},{"1":"Kif2a","2":"0.5260733","3":"0.012886411","4":"Upregulated"},{"1":"Fkbp2","2":"0.5455397","3":"0.012890581","4":"Upregulated"},{"1":"Cacng2","2":"0.5144316","3":"0.012958040","4":"Upregulated"},{"1":"Pepd","2":"0.5299867","3":"0.013254141","4":"Upregulated"},{"1":"Sphk2","2":"0.5929909","3":"0.013346153","4":"Upregulated"},{"1":"Cmpk1","2":"0.5752800","3":"0.014020989","4":"Upregulated"},{"1":"Adrm1","2":"0.5929788","3":"0.014094484","4":"Upregulated"},{"1":"Arfgef2","2":"0.5465114","3":"0.014120045","4":"Upregulated"},{"1":"Pfkl","2":"0.5099632","3":"0.014184282","4":"Upregulated"},{"1":"Adam23","2":"0.5206539","3":"0.014184282","4":"Upregulated"},{"1":"Dlgap3","2":"0.5228937","3":"0.014236855","4":"Upregulated"},{"1":"Grin2a","2":"0.5123749","3":"0.014249996","4":"Upregulated"},{"1":"Bsn","2":"0.5132549","3":"0.014471810","4":"Upregulated"},{"1":"Septin4","2":"0.5045363","3":"0.014471810","4":"Upregulated"},{"1":"Pea15","2":"0.5023522","3":"0.014471810","4":"Upregulated"},{"1":"Ngef","2":"0.5159388","3":"0.014471810","4":"Upregulated"},{"1":"Prkcd","2":"0.5616480","3":"0.014635690","4":"Upregulated"},{"1":"Itpr2","2":"-0.9011465","3":"0.014668199","4":"Downregulated"},{"1":"Ppme1","2":"0.5198320","3":"0.014858786","4":"Upregulated"},{"1":"Hspe1","2":"0.5817802","3":"0.014975882","4":"Upregulated"},{"1":"Ak4","2":"0.5300730","3":"0.015213723","4":"Upregulated"},{"1":"Syt7","2":"0.5050648","3":"0.015262975","4":"Upregulated"},{"1":"Cplx1","2":"0.5159365","3":"0.015334021","4":"Upregulated"},{"1":"Vcan","2":"0.5308281","3":"0.015458508","4":"Upregulated"},{"1":"Cdc42ep1","2":"0.5029709","3":"0.016308283","4":"Upregulated"},{"1":"Tubb6","2":"0.5134937","3":"0.016420418","4":"Upregulated"},{"1":"Gnb4","2":"0.6333221","3":"0.016817632","4":"Upregulated"},{"1":"Gpm6b","2":"0.5364678","3":"0.017340994","4":"Upregulated"},{"1":"Rgs7bp","2":"0.5629941","3":"0.017362871","4":"Upregulated"},{"1":"Baiap2","2":"0.5094157","3":"0.017363514","4":"Upregulated"},{"1":"Srr","2":"0.5575590","3":"0.017508010","4":"Upregulated"},{"1":"Caskin1","2":"0.5123520","3":"0.017964522","4":"Upregulated"},{"1":"Homer1","2":"0.5295731","3":"0.017964522","4":"Upregulated"},{"1":"Ubxn6","2":"0.5339753","3":"0.018274287","4":"Upregulated"},{"1":"Igsf21","2":"0.5263369","3":"0.018484066","4":"Upregulated"},{"1":"Iah1","2":"-0.8240402","3":"0.019222709","4":"Downregulated"},{"1":"Gng3","2":"0.5809333","3":"0.019244798","4":"Upregulated"},{"1":"Phyhipl","2":"0.5170585","3":"0.019431804","4":"Upregulated"},{"1":"Prkaca","2":"0.6080249","3":"0.019552159","4":"Upregulated"},{"1":"Uchl1","2":"0.5076884","3":"0.019831600","4":"Upregulated"},{"1":"Mocs3","2":"0.5532274","3":"0.019873628","4":"Upregulated"},{"1":"Ube3b","2":"0.5180699","3":"0.020242926","4":"Upregulated"},{"1":"Ssbp1","2":"0.6126406","3":"0.020471333","4":"Upregulated"},{"1":"Srpra","2":"0.6042641","3":"0.020496656","4":"Upregulated"},{"1":"Pcp4","2":"0.5349705","3":"0.020869081","4":"Upregulated"},{"1":"Txndc17","2":"0.5396490","3":"0.020879557","4":"Upregulated"},{"1":"Arxes1;Arxes2","2":"-0.5716932","3":"0.021817276","4":"Downregulated"},{"1":"Uqcrq","2":"0.5134846","3":"0.021817276","4":"Upregulated"},{"1":"Nme2","2":"0.5638899","3":"0.022126595","4":"Upregulated"},{"1":"Rab11b","2":"0.5291315","3":"0.022220196","4":"Upregulated"},{"1":"Gna12","2":"0.7941626","3":"0.022309097","4":"Upregulated"},{"1":"Ak1","2":"0.5272378","3":"0.022621448","4":"Upregulated"},{"1":"Cdc42","2":"0.5465103","3":"0.022801349","4":"Upregulated"},{"1":"Ccz1","2":"0.5063371","3":"0.022846485","4":"Upregulated"},{"1":"Mtx2","2":"0.5136856","3":"0.023231554","4":"Upregulated"},{"1":"Slc22a17","2":"0.5003783","3":"0.023634487","4":"Upregulated"},{"1":"Snrpg","2":"0.5010874","3":"0.023852661","4":"Upregulated"},{"1":"Sh3bgrl2","2":"0.6522761","3":"0.023945647","4":"Upregulated"},{"1":"Trim32","2":"0.5082019","3":"0.024268339","4":"Upregulated"},{"1":"Ipo4","2":"0.5227611","3":"0.024430178","4":"Upregulated"},{"1":"Gap43","2":"0.5561155","3":"0.024598904","4":"Upregulated"},{"1":"Bbln","2":"-0.9200518","3":"0.024598904","4":"Downregulated"},{"1":"Gas2l1","2":"0.6285683","3":"0.024640429","4":"Upregulated"},{"1":"Pcna","2":"0.5296869","3":"0.024822581","4":"Upregulated"},{"1":"Scrn2","2":"0.5161823","3":"0.024822581","4":"Upregulated"},{"1":"Ggps1","2":"0.5567837","3":"0.024822581","4":"Upregulated"},{"1":"Tbr1","2":"0.5726187","3":"0.025031904","4":"Upregulated"},{"1":"Arhgap23","2":"0.6085001","3":"0.025125614","4":"Upregulated"},{"1":"Utp20","2":"-1.0952527","3":"0.025185598","4":"Downregulated"},{"1":"Drg2","2":"0.5366505","3":"0.025248290","4":"Upregulated"},{"1":"Plpp3","2":"0.5222342","3":"0.026139458","4":"Upregulated"},{"1":"Rnf40","2":"0.5465014","3":"0.026610351","4":"Upregulated"},{"1":"Cadm3","2":"0.5140318","3":"0.027008770","4":"Upregulated"},{"1":"Psmc1","2":"0.5262013","3":"0.027199401","4":"Upregulated"},{"1":"Ppp1r2","2":"0.5193022","3":"0.027509166","4":"Upregulated"},{"1":"Eml5","2":"0.9336712","3":"0.027881923","4":"Upregulated"},{"1":"Rhoc","2":"0.5832188","3":"0.027946625","4":"Upregulated"},{"1":"Fmnl1","2":"0.5325704","3":"0.028039528","4":"Upregulated"},{"1":"Elfn2","2":"0.5808471","3":"0.028134209","4":"Upregulated"},{"1":"Nptxr","2":"0.5113816","3":"0.028152335","4":"Upregulated"},{"1":"Nefl","2":"0.5987164","3":"0.028375592","4":"Upregulated"},{"1":"Sirt2","2":"0.6021094","3":"0.029087953","4":"Upregulated"},{"1":"Gabarapl2","2":"0.5023093","3":"0.031565914","4":"Upregulated"},{"1":"Bclaf1","2":"0.5653919","3":"0.031565914","4":"Upregulated"},{"1":"Lgi3","2":"0.5247359","3":"0.032426072","4":"Upregulated"},{"1":"Tmem258","2":"0.6127924","3":"0.032483835","4":"Upregulated"},{"1":"Ppm1e","2":"0.5025179","3":"0.033715460","4":"Upregulated"},{"1":"Pafah1b2","2":"0.5462696","3":"0.034055781","4":"Upregulated"},{"1":"Gdap1l1","2":"0.5091544","3":"0.035523422","4":"Upregulated"},{"1":"Slc6a2","2":"-0.5120376","3":"0.035883746","4":"Downregulated"},{"1":"Cpne4","2":"0.5307337","3":"0.037023886","4":"Upregulated"},{"1":"Sdc3","2":"0.6081455","3":"0.037246816","4":"Upregulated"},{"1":"Impa2","2":"-0.6155842","3":"0.038276335","4":"Downregulated"},{"1":"Pin1","2":"0.6030046","3":"0.038472845","4":"Upregulated"},{"1":"Dusp23","2":"-0.5114037","3":"0.039259654","4":"Downregulated"},{"1":"Bscl2","2":"0.5081541","3":"0.039721878","4":"Upregulated"},{"1":"Rgs17","2":"0.5467069","3":"0.039831032","4":"Upregulated"},{"1":"Atp6v1g2","2":"0.5049511","3":"0.040884065","4":"Upregulated"},{"1":"Preb","2":"0.5024862","3":"0.041065699","4":"Upregulated"},{"1":"D3YVL2","2":"0.6944950","3":"0.041278749","4":"Upregulated"},{"1":"Tmsb4x","2":"0.7157738","3":"0.041343184","4":"Upregulated"},{"1":"Rpl24","2":"0.6508909","3":"0.041981855","4":"Upregulated"},{"1":"Bcas1","2":"0.5127872","3":"0.042014393","4":"Upregulated"},{"1":"Fdps","2":"0.5139662","3":"0.042307679","4":"Upregulated"},{"1":"Basp1","2":"0.5060845","3":"0.043156417","4":"Upregulated"},{"1":"Maco1","2":"0.8767380","3":"0.043363713","4":"Upregulated"},{"1":"Gramd1a","2":"0.5842554","3":"0.043400142","4":"Upregulated"},{"1":"Actg1","2":"0.5603303","3":"0.044740104","4":"Upregulated"},{"1":"Ptprm","2":"0.5906154","3":"0.044913554","4":"Upregulated"},{"1":"Nefm","2":"0.5360769","3":"0.044915796","4":"Upregulated"},{"1":"Afap1","2":"-0.6490770","3":"0.044944682","4":"Downregulated"},{"1":"Eif4ebp2","2":"0.6165616","3":"0.046303749","4":"Upregulated"},{"1":"Tesc","2":"0.5894409","3":"0.047139031","4":"Upregulated"},{"1":"St7","2":"0.5078467","3":"0.048533807","4":"Upregulated"},{"1":"Slc8a2","2":"0.5160995","3":"0.048917482","4":"Upregulated"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb96"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fwrite</span>(msstats_far_only_df, <span class="fu">file.path</span>(results_dir, <span class="st">"msstats_plaque_far_vs_control_only.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 
 
 </section>

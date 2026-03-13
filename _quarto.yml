@@ -28,6 +28,8 @@ website:
         file: notebooks/05_gfap_correlation.qmd
       - text: "6. Concordance between limma and MSstats"
         file: notebooks/06_msstats_limma_correlation.qmd
+      - text: "7: Putative cell-cell interactions"
+        file: notebooks/07_cell_interactions.qmd
 format:
   html:
     theme: cosmo

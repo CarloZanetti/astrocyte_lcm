@@ -1,5 +1,5 @@
-[1m[34m[1/7] index.qmd[39m[22m
-[1m[34m[2/7] notebooks/01b_DAA_marker_check.qmd[39m[22m
+[1m[34m[1/8] index.qmd[39m[22m
+[1m[34m[2/8] notebooks/01b_DAA_marker_check.qmd[39m[22m
 [31m
 
 processing file: 01b_DAA_marker_check.qmd
@@ -18,7 +18,7 @@ processing file: 01b_DAA_marker_check.qmd
 13/13                  
 [31moutput file: 01b_DAA_marker_check.knit.md
 
-[39m[1m[34m[3/7] notebooks/05_gfap_correlation.qmd[39m[22m
+[39m[1m[34m[3/8] notebooks/05_gfap_correlation.qmd[39m[22m
 [31m
 
 processing file: 05_gfap_correlation.qmd
@@ -37,7 +37,7 @@ processing file: 05_gfap_correlation.qmd
 13/13                  
 [31moutput file: 05_gfap_correlation.knit.md
 
-[39m[1m[34m[4/7] notebooks/04_gsea.qmd[39m[22m
+[39m[1m[34m[4/8] notebooks/04_gsea.qmd[39m[22m
 [31m
 
 processing file: 04_gsea.qmd
@@ -58,7 +58,7 @@ processing file: 04_gsea.qmd
 15/15                  
 [31moutput file: 04_gsea.knit.md
 
-[39m[1m[34m[5/7] notebooks/03_DE_plots.qmd[39m[22m
+[39m[1m[34m[5/8] notebooks/03_DE_plots.qmd[39m[22m
 [31m
 
 processing file: 03_DE_plots.qmd
@@ -81,42 +81,72 @@ processing file: 03_DE_plots.qmd
 17/17                  
 [31moutput file: 03_DE_plots.knit.md
 
-[39m[1m[34m[6/7] notebooks/06_msstats_limma_correlation.qmd[39m[22m
+[39m[1m[34m[6/8] notebooks/07_cell_interactions.qmd[39m[22m
+[31m
+
+processing file: 07_cell_interactions.qmd
+[39m1/19                  
+2/19 [unnamed-chunk-1]
+3/19                  
+4/19 [unnamed-chunk-2]
+5/19                  
+6/19 [unnamed-chunk-3]
+[31m[2026-03-13 18:02:11] [SUCCESS] [OmnipathR] Loaded 139054 interactions from cache.
+[39m[31m[2026-03-13 18:02:12] [SUCCESS] [OmnipathR] Loaded 15663 intercellular communication role records from cache.
+[39m[31m[2026-03-13 18:02:12] [SUCCESS] [OmnipathR] Loaded 35316 intercellular communication role records from cache.
+[39m7/19                  
+8/19 [unnamed-chunk-4]
+9/19                  
+10/19 [unnamed-chunk-5]
+11/19                  
+12/19 [unnamed-chunk-6]
+13/19                  
+14/19 [unnamed-chunk-7]
+15/19                  
+16/19 [unnamed-chunk-8]
+17/19                  
+18/19 [unnamed-chunk-9]
+19/19                  
+[31moutput file: 07_cell_interactions.knit.md
+
+[39m[1m[34m[7/8] notebooks/06_msstats_limma_correlation.qmd[39m[22m
 [31m
 
 processing file: 06_msstats_limma_correlation.qmd
-[39m1/29                   
-2/29 [unnamed-chunk-1] 
-3/29                   
-4/29 [unnamed-chunk-2] 
-5/29                   
-6/29 [unnamed-chunk-3] 
-7/29                   
-8/29 [unnamed-chunk-4] 
-9/29                   
-10/29 [unnamed-chunk-5] 
-11/29                   
-12/29 [unnamed-chunk-6] 
-13/29                   
-14/29 [unnamed-chunk-7] 
-15/29                   
-16/29 [unnamed-chunk-8] 
-17/29                   
-18/29 [unnamed-chunk-9] 
-19/29                   
-20/29 [unnamed-chunk-10]
-21/29                   
-22/29 [unnamed-chunk-11]
-23/29                   
-24/29 [unnamed-chunk-12]
-25/29                   
-26/29 [unnamed-chunk-13]
-27/29                   
-28/29 [unnamed-chunk-14]
-29/29                   
+[39m1/31                   
+2/31 [unnamed-chunk-1] 
+3/31                   
+4/31 [unnamed-chunk-2] 
+5/31                   
+6/31 [unnamed-chunk-3] 
+7/31                   
+8/31 [unnamed-chunk-4] 
+9/31                   
+10/31 [unnamed-chunk-5] 
+11/31                   
+12/31 [unnamed-chunk-6] 
+13/31                   
+14/31 [unnamed-chunk-7] 
+15/31                   
+16/31 [unnamed-chunk-8] 
+17/31                   
+18/31 [unnamed-chunk-9] 
+19/31                   
+20/31 [unnamed-chunk-10]
+21/31                   
+22/31 [unnamed-chunk-11]
+23/31                   
+24/31 [unnamed-chunk-12]
+25/31                   
+26/31 [unnamed-chunk-13]
+27/31                   
+28/31 [unnamed-chunk-14]
+29/31                   
+30/31 [unnamed-chunk-15]
+31/31                   
 [31moutput file: 06_msstats_limma_correlation.knit.md
 
-[39m[1m[34m[7/7] notebooks/01a_initial_qc_spectronaut.qmd[39m[22m
+[39m[1m[34m[8/8] notebooks/01a_initial_qc_spectronaut.qmd[39m[22m
 [31m
 
 processing file: 01a_initial_qc_spectronaut.qmd
