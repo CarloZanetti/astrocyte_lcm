@@ -21,7 +21,7 @@ library(glue)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run3"
+run_num <- "run4"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -115,7 +115,7 @@ target_ids <- protein_dictionary %>%
 ```{r}
 # Condition Plot: Visualizes the mean and 95% CI per condition
 limma_path <- file.path(results_dir, "msstats_plots", "limma")
-dir.create(pdf_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(limma_path, recursive = TRUE, showWarnings = FALSE)
 
 pdf_path <- file.path(results_dir, "msstats_plots",  "limma", "ConditionPlot.pdf")
 pdf(pdf_path, width = 10, height = 7)

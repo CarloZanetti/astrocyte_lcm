@@ -20,7 +20,7 @@ library(stringr)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run3"
+run_num <- "run4"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -202,7 +202,7 @@ qs_save(msstats_input, file.path(objects_dir, "msstats_input.qs2"))
 
 ## input filtering at the condition level
 ```{r}
-msstats_input <- qs_read(file.path(objects_dir, "msstats_input.qs2"))
+msstats_input <- qs_read(file.path(base_dir, "data/processed/run2/msstats_input.qs2"))
 
 # 1. Convert to a standard data frame
 input_df <- as.data.frame(msstats_input)
@@ -249,7 +249,7 @@ processed_data <- dataProcess(
   normalization = "equalizeMedians",
   summaryMethod = "TMP",
   censoredInt = "NA",
-  MBimpute = FALSE,
+  MBimpute = TRUE,
   featureSubset = "highQuality",
   remove_uninformative_feature_outlier = TRUE
   )
