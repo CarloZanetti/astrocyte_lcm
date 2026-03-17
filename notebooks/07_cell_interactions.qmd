@@ -13,6 +13,7 @@ library(ggplot2)
 ```
 
 ## Set directories
+
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
 run_num <- "run3"
@@ -26,7 +27,8 @@ dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
-## Retrieve intercellullar communication database
+## Retrieve intercellular communication database
+
 ```{r}
 lr_network <- intercell_network(
   transmitter_param = list(categories = c('ligand')),
@@ -49,7 +51,9 @@ lr_with_evidence <- lr_network %>%
     # Replace NAs with 0
     mutate(across(c(curation_count, paper_count), ~replace_na(.x, 0)))
 ```
-## Reaad in msstats results 
+
+## Read in MSstats results
+
 ```{r}
 res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
 
@@ -78,6 +82,7 @@ msstats_results <- res_df %>%
 ```
 
 ## Create ligand and receptor dataframes
+
 ```{r}
 #Ligands data
 ligands_data <- msstats_results %>%
@@ -89,8 +94,8 @@ receptors_data <- msstats_results %>%
 ```
 
 ## Multi-comparison merge
-Join network with ligands, then join with receptors matching botht he receptor name and the label.
-Ensures evaluating ligand X and receptor Y within the same MSstats comparison
+
+Join network with ligands, then join with receptors matching both the receptor name and the label. Ensures evaluating ligand X and receptor Y within the same MSstats comparison.
 
 ```{r}
 
@@ -105,11 +110,12 @@ all_cross_talk <- lr_with_evidence %>%
 
 #4839 length when inner joining to ligand
 #2135 length when inner joining to receptor and label too.
-#147 legnth when filtering to sig for both. 
+#147 length when filtering to sig for both. 
 
 ```
 
 ## Extract co-upregulated pairs per comparison
+
 ```{r}
 co_upregulated_all <- all_cross_talk %>%
   filter(logFC_Ligand > 0 & logFC_Receptor > 0) %>%
@@ -121,30 +127,18 @@ co_upregulated_all <- all_cross_talk %>%
 co_upregulated_all
 ```
 
-## comparison of number of interactions for each comparison
+## Comparison of number of interactions for each comparison
+
 ```{r}
 interaction_summary <- co_upregulated_all %>%
   count(Label, name = "Observed_Interactions")
-print(interaction_summary)
-#aplp2 cd14
-
-```
-## Plaque near vs control l-r interactions
-```{r}
-near_vs_ctrl <- all_cross_talk %>% 
-  filter(Label == "PlaqueNear_vs_Control") %>%
-  filter(pval_Ligand <0.05 & pval_Receptor <0.05) %>%
-  arrange(desc(abs(logFC_Ligand + logFC_Receptor))) %>%
-  dplyr::select(-c(sources, references))
-
-near_vs_ctrl
-
+interaction_summary
 ```
 
-#Permutation test 
+## Permutation test
 
 ```{r}
-set.seed(42) # Ensures reproducibility 
+set.seed(42)
 n_perms <- 1000
 results_list <- vector("list", n_perms)
 
@@ -204,14 +198,11 @@ empirical_results <- interaction_summary %>%
     Empirical_P_Value = sum(Simulated_Interactions >= Observed_Interactions) / n_perms,
     .groups = "drop"
   )
-
-print("Empirical Permutation Test Results:")
 print(empirical_results)
 ```
 
 ```{r}
-# --- 10. Visualize the Permutation Results ---
-# This plots the bell curve of random chance vs your actual findings
+# Visualize the Permutation Results 
 perm_plot <- ggplot(null_distribution_df, aes(x = Simulated_Interactions)) +
   geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 0.7) +
   geom_vline(data = interaction_summary, aes(xintercept = Observed_Interactions), 
@@ -227,4 +218,3 @@ perm_plot <- ggplot(null_distribution_df, aes(x = Simulated_Interactions)) +
 
 print(perm_plot)
 ```
-

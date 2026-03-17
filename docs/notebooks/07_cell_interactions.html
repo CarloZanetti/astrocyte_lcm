@@ -193,13 +193,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#set-directories" id="toc-set-directories" class="nav-link active" data-scroll-target="#set-directories">Set directories</a></li>
-  <li><a href="#retrieve-intercellullar-communication-database" id="toc-retrieve-intercellullar-communication-database" class="nav-link" data-scroll-target="#retrieve-intercellullar-communication-database">Retrieve intercellullar communication database</a></li>
-  <li><a href="#reaad-in-msstats-results" id="toc-reaad-in-msstats-results" class="nav-link" data-scroll-target="#reaad-in-msstats-results">Reaad in msstats results</a></li>
+  <li><a href="#retrieve-intercellular-communication-database" id="toc-retrieve-intercellular-communication-database" class="nav-link" data-scroll-target="#retrieve-intercellular-communication-database">Retrieve intercellular communication database</a></li>
+  <li><a href="#read-in-msstats-results" id="toc-read-in-msstats-results" class="nav-link" data-scroll-target="#read-in-msstats-results">Read in MSstats results</a></li>
   <li><a href="#create-ligand-and-receptor-dataframes" id="toc-create-ligand-and-receptor-dataframes" class="nav-link" data-scroll-target="#create-ligand-and-receptor-dataframes">Create ligand and receptor dataframes</a></li>
   <li><a href="#multi-comparison-merge" id="toc-multi-comparison-merge" class="nav-link" data-scroll-target="#multi-comparison-merge">Multi-comparison merge</a></li>
   <li><a href="#extract-co-upregulated-pairs-per-comparison" id="toc-extract-co-upregulated-pairs-per-comparison" class="nav-link" data-scroll-target="#extract-co-upregulated-pairs-per-comparison">Extract co-upregulated pairs per comparison</a></li>
-  <li><a href="#comparison-of-number-of-interactions-for-each-comparison" id="toc-comparison-of-number-of-interactions-for-each-comparison" class="nav-link" data-scroll-target="#comparison-of-number-of-interactions-for-each-comparison">comparison of number of interactions for each comparison</a></li>
-  <li><a href="#plaque-near-vs-control-l-r-interactions" id="toc-plaque-near-vs-control-l-r-interactions" class="nav-link" data-scroll-target="#plaque-near-vs-control-l-r-interactions">Plaque near vs control l-r interactions</a></li>
+  <li><a href="#comparison-of-number-of-interactions-for-each-comparison" id="toc-comparison-of-number-of-interactions-for-each-comparison" class="nav-link" data-scroll-target="#comparison-of-number-of-interactions-for-each-comparison">Comparison of number of interactions for each comparison</a></li>
+  <li><a href="#permutation-test" id="toc-permutation-test" class="nav-link" data-scroll-target="#permutation-test">Permutation test</a></li>
   </ul>
 </nav>
     </div>
@@ -289,8 +289,8 @@ Attaching package: 'data.table'</code></pre>
 </details>
 </div>
 </section>
-<section id="retrieve-intercellullar-communication-database" class="level2">
-<h2 class="anchored" data-anchor-id="retrieve-intercellullar-communication-database">Retrieve intercellullar communication database</h2>
+<section id="retrieve-intercellular-communication-database" class="level2">
+<h2 class="anchored" data-anchor-id="retrieve-intercellular-communication-database">Retrieve intercellular communication database</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -317,8 +317,8 @@ Attaching package: 'data.table'</code></pre>
 </details>
 </div>
 </section>
-<section id="reaad-in-msstats-results" class="level2">
-<h2 class="anchored" data-anchor-id="reaad-in-msstats-results">Reaad in msstats results</h2>
+<section id="read-in-msstats-results" class="level2">
+<h2 class="anchored" data-anchor-id="read-in-msstats-results">Read in MSstats results</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -366,7 +366,7 @@ Attaching package: 'data.table'</code></pre>
 </section>
 <section id="multi-comparison-merge" class="level2">
 <h2 class="anchored" data-anchor-id="multi-comparison-merge">Multi-comparison merge</h2>
-<p>Join network with ligands, then join with receptors matching botht he receptor name and the label. Ensures evaluating ligand X and receptor Y within the same MSstats comparison</p>
+<p>Join network with ligands, then join with receptors matching both the receptor name and the label. Ensures evaluating ligand X and receptor Y within the same MSstats comparison.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -390,7 +390,7 @@ Attaching package: 'data.table'</code></pre>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#4839 length when inner joining to ligand</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#2135 length when inner joining to receptor and label too.</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#147 legnth when filtering to sig for both. </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#147 length when filtering to sig for both. </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -418,96 +418,72 @@ Attaching package: 'data.table'</code></pre>
 </div>
 </section>
 <section id="comparison-of-number-of-interactions-for-each-comparison" class="level2">
-<h2 class="anchored" data-anchor-id="comparison-of-number-of-interactions-for-each-comparison">comparison of number of interactions for each comparison</h2>
+<h2 class="anchored" data-anchor-id="comparison-of-number-of-interactions-for-each-comparison">Comparison of number of interactions for each comparison</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>interaction_summary <span class="ot">&lt;-</span> co_upregulated_all <span class="sc">%&gt;%</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Observed_Interactions"</span>)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(interaction_summary)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2 × 2
-  Label                 Observed_Interactions
-  &lt;chr&gt;                                 &lt;int&gt;
-1 PlaqueFar_vs_Control                     69
-2 PlaqueNear_vs_Control                    77</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#aplp2 cd14</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</section>
-<section id="plaque-near-vs-control-l-r-interactions" class="level2">
-<h2 class="anchored" data-anchor-id="plaque-near-vs-control-l-r-interactions">Plaque near vs control l-r interactions</h2>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>near_vs_ctrl <span class="ot">&lt;-</span> all_cross_talk <span class="sc">%&gt;%</span> </span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">==</span> <span class="st">"PlaqueNear_vs_Control"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span><span class="fl">0.05</span> <span class="sc">&amp;</span> pval_Receptor <span class="sc">&lt;</span><span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(logFC_Ligand <span class="sc">+</span> logFC_Receptor))) <span class="sc">%&gt;%</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(sources, references))</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>near_vs_ctrl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>interaction_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
-{"columns":[{"label":["Ligand"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Receptor"],"name":[2],"type":["chr"],"align":["left"]},{"label":["curation_count"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["paper_count"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Label"],"name":[5],"type":["chr"],"align":["left"]},{"label":["logFC_Ligand"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["pval_Ligand"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["logFC_Receptor"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["pval_Receptor"],"name":[9],"type":["dbl"],"align":["right"]}],"data":[{"1":"APLP2","2":"CD14","3":"1","4":"0","5":"PlaqueNear_vs_Control","6":"0.8298281","7":"6.141925e-05","8":"1.1961524","9":"3.891369e-02"},{"1":"APOE","2":"APP","3":"7","4":"8","5":"PlaqueNear_vs_Control","6":"1.3665210","7":"1.559782e-07","8":"0.6045160","9":"1.683045e-03"},{"1":"APOE","2":"LRP1","3":"17","4":"12","5":"PlaqueNear_vs_Control","6":"1.3665210","7":"1.559782e-07","8":"0.5500153","9":"2.594673e-03"},{"1":"VTN","2":"ITGB8","3":"13","4":"4","5":"PlaqueNear_vs_Control","6":"1.3811117","7":"6.695464e-04","8":"0.4719613","9":"9.799113e-03"},{"1":"VTN","2":"ITGAV","3":"10","4":"5","5":"PlaqueNear_vs_Control","6":"1.3811117","7":"6.695464e-04","8":"0.4709098","9":"1.136889e-02"},{"1":"C1QTNF4","2":"STAT3","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.9417866","7":"9.871701e-07","8":"0.8778290","9":"3.006730e-03"},{"1":"VTN","2":"SRC","3":"1","4":"0","5":"PlaqueNear_vs_Control","6":"1.3811117","7":"6.695464e-04","8":"0.4263440","9":"1.341289e-02"},{"1":"VTN","2":"PTK2B","3":"1","4":"0","5":"PlaqueNear_vs_Control","6":"1.3811117","7":"6.695464e-04","8":"0.4039855","9":"1.106472e-02"},{"1":"MIF","2":"CD44","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.4967420","7":"1.574599e-02","8":"1.2754048","9":"3.488183e-03"},{"1":"VTN","2":"ITGA6","3":"1","4":"0","5":"PlaqueNear_vs_Control","6":"1.3811117","7":"6.695464e-04","8":"0.3676951","9":"3.947108e-02"},{"1":"VTN","2":"PI4KA","3":"1","4":"0","5":"PlaqueNear_vs_Control","6":"1.3811117","7":"6.695464e-04","8":"0.3493544","9":"3.549063e-02"},{"1":"FGF1","2":"CD44","3":"7","4":"2","5":"PlaqueNear_vs_Control","6":"0.4234123","7":"7.244780e-03","8":"1.2754048","9":"3.488183e-03"},{"1":"PAM","2":"FXYD1","3":"2","4":"2","5":"PlaqueNear_vs_Control","6":"0.7656863","7":"1.811421e-02","8":"0.9180827","9":"8.452993e-04"},{"1":"PTN","2":"PTPRS","3":"13","4":"7","5":"PlaqueNear_vs_Control","6":"1.1382754","7":"4.306632e-02","8":"0.5342121","9":"3.357257e-03"},{"1":"VGF","2":"STAT3","3":"3","4":"1","5":"PlaqueNear_vs_Control","6":"0.7050994","7":"2.810097e-03","8":"0.8778290","9":"3.006730e-03"},{"1":"PTN","2":"SRC","3":"3","4":"3","5":"PlaqueNear_vs_Control","6":"1.1382754","7":"4.306632e-02","8":"0.4263440","9":"1.341289e-02"},{"1":"PTN","2":"PLXNB2","3":"12","4":"6","5":"PlaqueNear_vs_Control","6":"1.1382754","7":"4.306632e-02","8":"0.3979496","9":"7.873261e-03"},{"1":"EDIL3","2":"ITGAV","3":"13","4":"4","5":"PlaqueNear_vs_Control","6":"0.9624814","7":"2.836502e-07","8":"0.4709098","9":"1.136889e-02"},{"1":"MIF","2":"STAT3","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.4967420","7":"1.574599e-02","8":"0.8778290","9":"3.006730e-03"},{"1":"FGF1","2":"STAT3","3":"3","4":"1","5":"PlaqueNear_vs_Control","6":"0.4234123","7":"7.244780e-03","8":"0.8778290","9":"3.006730e-03"},{"1":"CNTN4","2":"APLP1","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.5846175","7":"1.385601e-02","8":"0.6774729","9":"1.559782e-07"},{"1":"NRXN3","2":"CLSTN3","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.5084438","7":"4.675205e-03","8":"0.6872584","9":"3.664248e-04"},{"1":"CNTN4","2":"APP","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.5846175","7":"1.385601e-02","8":"0.6045160","9":"1.683045e-03"},{"1":"NRXN1","2":"CLSTN3","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.4857654","7":"1.959625e-03","8":"0.6872584","9":"3.664248e-04"},{"1":"NRXN3","2":"CLSTN1","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.5084438","7":"4.675205e-03","8":"0.6633508","9":"5.699696e-06"},{"1":"NRXN1","2":"CLSTN1","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.4857654","7":"1.959625e-03","8":"0.6633508","9":"5.699696e-06"},{"1":"ICAM5","2":"ITGB2","3":"15","4":"8","5":"PlaqueNear_vs_Control","6":"0.4296039","7":"1.713806e-02","8":"0.6798978","9":"6.105815e-03"},{"1":"LGI4","2":"ADAM23","3":"1","4":"2","5":"PlaqueNear_vs_Control","6":"0.6665608","7":"4.888954e-04","8":"0.4389539","9":"4.154773e-02"},{"1":"NRXN2","2":"CLSTN3","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.3608298","7":"7.671985e-03","8":"0.6872584","9":"3.664248e-04"},{"1":"NRXN3","2":"LRRTM1","3":"2","4":"3","5":"PlaqueNear_vs_Control","6":"0.5084438","7":"4.675205e-03","8":"0.5312945","9":"3.758197e-02"},{"1":"SPON1","2":"APP","3":"2","4":"2","5":"PlaqueNear_vs_Control","6":"0.4333953","7":"1.212742e-02","8":"0.6045160","9":"1.683045e-03"},{"1":"NRXN3","2":"ADGRL1","3":"3","4":"6","5":"PlaqueNear_vs_Control","6":"0.5084438","7":"4.675205e-03","8":"0.5198129","9":"4.491942e-03"},{"1":"NRXN2","2":"CLSTN1","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.3608298","7":"7.671985e-03","8":"0.6633508","9":"5.699696e-06"},{"1":"MSN","2":"SLC9A1","3":"2","4":"2","5":"PlaqueNear_vs_Control","6":"0.6750717","7":"9.195212e-04","8":"0.3449638","9":"4.551253e-02"},{"1":"NRXN1","2":"LRRTM1","3":"2","4":"3","5":"PlaqueNear_vs_Control","6":"0.4857654","7":"1.959625e-03","8":"0.5312945","9":"3.758197e-02"},{"1":"NRXN1","2":"ADGRL1","3":"3","4":"6","5":"PlaqueNear_vs_Control","6":"0.4857654","7":"1.959625e-03","8":"0.5198129","9":"4.491942e-03"},{"1":"SLITRK5","2":"PTPRD","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.4259632","7":"1.469909e-02","8":"0.5705196","9":"6.695464e-04"},{"1":"RPH3A","2":"NRXN1","3":"14","4":"6","5":"PlaqueNear_vs_Control","6":"0.4923510","7":"1.791539e-02","8":"0.4857654","9":"1.959625e-03"},{"1":"LRFN1","2":"PTPRD","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.4036073","7":"6.938668e-03","8":"0.5705196","9":"6.695464e-04"},{"1":"NLGN3","2":"PTPRD","3":"1","4":"0","5":"PlaqueNear_vs_Control","6":"0.4035258","7":"2.373846e-02","8":"0.5705196","9":"6.695464e-04"},{"1":"SLITRK5","2":"PTPRS","3":"2","4":"2","5":"PlaqueNear_vs_Control","6":"0.4259632","7":"1.469909e-02","8":"0.5342121","9":"3.357257e-03"},{"1":"ACTR2","2":"ACVR1B","3":"1","4":"2","5":"PlaqueNear_vs_Control","6":"0.3680730","7":"4.448581e-02","8":"0.5910702","9":"3.677980e-02"},{"1":"SHANK2","2":"ADGRL1","3":"3","4":"4","5":"PlaqueNear_vs_Control","6":"0.4213356","7":"1.687442e-02","8":"0.5198129","9":"4.491942e-03"},{"1":"PTPRS","2":"NTRK2","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.5342121","7":"3.357257e-03","8":"0.4069095","9":"2.302752e-02"},{"1":"S100B","2":"GSK3B","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.5091286","7":"3.215624e-02","8":"0.4316524","9":"3.412365e-02"},{"1":"TENM4","2":"ADGRL3","3":"3","4":"5","5":"PlaqueNear_vs_Control","6":"0.4146860","7":"2.353641e-04","8":"0.5233034","9":"4.299659e-03"},{"1":"LRFN1","2":"PTPRS","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.4036073","7":"6.938668e-03","8":"0.5342121","9":"3.357257e-03"},{"1":"TENM4","2":"ADGRL1","3":"3","4":"5","5":"PlaqueNear_vs_Control","6":"0.4146860","7":"2.353641e-04","8":"0.5198129","9":"4.491942e-03"},{"1":"NLGN2","2":"NRXN3","3":"14","4":"5","5":"PlaqueNear_vs_Control","6":"0.4236773","7":"3.747370e-02","8":"0.5084438","9":"4.675205e-03"},{"1":"NRXN3","2":"NLGN2","3":"4","4":"2","5":"PlaqueNear_vs_Control","6":"0.5084438","7":"4.675205e-03","8":"0.4236773","9":"3.747370e-02"},{"1":"NLGN3","2":"NRXN3","3":"15","4":"5","5":"PlaqueNear_vs_Control","6":"0.4035258","7":"2.373846e-02","8":"0.5084438","9":"4.675205e-03"},{"1":"NRXN3","2":"NLGN3","3":"6","4":"2","5":"PlaqueNear_vs_Control","6":"0.5084438","7":"4.675205e-03","8":"0.4035258","9":"2.373846e-02"},{"1":"NLGN2","2":"NRXN1","3":"20","4":"7","5":"PlaqueNear_vs_Control","6":"0.4236773","7":"3.747370e-02","8":"0.4857654","9":"1.959625e-03"},{"1":"NRXN1","2":"NLGN2","3":"7","4":"3","5":"PlaqueNear_vs_Control","6":"0.4857654","7":"1.959625e-03","8":"0.4236773","9":"3.747370e-02"},{"1":"CADM3","2":"EPB41L1","3":"2","4":"0","5":"PlaqueNear_vs_Control","6":"0.4902840","7":"4.692937e-02","8":"0.4157384","9":"1.687442e-02"},{"1":"VCL","2":"PRKCA","3":"3","4":"3","5":"PlaqueNear_vs_Control","6":"0.3490930","7":"4.000233e-02","8":"0.5539987","9":"2.202199e-02"},{"1":"FGF1","2":"ITGAV","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.4234123","7":"7.244780e-03","8":"0.4709098","9":"1.136889e-02"},{"1":"NRXN2","2":"LRRTM1","3":"2","4":"3","5":"PlaqueNear_vs_Control","6":"0.3608298","7":"7.671985e-03","8":"0.5312945","9":"3.758197e-02"},{"1":"NLGN3","2":"NRXN1","3":"18","4":"10","5":"PlaqueNear_vs_Control","6":"0.4035258","7":"2.373846e-02","8":"0.4857654","9":"1.959625e-03"},{"1":"NRXN1","2":"NLGN3","3":"4","4":"2","5":"PlaqueNear_vs_Control","6":"0.4857654","7":"1.959625e-03","8":"0.4035258","9":"2.373846e-02"},{"1":"TAX1BP3","2":"ADGRB2","3":"3","4":"2","5":"PlaqueNear_vs_Control","6":"0.4882200","7":"1.574599e-02","8":"0.3930280","9":"4.689183e-02"},{"1":"NRXN2","2":"ADGRL1","3":"3","4":"6","5":"PlaqueNear_vs_Control","6":"0.3608298","7":"7.671985e-03","8":"0.5198129","9":"4.491942e-03"},{"1":"EZR","2":"PRKCA","3":"4","4":"8","5":"PlaqueNear_vs_Control","6":"0.2976840","7":"4.085934e-02","8":"0.5539987","9":"2.202199e-02"},{"1":"LRRC4B","2":"PTPRD","3":"3","4":"3","5":"PlaqueNear_vs_Control","6":"0.2773946","7":"4.918749e-02","8":"0.5705196","9":"6.695464e-04"},{"1":"LRRC4B","2":"PTPRS","3":"3","4":"3","5":"PlaqueNear_vs_Control","6":"0.2773946","7":"4.918749e-02","8":"0.5342121","9":"3.357257e-03"},{"1":"PTPRS","2":"LRRC4B","3":"1","4":"1","5":"PlaqueNear_vs_Control","6":"0.5342121","7":"3.357257e-03","8":"0.2773946","9":"4.918749e-02"},{"1":"NLGN2","2":"NRXN2","3":"17","4":"6","5":"PlaqueNear_vs_Control","6":"0.4236773","7":"3.747370e-02","8":"0.3608298","9":"7.671985e-03"},{"1":"NRXN2","2":"NLGN2","3":"6","4":"2","5":"PlaqueNear_vs_Control","6":"0.3608298","7":"7.671985e-03","8":"0.4236773","9":"3.747370e-02"},{"1":"VCL","2":"SRC","3":"3","4":"2","5":"PlaqueNear_vs_Control","6":"0.3490930","7":"4.000233e-02","8":"0.4263440","9":"1.341289e-02"},{"1":"AFDN","2":"NRXN3","3":"10","4":"4","5":"PlaqueNear_vs_Control","6":"0.2576319","7":"1.904211e-02","8":"0.5084438","9":"4.675205e-03"},{"1":"NLGN3","2":"NRXN2","3":"17","4":"6","5":"PlaqueNear_vs_Control","6":"0.4035258","7":"2.373846e-02","8":"0.3608298","9":"7.671985e-03"},{"1":"NRXN2","2":"NLGN3","3":"4","4":"1","5":"PlaqueNear_vs_Control","6":"0.3608298","7":"7.671985e-03","8":"0.4035258","9":"2.373846e-02"},{"1":"TAX1BP3","2":"ADGRB1","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"0.4882200","7":"1.574599e-02","8":"0.2655445","9":"3.154755e-02"},{"1":"AFDN","2":"EPHB3","3":"16","4":"9","5":"PlaqueNear_vs_Control","6":"0.2576319","7":"1.904211e-02","8":"0.4904269","9":"1.552412e-03"},{"1":"AFDN","2":"SRC","3":"4","4":"3","5":"PlaqueNear_vs_Control","6":"0.2576319","7":"1.904211e-02","8":"0.4263440","9":"1.341289e-02"},{"1":"EZR","2":"SLC9A1","3":"1","4":"2","5":"PlaqueNear_vs_Control","6":"0.2976840","7":"4.085934e-02","8":"0.3449638","9":"4.551253e-02"},{"1":"AFDN","2":"NRXN2","3":"10","4":"4","5":"PlaqueNear_vs_Control","6":"0.2576319","7":"1.904211e-02","8":"0.3608298","9":"7.671985e-03"},{"1":"GSTM2","2":"RYR2","3":"2","4":"1","5":"PlaqueNear_vs_Control","6":"-0.7278271","7":"4.324845e-02","8":"0.4110614","9":"1.893237e-02"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Label"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Observed_Interactions"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"PlaqueFar_vs_Control","2":"69"},{"1":"PlaqueNear_vs_Control","2":"77"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
 </div>
-<p>#Permutation test</p>
+</section>
+<section id="permutation-test" class="level2">
+<h2 class="anchored" data-anchor-id="permutation-test">Permutation test</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># Ensures reproducibility </span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>n_perms <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, n_perms)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Starting"</span>, n_perms, <span class="st">"permutations..."</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>n_perms <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, n_perms)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Starting"</span>, n_perms, <span class="st">"permutations..."</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "Starting 1000 permutations..."</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_perms) {</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (i <span class="sc">%%</span> <span class="dv">100</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"Completed "</span>, i, <span class="st">" of "</span>, n_perms, <span class="st">" permutations..."</span>)</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Shuffle Gene names to break biological links but keep data structure</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  shuffled_msstats <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Gene =</span> <span class="fu">sample</span>(Gene)) <span class="sc">%&gt;%</span> </span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Rebuild fake ligand/receptor tables</span></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>  shuffled_ligands <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  shuffled_receptors <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Re-run the network merge and filtering with fake data</span></span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  shuffled_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_ligands, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_receptors, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>)<span class="sc">%&gt;%</span></span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span>, pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>, </span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>           logFC_Ligand <span class="sc">&gt;</span> <span class="dv">0</span>, logFC_Receptor <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count hits</span></span>
-<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>  shuffled_summary <span class="ot">&lt;-</span> shuffled_cross_talk <span class="sc">%&gt;%</span></span>
-<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Simulated_Interactions"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Permutation =</span> i)</span>
-<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>  results_list[[i]] <span class="ot">&lt;-</span> shuffled_summary</span>
-<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_perms) {</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (i <span class="sc">%%</span> <span class="dv">100</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"Completed "</span>, i, <span class="st">" of "</span>, n_perms, <span class="st">" permutations..."</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Shuffle Gene names to break biological links but keep data structure</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  shuffled_msstats <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Gene =</span> <span class="fu">sample</span>(Gene)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Rebuild fake ligand/receptor tables</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  shuffled_ligands <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  shuffled_receptors <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Re-run the network merge and filtering with fake data</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  shuffled_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_ligands, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_receptors, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span>, pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>, </span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>           logFC_Ligand <span class="sc">&gt;</span> <span class="dv">0</span>, logFC_Receptor <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count hits</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  shuffled_summary <span class="ot">&lt;-</span> shuffled_cross_talk <span class="sc">%&gt;%</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Simulated_Interactions"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Permutation =</span> i)</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>  results_list[[i]] <span class="ot">&lt;-</span> shuffled_summary</span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Completed 100 of 1000 permutations...</code></pre>
@@ -541,35 +517,27 @@ Attaching package: 'data.table'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine simulated results</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure cases where 0 interactions were found are explicitly tracked</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>all_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(msstats_results<span class="sc">$</span>Label)</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">Label =</span> all_labels, <span class="at">Permutation =</span> <span class="dv">1</span><span class="sc">:</span>n_perms)</span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Label"</span>, <span class="st">"Permutation"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Simulated_Interactions =</span> <span class="fu">replace_na</span>(Simulated_Interactions, <span class="dv">0</span>))</span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Empirical P-values</span></span>
-<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>empirical_results <span class="ot">&lt;-</span> interaction_summary <span class="sc">%&gt;%</span></span>
-<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="st">"Label"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Observed_Interactions) <span class="sc">%&gt;%</span></span>
-<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Expected_Mean =</span> <span class="fu">mean</span>(Simulated_Interactions),</span>
-<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Permutations_Greater_or_Equal =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions),</span>
-<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Empirical_P_Value =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions) <span class="sc">/</span> n_perms,</span>
-<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">"Empirical Permutation Test Results:"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "Empirical Permutation Test Results:"</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(empirical_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine simulated results</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure cases where 0 interactions were found are explicitly tracked</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>all_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(msstats_results<span class="sc">$</span>Label)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">Label =</span> all_labels, <span class="at">Permutation =</span> <span class="dv">1</span><span class="sc">:</span>n_perms)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Label"</span>, <span class="st">"Permutation"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Simulated_Interactions =</span> <span class="fu">replace_na</span>(Simulated_Interactions, <span class="dv">0</span>))</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Empirical P-values</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>empirical_results <span class="ot">&lt;-</span> interaction_summary <span class="sc">%&gt;%</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="st">"Label"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Observed_Interactions) <span class="sc">%&gt;%</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Expected_Mean =</span> <span class="fu">mean</span>(Simulated_Interactions),</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Permutations_Greater_or_Equal =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions),</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Empirical_P_Value =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions) <span class="sc">/</span> n_perms,</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(empirical_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 5
@@ -584,20 +552,19 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- 10. Visualize the Permutation Results ---</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This plots the bell curve of random chance vs your actual findings</span></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>perm_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(null_distribution_df, <span class="fu">aes</span>(<span class="at">x =</span> Simulated_Interactions)) <span class="sc">+</span></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">data =</span> interaction_summary, <span class="fu">aes</span>(<span class="at">xintercept =</span> Observed_Interactions), </span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Label, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Permutation Test: Observed vs. Random Co-upregulated L-R Pairs"</span>,</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Red line = Actual observed pairs. Histogram = What random chance produced."</span>,</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Number of Significant Co-upregulated Pairs"</span>,</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Frequency (out of 1000 permutations)"</span></span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the Permutation Results </span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>perm_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(null_distribution_df, <span class="fu">aes</span>(<span class="at">x =</span> Simulated_Interactions)) <span class="sc">+</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">data =</span> interaction_summary, <span class="fu">aes</span>(<span class="at">xintercept =</span> Observed_Interactions), </span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Label, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Permutation Test: Observed vs. Random Co-upregulated L-R Pairs"</span>,</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Red line = Actual observed pairs. Histogram = What random chance produced."</span>,</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Number of Significant Co-upregulated Pairs"</span>,</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Frequency (out of 1000 permutations)"</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
@@ -605,12 +572,12 @@ Attaching package: 'data.table'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(perm_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(perm_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="07_cell_interactions_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="07_cell_interactions_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
