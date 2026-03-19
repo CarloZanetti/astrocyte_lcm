@@ -4,12 +4,14 @@ format: html
 ---
 
 ```{r}
+suppressPackageStartupMessages({
 library(OmnipathR)
 library(dplyr)
 library(tidyr)
 library(data.table)
 library(qs2)
 library(ggplot2)
+})
 ```
 
 ## Set directories
@@ -114,7 +116,9 @@ all_cross_talk <- lr_with_evidence %>%
 
 ```
 
-## Extract co-upregulated pairs per comparison
+## Extract co-upregulated pairs per comparison (logFC \>0)
+
+logFC filters set to 0 to be permissive.
 
 ```{r}
 co_upregulated_all <- all_cross_talk %>%
@@ -135,7 +139,7 @@ interaction_summary <- co_upregulated_all %>%
 interaction_summary
 ```
 
-## Permutation test
+## Permutation test (logFC \> 0)
 
 ```{r}
 set.seed(42)
@@ -201,8 +205,130 @@ empirical_results <- interaction_summary %>%
 print(empirical_results)
 ```
 
+## Visualize the Permutation Results
+
 ```{r}
-# Visualize the Permutation Results 
+perm_plot <- ggplot(null_distribution_df, aes(x = Simulated_Interactions)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 0.7) +
+  geom_vline(data = interaction_summary, aes(xintercept = Observed_Interactions), 
+             color = "red", linetype = "dashed", size = 1.2) +
+  facet_wrap(~Label, scales = "free_x") +
+  theme_minimal() +
+  labs(
+    title = "Permutation Test: Observed vs. Random Co-upregulated L-R Pairs",
+    subtitle = "Red line = Actual observed pairs. Histogram = What random chance produced.",
+    x = "Number of Significant Co-upregulated Pairs",
+    y = "Frequency (out of 1000 permutations)"
+  )
+
+print(perm_plot)
+```
+
+## Extract co-upregulated pairs per comparison (logFC \>0.5)
+
+Sorted by decreasing paper count
+
+```{r}
+co_upregulated_all <- all_cross_talk %>%
+  filter(logFC_Ligand > 0.5 & logFC_Receptor > 0.5) %>%
+  group_by(Label) %>%
+  arrange(desc(paper_count)) %>%
+  ungroup() %>%
+  dplyr::select(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)
+
+co_upregulated_all
+```
+
+Sorted by descending LogFC_Ligand + logFC_Receptor:
+
+```{r}
+co_upregulated_all <- all_cross_talk %>%
+  filter(logFC_Ligand > 0.5 & logFC_Receptor > 0.5) %>%
+  group_by(Label) %>%
+  arrange(desc(logFC_Ligand + logFC_Receptor)) %>%
+  ungroup() %>%
+  dplyr::select(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)
+
+co_upregulated_all
+```
+
+## Comparison of number of interactions for each comparison
+
+```{r}
+interaction_summary <- co_upregulated_all %>%
+  count(Label, name = "Observed_Interactions")
+interaction_summary
+```
+
+## Permutation test (logFC \> 0.5)
+
+```{r}
+set.seed(42)
+n_perms <- 1000
+results_list <- vector("list", n_perms)
+
+print(paste("Starting", n_perms, "permutations..."))
+
+for (i in 1:n_perms) {
+  
+  if (i %% 100 == 0) {
+    message("Completed ", i, " of ", n_perms, " permutations...")
+  }
+  
+  # Shuffle Gene names to break biological links but keep data structure
+  shuffled_msstats <- msstats_results %>%
+    group_by(Label) %>%
+    mutate(Gene = sample(Gene)) %>% 
+    ungroup()
+  
+  # Rebuild fake ligand/receptor tables
+  shuffled_ligands <- shuffled_msstats %>%
+    select(Label, Ligand = Gene, logFC_Ligand = log2FC, pval_Ligand = adj.pvalue)
+  
+  shuffled_receptors <- shuffled_msstats %>%
+    select(Label, Receptor = Gene, logFC_Receptor = log2FC, pval_Receptor = adj.pvalue)
+  
+  # Re-run the network merge and filtering with fake data
+  shuffled_cross_talk <- lr_with_evidence %>%
+    inner_join(shuffled_ligands, by = "Ligand", relationship = "many-to-many") %>%
+    inner_join(shuffled_receptors, by = c("Receptor", "Label"), relationship = "many-to-many")%>%
+    filter(pval_Ligand < 0.05, pval_Receptor < 0.05, 
+           logFC_Ligand > 0.5, logFC_Receptor > 0.5)
+  
+  # Count hits
+  shuffled_summary <- shuffled_cross_talk %>%
+    count(Label, name = "Simulated_Interactions") %>%
+    mutate(Permutation = i)
+  
+  results_list[[i]] <- shuffled_summary
+}
+
+# Combine simulated results
+null_distribution_df <- bind_rows(results_list)
+
+# Ensure cases where 0 interactions were found are explicitly tracked
+all_labels <- unique(msstats_results$Label)
+grid <- expand_grid(Label = all_labels, Permutation = 1:n_perms)
+null_distribution_df <- grid %>%
+  left_join(null_distribution_df, by = c("Label", "Permutation")) %>%
+  mutate(Simulated_Interactions = replace_na(Simulated_Interactions, 0))
+
+# Calculate Empirical P-values
+empirical_results <- interaction_summary %>%
+  left_join(null_distribution_df, by = "Label", relationship = "many-to-many") %>%
+  group_by(Label, Observed_Interactions) %>%
+  summarise(
+    Expected_Mean = mean(Simulated_Interactions),
+    Permutations_Greater_or_Equal = sum(Simulated_Interactions >= Observed_Interactions),
+    Empirical_P_Value = sum(Simulated_Interactions >= Observed_Interactions) / n_perms,
+    .groups = "drop"
+  )
+print(empirical_results)
+```
+
+## Visualize the Permutation Results
+
+```{r}
 perm_plot <- ggplot(null_distribution_df, aes(x = Simulated_Interactions)) +
   geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 0.7) +
   geom_vline(data = interaction_summary, aes(xintercept = Observed_Interactions), 

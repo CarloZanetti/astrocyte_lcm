@@ -197,9 +197,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#read-in-msstats-results" id="toc-read-in-msstats-results" class="nav-link" data-scroll-target="#read-in-msstats-results">Read in MSstats results</a></li>
   <li><a href="#create-ligand-and-receptor-dataframes" id="toc-create-ligand-and-receptor-dataframes" class="nav-link" data-scroll-target="#create-ligand-and-receptor-dataframes">Create ligand and receptor dataframes</a></li>
   <li><a href="#multi-comparison-merge" id="toc-multi-comparison-merge" class="nav-link" data-scroll-target="#multi-comparison-merge">Multi-comparison merge</a></li>
-  <li><a href="#extract-co-upregulated-pairs-per-comparison" id="toc-extract-co-upregulated-pairs-per-comparison" class="nav-link" data-scroll-target="#extract-co-upregulated-pairs-per-comparison">Extract co-upregulated pairs per comparison</a></li>
+  <li><a href="#extract-co-upregulated-pairs-per-comparison-logfc-0" id="toc-extract-co-upregulated-pairs-per-comparison-logfc-0" class="nav-link" data-scroll-target="#extract-co-upregulated-pairs-per-comparison-logfc-0">Extract co-upregulated pairs per comparison (logFC &gt;0)</a></li>
   <li><a href="#comparison-of-number-of-interactions-for-each-comparison" id="toc-comparison-of-number-of-interactions-for-each-comparison" class="nav-link" data-scroll-target="#comparison-of-number-of-interactions-for-each-comparison">Comparison of number of interactions for each comparison</a></li>
-  <li><a href="#permutation-test" id="toc-permutation-test" class="nav-link" data-scroll-target="#permutation-test">Permutation test</a></li>
+  <li><a href="#permutation-test-logfc-0" id="toc-permutation-test-logfc-0" class="nav-link" data-scroll-target="#permutation-test-logfc-0">Permutation test (logFC &gt; 0)</a></li>
+  <li><a href="#visualize-the-permutation-results" id="toc-visualize-the-permutation-results" class="nav-link" data-scroll-target="#visualize-the-permutation-results">Visualize the Permutation Results</a></li>
+  <li><a href="#extract-co-upregulated-pairs-per-comparison-logfc-0.5" id="toc-extract-co-upregulated-pairs-per-comparison-logfc-0.5" class="nav-link" data-scroll-target="#extract-co-upregulated-pairs-per-comparison-logfc-0.5">Extract co-upregulated pairs per comparison (logFC &gt;0.5)</a></li>
+  <li><a href="#comparison-of-number-of-interactions-for-each-comparison-1" id="toc-comparison-of-number-of-interactions-for-each-comparison-1" class="nav-link" data-scroll-target="#comparison-of-number-of-interactions-for-each-comparison-1">Comparison of number of interactions for each comparison</a></li>
+  <li><a href="#permutation-test-logfc-0.5" id="toc-permutation-test-logfc-0.5" class="nav-link" data-scroll-target="#permutation-test-logfc-0.5">Permutation test (logFC &gt; 0.5)</a></li>
+  <li><a href="#visualize-the-permutation-results-1" id="toc-visualize-the-permutation-results-1" class="nav-link" data-scroll-target="#visualize-the-permutation-results-1">Visualize the Permutation Results</a></li>
   </ul>
 </nav>
     </div>
@@ -228,47 +233,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(OmnipathR)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'dplyr'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:stats':
-
-    filter, lag</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:base':
-
-    intersect, setdiff, setequal, union</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'data.table'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:dplyr':
-
-    between, first, last</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(qs2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>qs2 0.1.6</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(OmnipathR)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(qs2)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="set-directories" class="level2">
@@ -276,16 +248,16 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>base_dir <span class="ot">&lt;-</span> <span class="st">"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run3"</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"results"</span>, run_num)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>objects_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed"</span>, run_num)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>raw_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"raw"</span>)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(results_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(objects_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(raw_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>base_dir <span class="ot">&lt;-</span> <span class="st">"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run3"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"results"</span>, run_num)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>objects_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed"</span>, run_num)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>raw_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"raw"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(results_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(objects_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(raw_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -294,26 +266,26 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>lr_network <span class="ot">&lt;-</span> <span class="fu">intercell_network</span>(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">transmitter_param =</span> <span class="fu">list</span>(<span class="at">categories =</span> <span class="fu">c</span>(<span class="st">'ligand'</span>)),</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">receiver_param =</span> <span class="fu">list</span>(<span class="at">categories =</span> <span class="fu">c</span>(<span class="st">'receptor'</span>)),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">resources =</span> <span class="cn">NULL</span>,</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">references_by_resource =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>lr_with_evidence <span class="ot">&lt;-</span> lr_network <span class="sc">%&gt;%</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">Ligand =</span> source_genesymbol, </span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">Receptor =</span> target_genesymbol, </span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        sources, </span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        references</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count how many databases confirm this interaction</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">curation_count =</span> <span class="fu">nchar</span>(<span class="fu">as.character</span>(sources)) <span class="sc">-</span> <span class="fu">nchar</span>(<span class="fu">gsub</span>(<span class="st">";"</span>, <span class="st">""</span>, <span class="fu">as.character</span>(sources))) <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count how many individual PMIDs (papers) support it</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">paper_count =</span> <span class="fu">nchar</span>(<span class="fu">as.character</span>(references)) <span class="sc">-</span> <span class="fu">nchar</span>(<span class="fu">gsub</span>(<span class="st">";"</span>, <span class="st">""</span>, <span class="fu">as.character</span>(references))) <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Replace NAs with 0</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(curation_count, paper_count), <span class="sc">~</span><span class="fu">replace_na</span>(.x, <span class="dv">0</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>lr_network <span class="ot">&lt;-</span> <span class="fu">intercell_network</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">transmitter_param =</span> <span class="fu">list</span>(<span class="at">categories =</span> <span class="fu">c</span>(<span class="st">'ligand'</span>)),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">receiver_param =</span> <span class="fu">list</span>(<span class="at">categories =</span> <span class="fu">c</span>(<span class="st">'receptor'</span>)),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">resources =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">references_by_resource =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>lr_with_evidence <span class="ot">&lt;-</span> lr_network <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">Ligand =</span> source_genesymbol, </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">Receptor =</span> target_genesymbol, </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        sources, </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        references</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count how many databases confirm this interaction</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">curation_count =</span> <span class="fu">nchar</span>(<span class="fu">as.character</span>(sources)) <span class="sc">-</span> <span class="fu">nchar</span>(<span class="fu">gsub</span>(<span class="st">";"</span>, <span class="st">""</span>, <span class="fu">as.character</span>(sources))) <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count how many individual PMIDs (papers) support it</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">paper_count =</span> <span class="fu">nchar</span>(<span class="fu">as.character</span>(references)) <span class="sc">-</span> <span class="fu">nchar</span>(<span class="fu">gsub</span>(<span class="st">";"</span>, <span class="st">""</span>, <span class="fu">as.character</span>(references))) <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Replace NAs with 0</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(curation_count, paper_count), <span class="sc">~</span><span class="fu">replace_na</span>(.x, <span class="dv">0</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -322,30 +294,30 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(results_dir, <span class="st">"Full_GroupComparison_Results.csv"</span>))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>clean_spec_raw <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/clean_spec_raw.csv"</span>))</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>protein_dictionary <span class="ot">&lt;-</span> clean_spec_raw <span class="sc">%&gt;%</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">Protein =</span> PG.ProteinGroups, </span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Gene =</span> PG.Genes, </span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Description =</span> PG.ProteinDescriptions) <span class="sc">%&gt;%</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>msstats_results <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># handle NAs</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"PlaqueFar_vs_Control"</span>, <span class="st">"PlaqueNear_vs_Control"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue), <span class="fu">is.finite</span>(log2FC)) <span class="sc">%&gt;%</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Join with dictionary</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(protein_dictionary, <span class="at">by =</span> <span class="st">"Protein"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up Gene names and define significance</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fallback to Protein ID if Gene name is missing or empty</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Change to upper case to match with human gene symbols</span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Gene =</span> <span class="fu">toupper</span>(<span class="fu">ifelse</span>(<span class="fu">is.na</span>(Gene) <span class="sc">|</span> Gene <span class="sc">==</span> <span class="st">""</span>, Protein, Gene)),</span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(results_dir, <span class="st">"Full_GroupComparison_Results.csv"</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>clean_spec_raw <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/clean_spec_raw.csv"</span>))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>protein_dictionary <span class="ot">&lt;-</span> clean_spec_raw <span class="sc">%&gt;%</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">Protein =</span> PG.ProteinGroups, </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Gene =</span> PG.Genes, </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Description =</span> PG.ProteinDescriptions) <span class="sc">%&gt;%</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>msstats_results <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># handle NAs</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Label <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"PlaqueFar_vs_Control"</span>, <span class="st">"PlaqueNear_vs_Control"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue), <span class="fu">is.finite</span>(log2FC)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Join with dictionary</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(protein_dictionary, <span class="at">by =</span> <span class="st">"Protein"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Clean up Gene names and define significance</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fallback to Protein ID if Gene name is missing or empty</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Change to upper case to match with human gene symbols</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Gene =</span> <span class="fu">toupper</span>(<span class="fu">ifelse</span>(<span class="fu">is.na</span>(Gene) <span class="sc">|</span> Gene <span class="sc">==</span> <span class="st">""</span>, Protein, Gene)),</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -354,13 +326,13 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Ligands data</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>ligands_data <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Receptor data</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>receptors_data <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Ligands data</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ligands_data <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Receptor data</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>receptors_data <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -370,14 +342,14 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>all_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#keeps only rows that exist in both</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(ligands_data, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#match both receptor name and the label (condition of interest) - keeps only rows where the recieving recedptor was also detected, in that specific condition</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(receptors_data, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter to keep only rows where BOTH proteins were detected and statistically significant</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(curation_count))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>all_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#keeps only rows that exist in both</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(ligands_data, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#match both receptor name and the label (condition of interest) - keeps only rows where the recieving recedptor was also detected, in that specific condition</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(receptors_data, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter to keep only rows where BOTH proteins were detected and statistically significant</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(curation_count))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning in inner_join(., receptors_data, by = c("Receptor", "Label")): Detected an unexpected many-to-many relationship between `x` and `y`.
@@ -388,25 +360,26 @@ Attaching package: 'data.table'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#4839 length when inner joining to ligand</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#2135 length when inner joining to receptor and label too.</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#147 length when filtering to sig for both. </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#4839 length when inner joining to ligand</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#2135 length when inner joining to receptor and label too.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#147 length when filtering to sig for both. </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
-<section id="extract-co-upregulated-pairs-per-comparison" class="level2">
-<h2 class="anchored" data-anchor-id="extract-co-upregulated-pairs-per-comparison">Extract co-upregulated pairs per comparison</h2>
+<section id="extract-co-upregulated-pairs-per-comparison-logfc-0" class="level2">
+<h2 class="anchored" data-anchor-id="extract-co-upregulated-pairs-per-comparison-logfc-0">Extract co-upregulated pairs per comparison (logFC &gt;0)</h2>
+<p>logFC filters set to 0 to be permissive.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>co_upregulated_all <span class="ot">&lt;-</span> all_cross_talk <span class="sc">%&gt;%</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(logFC_Ligand <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> logFC_Receptor <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(logFC_Ligand <span class="sc">+</span> logFC_Receptor)) <span class="sc">%&gt;%</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>co_upregulated_all</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>co_upregulated_all <span class="ot">&lt;-</span> all_cross_talk <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(logFC_Ligand <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> logFC_Receptor <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(logFC_Ligand <span class="sc">+</span> logFC_Receptor)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>co_upregulated_all</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -422,9 +395,9 @@ Attaching package: 'data.table'</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>interaction_summary <span class="ot">&lt;-</span> co_upregulated_all <span class="sc">%&gt;%</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Observed_Interactions"</span>)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>interaction_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>interaction_summary <span class="ot">&lt;-</span> co_upregulated_all <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Observed_Interactions"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>interaction_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -435,55 +408,55 @@ Attaching package: 'data.table'</code></pre>
 </div>
 </div>
 </section>
-<section id="permutation-test" class="level2">
-<h2 class="anchored" data-anchor-id="permutation-test">Permutation test</h2>
+<section id="permutation-test-logfc-0" class="level2">
+<h2 class="anchored" data-anchor-id="permutation-test-logfc-0">Permutation test (logFC &gt; 0)</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>n_perms <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, n_perms)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Starting"</span>, n_perms, <span class="st">"permutations..."</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>n_perms <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, n_perms)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Starting"</span>, n_perms, <span class="st">"permutations..."</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "Starting 1000 permutations..."</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_perms) {</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (i <span class="sc">%%</span> <span class="dv">100</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"Completed "</span>, i, <span class="st">" of "</span>, n_perms, <span class="st">" permutations..."</span>)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Shuffle Gene names to break biological links but keep data structure</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  shuffled_msstats <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Gene =</span> <span class="fu">sample</span>(Gene)) <span class="sc">%&gt;%</span> </span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Rebuild fake ligand/receptor tables</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  shuffled_ligands <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  shuffled_receptors <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Re-run the network merge and filtering with fake data</span></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  shuffled_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_ligands, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_receptors, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>)<span class="sc">%&gt;%</span></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span>, pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>, </span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>           logFC_Ligand <span class="sc">&gt;</span> <span class="dv">0</span>, logFC_Receptor <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count hits</span></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  shuffled_summary <span class="ot">&lt;-</span> shuffled_cross_talk <span class="sc">%&gt;%</span></span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Simulated_Interactions"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Permutation =</span> i)</span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>  results_list[[i]] <span class="ot">&lt;-</span> shuffled_summary</span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_perms) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (i <span class="sc">%%</span> <span class="dv">100</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"Completed "</span>, i, <span class="st">" of "</span>, n_perms, <span class="st">" permutations..."</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Shuffle Gene names to break biological links but keep data structure</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  shuffled_msstats <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Gene =</span> <span class="fu">sample</span>(Gene)) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Rebuild fake ligand/receptor tables</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  shuffled_ligands <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  shuffled_receptors <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Re-run the network merge and filtering with fake data</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  shuffled_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_ligands, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_receptors, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span>, pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>, </span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>           logFC_Ligand <span class="sc">&gt;</span> <span class="dv">0</span>, logFC_Receptor <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count hits</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  shuffled_summary <span class="ot">&lt;-</span> shuffled_cross_talk <span class="sc">%&gt;%</span></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Simulated_Interactions"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Permutation =</span> i)</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>  results_list[[i]] <span class="ot">&lt;-</span> shuffled_summary</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Completed 100 of 1000 permutations...</code></pre>
@@ -517,27 +490,27 @@ Attaching package: 'data.table'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine simulated results</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure cases where 0 interactions were found are explicitly tracked</span></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>all_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(msstats_results<span class="sc">$</span>Label)</span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">Label =</span> all_labels, <span class="at">Permutation =</span> <span class="dv">1</span><span class="sc">:</span>n_perms)</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Label"</span>, <span class="st">"Permutation"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Simulated_Interactions =</span> <span class="fu">replace_na</span>(Simulated_Interactions, <span class="dv">0</span>))</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Empirical P-values</span></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>empirical_results <span class="ot">&lt;-</span> interaction_summary <span class="sc">%&gt;%</span></span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="st">"Label"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Observed_Interactions) <span class="sc">%&gt;%</span></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Expected_Mean =</span> <span class="fu">mean</span>(Simulated_Interactions),</span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Permutations_Greater_or_Equal =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions),</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Empirical_P_Value =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions) <span class="sc">/</span> n_perms,</span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(empirical_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine simulated results</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure cases where 0 interactions were found are explicitly tracked</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>all_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(msstats_results<span class="sc">$</span>Label)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">Label =</span> all_labels, <span class="at">Permutation =</span> <span class="dv">1</span><span class="sc">:</span>n_perms)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Label"</span>, <span class="st">"Permutation"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Simulated_Interactions =</span> <span class="fu">replace_na</span>(Simulated_Interactions, <span class="dv">0</span>))</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Empirical P-values</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>empirical_results <span class="ot">&lt;-</span> interaction_summary <span class="sc">%&gt;%</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="st">"Label"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Observed_Interactions) <span class="sc">%&gt;%</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Expected_Mean =</span> <span class="fu">mean</span>(Simulated_Interactions),</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Permutations_Greater_or_Equal =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions),</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Empirical_P_Value =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions) <span class="sc">/</span> n_perms,</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(empirical_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 5
@@ -549,22 +522,24 @@ Attaching package: 'data.table'</code></pre>
 # ℹ 1 more variable: Empirical_P_Value &lt;dbl&gt;</code></pre>
 </div>
 </div>
+</section>
+<section id="visualize-the-permutation-results" class="level2">
+<h2 class="anchored" data-anchor-id="visualize-the-permutation-results">Visualize the Permutation Results</h2>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the Permutation Results </span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>perm_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(null_distribution_df, <span class="fu">aes</span>(<span class="at">x =</span> Simulated_Interactions)) <span class="sc">+</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">data =</span> interaction_summary, <span class="fu">aes</span>(<span class="at">xintercept =</span> Observed_Interactions), </span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Label, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Permutation Test: Observed vs. Random Co-upregulated L-R Pairs"</span>,</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Red line = Actual observed pairs. Histogram = What random chance produced."</span>,</span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Number of Significant Co-upregulated Pairs"</span>,</span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Frequency (out of 1000 permutations)"</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>perm_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(null_distribution_df, <span class="fu">aes</span>(<span class="at">x =</span> Simulated_Interactions)) <span class="sc">+</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">data =</span> interaction_summary, <span class="fu">aes</span>(<span class="at">xintercept =</span> Observed_Interactions), </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Label, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Permutation Test: Observed vs. Random Co-upregulated L-R Pairs"</span>,</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Red line = Actual observed pairs. Histogram = What random chance produced."</span>,</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Number of Significant Co-upregulated Pairs"</span>,</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Frequency (out of 1000 permutations)"</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
@@ -572,12 +547,219 @@ Attaching package: 'data.table'</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(perm_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(perm_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="07_cell_interactions_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="extract-co-upregulated-pairs-per-comparison-logfc-0.5" class="level2">
+<h2 class="anchored" data-anchor-id="extract-co-upregulated-pairs-per-comparison-logfc-0.5">Extract co-upregulated pairs per comparison (logFC &gt;0.5)</h2>
+<p>Sorted by decreasing paper count</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>co_upregulated_all <span class="ot">&lt;-</span> all_cross_talk <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(logFC_Ligand <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">&amp;</span> logFC_Receptor <span class="sc">&gt;</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(paper_count)) <span class="sc">%&gt;%</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>co_upregulated_all</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Label"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Ligand"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Receptor"],"name":[3],"type":["chr"],"align":["left"]},{"label":["logFC_Ligand"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["logFC_Receptor"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["paper_count"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["references"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"PlaqueNear_vs_Control","2":"APOE","3":"LRP1","4":"1.3665210","5":"0.5500153","6":"12","7":"LRdb:11421580;HINT:15182176;Cellinker:31677479;AlzPathway:19026743;connectomeDB2020:2779654;IntAct:15182176;IntAct:20030366;Cellinker:11421580;HINT:20030366;CellTalkDB:11421580;HPRD:11421580;connectomeDB2020:22622580"},{"1":"PlaqueNear_vs_Control","2":"APOE","3":"APP","4":"1.3665210","5":"0.6045160","6":"8","7":"IntAct:17116874;BioGRID:10842709;MPPI:9202294;HINT:9202294;HPRD:10559559;DIP:10428074;HINT:29950521;HINT:26213366"},{"1":"PlaqueNear_vs_Control","2":"PTN","3":"PTPRS","4":"1.1382754","5":"0.5342121","6":"7","7":"Cellinker:16169070;HPRD:16169070;CellTalkDB:16169070;LRdb:16169070;SPIKE_LC:16713569;connectomeDB2020:16169070;SPIKE_LC:16169070"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"ADGRL1","4":"0.5084438","5":"0.5198129","6":"6","7":"CellChatDB:34022279;ICELLNET:22262843;CellChatDB:25728924;ICELLNET:28968187;CellChatDB:35907405;CellChatDB:27091502"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"LRRTM1","4":"0.5084438","5":"0.5312945","6":"3","7":"CellChatDB:20064387;CellChatDB:20064388;CellChatDB:20519524"},{"1":"PlaqueFar_vs_Control","2":"MIF","3":"PRKCD","4":"0.5084203","5":"0.5616480","6":"2","7":"ProtMapper:16872482;ProtMapper:14581488"},{"1":"PlaqueNear_vs_Control","2":"PAM","3":"FXYD1","4":"0.7656863","5":"0.9180827","6":"2","7":"HPRD:18052119;HPRD-phos:18052119"},{"1":"PlaqueFar_vs_Control","2":"LGI3","3":"ADAM23","4":"0.5247359","5":"0.5206539","6":"2","7":"connectomeDB2020:22405860;connectomeDB2020:20220021"},{"1":"PlaqueNear_vs_Control","2":"VGF","3":"STAT3","4":"0.7050994","5":"0.8778290","6":"1","7":"ProtMapper:33529218"},{"1":"PlaqueNear_vs_Control","2":"C1QTNF4","3":"STAT3","4":"0.9417866","5":"0.8778290","6":"1","7":"ProtMapper:26322020"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"CLSTN1","4":"0.5084438","5":"0.6633508","6":"1","7":"CellChatDB:32434929"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"CLSTN3","4":"0.5084438","5":"0.6872584","6":"1","7":"CellChatDB:32434929"},{"1":"PlaqueNear_vs_Control","2":"CNTN4","3":"APP","4":"0.5846175","5":"0.6045160","6":"1","7":"Cellinker:32589946"},{"1":"PlaqueNear_vs_Control","2":"CNTN4","3":"APLP1","4":"0.5846175","5":"0.6774729","6":"1","7":"Cellinker:32589946"},{"1":"PlaqueNear_vs_Control","2":"APLP2","3":"CD14","4":"0.8298281","5":"1.1961524","6":"0","7":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Sorted by descending LogFC_Ligand + logFC_Receptor:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>co_upregulated_all <span class="ot">&lt;-</span> all_cross_talk <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(logFC_Ligand <span class="sc">&gt;</span> <span class="fl">0.5</span> <span class="sc">&amp;</span> logFC_Receptor <span class="sc">&gt;</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(logFC_Ligand <span class="sc">+</span> logFC_Receptor)) <span class="sc">%&gt;%</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Label, Ligand, Receptor, logFC_Ligand, logFC_Receptor, paper_count, references)</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>co_upregulated_all</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Label"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Ligand"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Receptor"],"name":[3],"type":["chr"],"align":["left"]},{"label":["logFC_Ligand"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["logFC_Receptor"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["paper_count"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["references"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"PlaqueNear_vs_Control","2":"APLP2","3":"CD14","4":"0.8298281","5":"1.1961524","6":"0","7":"NA"},{"1":"PlaqueNear_vs_Control","2":"APOE","3":"APP","4":"1.3665210","5":"0.6045160","6":"8","7":"IntAct:17116874;BioGRID:10842709;MPPI:9202294;HINT:9202294;HPRD:10559559;DIP:10428074;HINT:29950521;HINT:26213366"},{"1":"PlaqueNear_vs_Control","2":"APOE","3":"LRP1","4":"1.3665210","5":"0.5500153","6":"12","7":"LRdb:11421580;HINT:15182176;Cellinker:31677479;AlzPathway:19026743;connectomeDB2020:2779654;IntAct:15182176;IntAct:20030366;Cellinker:11421580;HINT:20030366;CellTalkDB:11421580;HPRD:11421580;connectomeDB2020:22622580"},{"1":"PlaqueNear_vs_Control","2":"C1QTNF4","3":"STAT3","4":"0.9417866","5":"0.8778290","6":"1","7":"ProtMapper:26322020"},{"1":"PlaqueNear_vs_Control","2":"PAM","3":"FXYD1","4":"0.7656863","5":"0.9180827","6":"2","7":"HPRD:18052119;HPRD-phos:18052119"},{"1":"PlaqueNear_vs_Control","2":"PTN","3":"PTPRS","4":"1.1382754","5":"0.5342121","6":"7","7":"Cellinker:16169070;HPRD:16169070;CellTalkDB:16169070;LRdb:16169070;SPIKE_LC:16713569;connectomeDB2020:16169070;SPIKE_LC:16169070"},{"1":"PlaqueNear_vs_Control","2":"VGF","3":"STAT3","4":"0.7050994","5":"0.8778290","6":"1","7":"ProtMapper:33529218"},{"1":"PlaqueNear_vs_Control","2":"CNTN4","3":"APLP1","4":"0.5846175","5":"0.6774729","6":"1","7":"Cellinker:32589946"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"CLSTN3","4":"0.5084438","5":"0.6872584","6":"1","7":"CellChatDB:32434929"},{"1":"PlaqueNear_vs_Control","2":"CNTN4","3":"APP","4":"0.5846175","5":"0.6045160","6":"1","7":"Cellinker:32589946"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"CLSTN1","4":"0.5084438","5":"0.6633508","6":"1","7":"CellChatDB:32434929"},{"1":"PlaqueFar_vs_Control","2":"MIF","3":"PRKCD","4":"0.5084203","5":"0.5616480","6":"2","7":"ProtMapper:16872482;ProtMapper:14581488"},{"1":"PlaqueFar_vs_Control","2":"LGI3","3":"ADAM23","4":"0.5247359","5":"0.5206539","6":"2","7":"connectomeDB2020:22405860;connectomeDB2020:20220021"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"LRRTM1","4":"0.5084438","5":"0.5312945","6":"3","7":"CellChatDB:20064387;CellChatDB:20064388;CellChatDB:20519524"},{"1":"PlaqueNear_vs_Control","2":"NRXN3","3":"ADGRL1","4":"0.5084438","5":"0.5198129","6":"6","7":"CellChatDB:34022279;ICELLNET:22262843;CellChatDB:25728924;ICELLNET:28968187;CellChatDB:35907405;CellChatDB:27091502"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+<section id="comparison-of-number-of-interactions-for-each-comparison-1" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-of-number-of-interactions-for-each-comparison-1">Comparison of number of interactions for each comparison</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>interaction_summary <span class="ot">&lt;-</span> co_upregulated_all <span class="sc">%&gt;%</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Observed_Interactions"</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>interaction_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Label"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Observed_Interactions"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"PlaqueFar_vs_Control","2":"2"},{"1":"PlaqueNear_vs_Control","2":"13"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+<section id="permutation-test-logfc-0.5" class="level2">
+<h2 class="anchored" data-anchor-id="permutation-test-logfc-0.5">Permutation test (logFC &gt; 0.5)</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>n_perms <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, n_perms)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Starting"</span>, n_perms, <span class="st">"permutations..."</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Starting 1000 permutations..."</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_perms) {</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (i <span class="sc">%%</span> <span class="dv">100</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"Completed "</span>, i, <span class="st">" of "</span>, n_perms, <span class="st">" permutations..."</span>)</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Shuffle Gene names to break biological links but keep data structure</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  shuffled_msstats <span class="ot">&lt;-</span> msstats_results <span class="sc">%&gt;%</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Gene =</span> <span class="fu">sample</span>(Gene)) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Rebuild fake ligand/receptor tables</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  shuffled_ligands <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Ligand =</span> Gene, <span class="at">logFC_Ligand =</span> log2FC, <span class="at">pval_Ligand =</span> adj.pvalue)</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>  shuffled_receptors <span class="ot">&lt;-</span> shuffled_msstats <span class="sc">%&gt;%</span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Label, <span class="at">Receptor =</span> Gene, <span class="at">logFC_Receptor =</span> log2FC, <span class="at">pval_Receptor =</span> adj.pvalue)</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Re-run the network merge and filtering with fake data</span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>  shuffled_cross_talk <span class="ot">&lt;-</span> lr_with_evidence <span class="sc">%&gt;%</span></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_ligands, <span class="at">by =</span> <span class="st">"Ligand"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(shuffled_receptors, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Receptor"</span>, <span class="st">"Label"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pval_Ligand <span class="sc">&lt;</span> <span class="fl">0.05</span>, pval_Receptor <span class="sc">&lt;</span> <span class="fl">0.05</span>, </span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>           logFC_Ligand <span class="sc">&gt;</span> <span class="fl">0.5</span>, logFC_Receptor <span class="sc">&gt;</span> <span class="fl">0.5</span>)</span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Count hits</span></span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>  shuffled_summary <span class="ot">&lt;-</span> shuffled_cross_talk <span class="sc">%&gt;%</span></span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Label, <span class="at">name =</span> <span class="st">"Simulated_Interactions"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Permutation =</span> i)</span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>  results_list[[i]] <span class="ot">&lt;-</span> shuffled_summary</span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 100 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 200 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 300 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 400 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 500 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 600 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 700 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 800 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 900 of 1000 permutations...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Completed 1000 of 1000 permutations...</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine simulated results</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure cases where 0 interactions were found are explicitly tracked</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>all_labels <span class="ot">&lt;-</span> <span class="fu">unique</span>(msstats_results<span class="sc">$</span>Label)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">Label =</span> all_labels, <span class="at">Permutation =</span> <span class="dv">1</span><span class="sc">:</span>n_perms)</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>null_distribution_df <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Label"</span>, <span class="st">"Permutation"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Simulated_Interactions =</span> <span class="fu">replace_na</span>(Simulated_Interactions, <span class="dv">0</span>))</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Empirical P-values</span></span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>empirical_results <span class="ot">&lt;-</span> interaction_summary <span class="sc">%&gt;%</span></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(null_distribution_df, <span class="at">by =</span> <span class="st">"Label"</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label, Observed_Interactions) <span class="sc">%&gt;%</span></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Expected_Mean =</span> <span class="fu">mean</span>(Simulated_Interactions),</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Permutations_Greater_or_Equal =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions),</span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">Empirical_P_Value =</span> <span class="fu">sum</span>(Simulated_Interactions <span class="sc">&gt;=</span> Observed_Interactions) <span class="sc">/</span> n_perms,</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(empirical_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 5
+  Label               Observed_Interactions Expected_Mean Permutations_Greater…¹
+  &lt;chr&gt;                               &lt;int&gt;         &lt;dbl&gt;                  &lt;int&gt;
+1 PlaqueFar_vs_Contr…                     2          2.18                    520
+2 PlaqueNear_vs_Cont…                    13          4.92                     43
+# ℹ abbreviated name: ¹​Permutations_Greater_or_Equal
+# ℹ 1 more variable: Empirical_P_Value &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="visualize-the-permutation-results-1" class="level2">
+<h2 class="anchored" data-anchor-id="visualize-the-permutation-results-1">Visualize the Permutation Results</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>perm_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(null_distribution_df, <span class="fu">aes</span>(<span class="at">x =</span> Simulated_Interactions)) <span class="sc">+</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">data =</span> interaction_summary, <span class="fu">aes</span>(<span class="at">xintercept =</span> Observed_Interactions), </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Label, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Permutation Test: Observed vs. Random Co-upregulated L-R Pairs"</span>,</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Red line = Actual observed pairs. Histogram = What random chance produced."</span>,</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Number of Significant Co-upregulated Pairs"</span>,</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Frequency (out of 1000 permutations)"</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(perm_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07_cell_interactions_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
