@@ -192,7 +192,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#set-directories" id="toc-set-directories" class="nav-link active" data-scroll-target="#set-directories">Set directories</a></li>
+  <li><a href="#cell-cell-interactions-for-proteomics-data" id="toc-cell-cell-interactions-for-proteomics-data" class="nav-link active" data-scroll-target="#cell-cell-interactions-for-proteomics-data">Cell-cell interactions for proteomics data</a>
+  <ul class="collapse">
+  <li><a href="#workflow-overview" id="toc-workflow-overview" class="nav-link" data-scroll-target="#workflow-overview">Workflow overview</a></li>
+  <li><a href="#set-directories" id="toc-set-directories" class="nav-link" data-scroll-target="#set-directories">Set directories</a></li>
   <li><a href="#retrieve-intercellular-communication-database" id="toc-retrieve-intercellular-communication-database" class="nav-link" data-scroll-target="#retrieve-intercellular-communication-database">Retrieve intercellular communication database</a></li>
   <li><a href="#read-in-msstats-results" id="toc-read-in-msstats-results" class="nav-link" data-scroll-target="#read-in-msstats-results">Read in MSstats results</a></li>
   <li><a href="#create-ligand-and-receptor-dataframes" id="toc-create-ligand-and-receptor-dataframes" class="nav-link" data-scroll-target="#create-ligand-and-receptor-dataframes">Create ligand and receptor dataframes</a></li>
@@ -205,6 +208,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#comparison-of-number-of-interactions-for-each-comparison-1" id="toc-comparison-of-number-of-interactions-for-each-comparison-1" class="nav-link" data-scroll-target="#comparison-of-number-of-interactions-for-each-comparison-1">Comparison of number of interactions for each comparison</a></li>
   <li><a href="#permutation-test-logfc-0.5" id="toc-permutation-test-logfc-0.5" class="nav-link" data-scroll-target="#permutation-test-logfc-0.5">Permutation test (logFC &gt; 0.5)</a></li>
   <li><a href="#visualize-the-permutation-results-1" id="toc-visualize-the-permutation-results-1" class="nav-link" data-scroll-target="#visualize-the-permutation-results-1">Visualize the Permutation Results</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -230,6 +234,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<p>==================================================================</p>
+<section id="cell-cell-interactions-for-proteomics-data" class="level1">
+<h1>Cell-cell interactions for proteomics data</h1>
+<p>Author: Carlo Zanetti</p>
+<p>This script aims to identify and statistically validate potential intercellular signalling pathways occurring between astrocytes in different plaques states compared to WT.</p>
+<section id="workflow-overview" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-overview">Workflow overview</h2>
+<ol type="1">
+<li><strong>OmnipathR</strong> package retrieves a database of <strong>human</strong> ligand-receptor interactions.</li>
+<li>Import DE results (derived from MSstats)</li>
+<li>Filter for cases were both the ligand and receptor are statistically significant (p &lt; 0.05) and upregulated (either logFC &gt; 0, or stricter 0.5, within the same experimental comparison).</li>
+<li>To ensure interactions aren’t random occurrences, <u>1000 permutations</u> are performed, shuffling the protein names to create a null distribution of random interactions. We can then compare the observed interaction counts to this distribution and derive an empirical p-value.</li>
+<li>Interactions are ranked and filtered by both the number of supporting research papers and combined magnitude of upregulation (<code>logFC_Ligand</code> + <code>logFC_Receptor</code>).</li>
+</ol>
+<p>==================================================================</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -243,6 +262,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+</section>
 <section id="set-directories" class="level2">
 <h2 class="anchored" data-anchor-id="set-directories">Set directories</h2>
 <div class="cell">
@@ -766,6 +786,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

@@ -658,7 +658,17 @@
     "href": "notebooks/07_cell_interactions.html",
     "title": "07_cell_cell_interactions",
     "section": "",
-    "text": "Code\nsuppressPackageStartupMessages({\nlibrary(OmnipathR)\nlibrary(dplyr)\nlibrary(tidyr)\nlibrary(data.table)\nlibrary(qs2)\nlibrary(ggplot2)\n})",
+    "text": "==================================================================",
+    "crumbs": [
+      "7: Putative cell-cell interactions"
+    ]
+  },
+  {
+    "objectID": "notebooks/07_cell_interactions.html#workflow-overview",
+    "href": "notebooks/07_cell_interactions.html#workflow-overview",
+    "title": "07_cell_cell_interactions",
+    "section": "Workflow overview",
+    "text": "Workflow overview\n\nOmnipathR package retrieves a database of human ligand-receptor interactions.\nImport DE results (derived from MSstats)\nFilter for cases were both the ligand and receptor are statistically significant (p &lt; 0.05) and upregulated (either logFC &gt; 0, or stricter 0.5, within the same experimental comparison).\nTo ensure interactions aren’t random occurrences, 1000 permutations are performed, shuffling the protein names to create a null distribution of random interactions. We can then compare the observed interaction counts to this distribution and derive an empirical p-value.\nInteractions are ranked and filtered by both the number of supporting research papers and combined magnitude of upregulation (logFC_Ligand + logFC_Receptor).\n\n==================================================================\n\n\nCode\nsuppressPackageStartupMessages({\nlibrary(OmnipathR)\nlibrary(dplyr)\nlibrary(tidyr)\nlibrary(data.table)\nlibrary(qs2)\nlibrary(ggplot2)\n})",
     "crumbs": [
       "7: Putative cell-cell interactions"
     ]

@@ -1,7 +1,25 @@
 ---
-title: "07_cell_cell_interactions"
+title: "7. Putative cell-cell interactions"
 format: html
 ---
+
+==================================================================
+
+# Cell-cell interactions for proteomics data
+
+Author: Carlo Zanetti
+
+This script aims to identify and statistically validate potential intercellular signalling pathways occurring between astrocytes in different plaques states compared to WT.
+
+## Workflow overview
+
+1.  **OmnipathR** package retrieves a database of **human** ligand-receptor interactions.
+2.  Import DE results (derived from MSstats)
+3.  Filter for cases were both the ligand and receptor are statistically significant (p \< 0.05) and upregulated (either logFC \> 0, or stricter 0.5, within the same experimental comparison).
+4.  To ensure interactions aren't random occurrences, [1000 permutations]{.underline} are performed, shuffling the protein names to create a null distribution of random interactions. We can then compare the observed interaction counts to this distribution and derive an empirical p-value.
+5.  Interactions are ranked and filtered by both the number of supporting research papers and combined magnitude of upregulation (`logFC_Ligand` + `logFC_Receptor`).
+
+==================================================================
 
 ```{r}
 suppressPackageStartupMessages({
