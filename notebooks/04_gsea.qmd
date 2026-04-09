@@ -390,3 +390,55 @@ purrr::walk2(comparisons_master, names(comparisons_master), function(ranks, comp
   )
 })
 ```
+
+## Hypergeometric test: Plaque Near vs Plaque Far top 10 vs Habib 2020 top 10
+
+```{r}
+
+# Get top 10 upregulated proteins from PlaqueNear vs PlaqueFar
+top10_near_vs_far <- comparisons_master[["PlaqueNear_vs_PlaqueFar"]] %>%
+  sort(decreasing = TRUE) %>%
+  head(10) %>%
+  names()
+
+# Get top 10 from Habib 2020 DAA signature
+top10_habib <- head(daa_vector, 10)
+
+# Define the background population
+# Use all genes present in the rank list as the background
+background_genes <- names(comparisons_master[["PlaqueNear_vs_PlaqueFar"]])
+N <- length(background_genes)
+
+# Calculate overlap
+overlap <- intersect(top10_near_vs_far, top10_habib)
+k <- length(overlap)  # observed overlap
+m <- sum(top10_habib %in% background_genes)  # Habib top10 genes present in background
+n <- N - m            # genes NOT in Habib top10
+q <- length(top10_near_vs_far)  # size of your top10
+
+# Hypergeometric test
+# phyper(k-1) gives P(X >= k) i.e. probability of overlap >= observed by chance
+p_val <- phyper(k - 1, m, n, q, lower.tail = FALSE)
+
+cat("=== Hypergeometric Test: PlaqueNear vs PlaqueFar vs Habib 2020 DAA ===\n")
+cat("Background (total detected proteins):", N, "\n")
+cat("Habib top 10 genes found in background:", m, "\n")
+cat("Your top 10 Near vs Far proteins:", q, "\n")
+cat("Observed overlap:", k, "\n")
+cat("Overlapping genes:", paste(overlap, collapse = ", "), "\n")
+cat("P-value:", p_val, "\n\n")
+
+# Visualise the overlap with a simple table
+overlap_df <- data.frame(
+  Gene = background_genes,
+  In_Habib_Top10 = background_genes %in% top10_habib,
+  In_NearFar_Top10 = background_genes %in% top10_near_vs_far
+) %>%
+  filter(In_Habib_Top10 | In_NearFar_Top10) %>%
+  mutate(
+    Overlap = In_Habib_Top10 & In_NearFar_Top10
+  ) %>%
+  arrange(desc(Overlap))
+
+print(overlap_df)
+```

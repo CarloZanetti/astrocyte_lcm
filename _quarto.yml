@@ -21,17 +21,18 @@ website:
         file: notebooks/01a_initial_qc_spectronaut.qmd
       - text: "1b. DAA marker check"
         file: notebooks/01b_DAA_marker_check.qmd
-      # - section: "MS stats "
-      #   contents:
-      #     - notebooks/02_msstats.qmd
+      # - text: "MS stats "
+      #   file: notebooks/02_msstats.qmd
       - text: "3. DE plots"
         file: notebooks/03_DE_plots.qmd
       - text: "4. GSEA"
         file: notebooks/04_gsea.qmd
       - text: "5. GFAP correlation"
         file: notebooks/05_gfap_correlation.qmd
-      - text: "6. Concordance between limma and MSstats"
+      - text: "6a. Concordance between limma and MSstats"
         file: notebooks/06_msstats_limma_correlation.qmd
+      - text: "6b. Pipeline-Exclusive DE Proteins: Raw & Normalised Boxplots"
+        file: notebooks/06b_msstats_exclusive_DE_protein_boxplots.qmd
       - text: "7: Putative cell-cell interactions"
         file: notebooks/07_cell_interactions.qmd
       - text: "8: PPI Network analysis"

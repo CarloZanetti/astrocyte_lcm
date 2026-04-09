@@ -17,6 +17,7 @@ Updated data filtering criteria to be more stringent:
 4. [GSEA](notebooks/04_gsea.qmd)
 5. [GFAP correlation](notebooks/05_gfap_correlation.qmd)
 6. [MSstats limma correlation](notebooks/06_msstats_limma_correlation.qmd)
-7. [Cell-cell interactions](notebooks/07_cell_interactions.qmd)
-8. [PPI network](notebooks/08_PPI.qmd)
+7. [MSstats limma comparison](notebooks/06b_msstats_exclusive_DE_protein_boxplots.qmd)
+8. [Cell-cell interactions](notebooks/07_cell_interactions.qmd)
+9. [PPI network](notebooks/08_PPI.qmd)
 

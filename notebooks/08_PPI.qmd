@@ -41,7 +41,7 @@ library(qs2)
 
 ```{r directories}
 base_dir    <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num     <- "run3"
+run_num     <- "run5"
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
 ppi_dir     <- file.path(results_dir, "PPI_networks")
@@ -250,6 +250,17 @@ for (comp in names(network_results)) {
        vertex.label.color = "black",
        main = paste0(comp, " — Top ", vcount(g_top), " by degree",
                      "\nColoured by log2FC | Edges: ", ecount(g_top)))
+  
+  legend_vals <- seq(min(fc, na.rm = TRUE), max(fc, na.rm = TRUE), length.out = 5)
+  legend_colors <- colorRampPalette(c("gold", "orange", "firebrick3"))(5)
+
+  # 2. Add the legend
+  legend("bottomright", 
+         legend = round(legend_vals, 2), 
+         fill = legend_colors, 
+         title = "log2FC",
+         bty = "n",       # No border box
+         cex = 0.8)       # Text size
   dev.off()
   
   set.seed(42)
@@ -258,6 +269,17 @@ for (comp in names(network_results)) {
        vertex.label.color = "black",
        main = paste0(comp, " — Top ", vcount(g_top), " by degree",
                      "\nColoured by log2FC | Edges: ", ecount(g_top)))
+  
+  legend_vals <- seq(min(fc, na.rm = TRUE), max(fc, na.rm = TRUE), length.out = 5)
+  legend_colors <- colorRampPalette(c("gold", "orange", "firebrick3"))(5)
+
+  # 2. Add the legend
+  legend("bottomright", 
+         legend = round(legend_vals, 2), 
+         fill = legend_colors, 
+         title = "log2FC",
+         bty = "n",       # No border box
+         cex = 0.8)       # Text size
 }
 ```
 
