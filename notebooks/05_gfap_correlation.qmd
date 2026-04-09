@@ -8,6 +8,7 @@ This script is meant to identify proteins whose expression levels correlate with
 ## Libraries
 
 ```{r}
+suppressPackageStartupMessages({
 library(data.table)
 library(qs2)
 library(dplyr)
@@ -15,13 +16,14 @@ library(tidyr)
 library(tibble)
 library(ggplot2)
 library(ggrepel)
+})
 ```
 
 ## Directories
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run3"
+run_num <- "run5"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -36,7 +38,7 @@ dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
 #Map protein IDs to readable gene IDs
 processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
 protein_dict <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv")) %>%
-  select(Protein = PG.ProteinGroups, Gene = PG.Genes) %>%
+  dplyr::select(Protein = PG.ProteinGroups, Gene = PG.Genes) %>%
   distinct()
 
 # Extract Summarized Abundances
@@ -85,7 +87,7 @@ write.csv(pn_gfap_cors, file.path(objects_dir, "gfap_correlation.csv"))
 pn_gfap_cors %>% filter(Gene == "Cd44")
 ```
 
-## correlate proteins to Cd44
+## Proteins correlated to Cd44
 
 ```{r}
 pn_cd44_cors <- data.frame(Gene = colnames(pn_data)) %>%

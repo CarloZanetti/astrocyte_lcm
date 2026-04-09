@@ -1,0 +1,74 @@
+---
+title: "02c_msstats_abundance"
+format: html
+---
+
+==================================================================
+
+# MSstats abundance
+
+Author: Carlo Zanetti
+
+This script aims to ....
+
+## Workflow overview
+
+==================================================================
+
+## Libraries
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+library(data.table)
+library(MSstats)
+library(qs2)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(stringr)
+})
+```
+
+## Set directories
+
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run5"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+raw_dir <- file.path(base_dir, "data", "raw")
+
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## Load processed MSstats data
+
+```{r}
+processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
+
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
+
+protein_dictionary <- clean_spec_raw %>%
+  select(Protein = PG.ProteinGroups, 
+         Gene = PG.Genes, 
+         Description = PG.ProteinDescriptions) %>%
+  distinct()
+protein_dictionary
+```
+
+## Group-level abundance
+
+Keratin is a lot more abundant than I expected
+
+```{r}
+group_abundance <- quantification(processed_data, type = 'group', format = 'matrix')
+
+group_abundance_annot <- group_abundance %>%
+  left_join(protein_dictionary, by = "Protein")
+  
+group_abundance_annot %>% 
+  arrange(desc(control + plaque_far + plaque_near))
+```

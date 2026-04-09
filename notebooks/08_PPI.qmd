@@ -1,0 +1,352 @@
+---
+title: "08: PPI Network Analysis"
+format: html
+---
+
+## Overview
+
+This script identifies protein-protein interaction networks for upregulated
+proteins in each MSstats comparison using STRINGdb. It identifies hub proteins
+by degree centrality and exports summary tables for downstream interpretation.
+
+**Workflow overview**
+
+1. Load MSstats DE results and filter for upregulated proteins (FDR < 0.05, log2FC > 0.5)
+2. Map gene names to STRING IDs via STRINGdb
+3. Retrieve high-confidence interactions (STRING score >= 700)
+4. Build and visualise full and top-N networks per comparison
+5. Export hub protein summary tables across comparisons
+
+## Libraries
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
+```
+
+```{r libraries, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages({
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggrepel)
+library(stringr)
+library(STRINGdb)
+library(igraph)
+library(qs2)
+})
+```
+
+## Directories and parameters
+
+```{r directories}
+base_dir    <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num     <- "run3"
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+ppi_dir     <- file.path(results_dir, "PPI_networks")
+
+dir.create(ppi_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Thresholds
+FDR_CUTOFF   <- 0.05
+LOGFC_CUTOFF <- 0.5
+STRING_SCORE <- 700
+```
+
+## Load and prepare DE results
+
+```{r load_data}
+res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
+
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
+protein_dictionary <- clean_spec_raw %>%
+  dplyr::select(
+    Protein     = PG.ProteinGroups,
+    Gene        = PG.Genes,
+    Description = PG.ProteinDescriptions
+  ) %>%
+  distinct()
+
+# Map gene names and define significance categories
+msstats_ready <- res_df %>%
+  filter(!is.na(adj.pvalue), is.finite(log2FC)) %>%
+  left_join(protein_dictionary, by = "Protein") %>%
+  mutate(
+    Gene = ifelse(is.na(Gene) | Gene == "", Protein, Gene),
+    Status = case_when(
+      adj.pvalue < FDR_CUTOFF & log2FC >  LOGFC_CUTOFF ~ "Upregulated",
+      adj.pvalue < FDR_CUTOFF & log2FC < -LOGFC_CUTOFF ~ "Downregulated",
+      TRUE ~ "Not Significant"
+    )
+  )
+```
+
+## Initialise STRINGdb
+
+```{r init_string}
+string_db <- STRINGdb$new(
+  version         = "12.0",
+  species         = 10090,
+  score_threshold = STRING_SCORE,
+  network_type    = "physical"
+)
+```
+
+## Build networks per comparison
+
+```{r build_networks}
+comparisons <- c("PlaqueNear_vs_Control", "PlaqueFar_vs_Control", "PlaqueNear_vs_PlaqueFar")
+
+network_results <- list()
+
+for (comp in comparisons) {
+  
+  cat("\n============================\n")
+  cat(comp, "\n")
+  cat("============================\n")
+  
+  # --- Filter upregulated proteins ---
+  sig_up <- msstats_ready %>%
+    filter(Label == comp, Status == "Upregulated") %>%
+    dplyr::select(Gene, log2FC, adj.pvalue) %>%
+    distinct(Gene, .keep_all = TRUE) %>%
+    as.data.frame()
+  
+  cat("Upregulated proteins:", nrow(sig_up), "\n")
+  
+  if (nrow(sig_up) < 5) {
+    cat("Too few proteins, skipping.\n")
+    next
+  }
+  
+  # --- Map to STRING ---
+  mapped <- string_db$map(sig_up, "Gene", removeUnmappedRows = TRUE)
+  cat("Mapped to STRING:", nrow(mapped), "\n")
+  
+  if (nrow(mapped) < 5) {
+    cat("Too few mapped, skipping.\n")
+    next
+  }
+  
+  # --- Get interactions ---
+  interactions <- string_db$get_interactions(mapped$STRING_id)
+  cat("Interactions:", nrow(interactions), "\n")
+  
+  # --- Build igraph object ---
+  if (nrow(interactions) > 0) {
+    
+    g <- graph_from_data_frame(
+      interactions %>% dplyr::select(from, to, combined_score),
+      directed = FALSE,
+      vertices = mapped %>% dplyr::select(STRING_id, Gene, log2FC)
+    )
+    g <- simplify(g)
+    
+    # Degree centrality
+    V(g)$degree <- degree(g)
+    
+    cat("Nodes:", vcount(g), "| Edges:", ecount(g), "\n")
+    
+  } else {
+    g <- NULL
+    cat("No interactions found.\n")
+  }
+  
+  network_results[[comp]] <- list(
+    proteins     = mapped,
+    interactions = interactions,
+    graph        = g
+  )
+}
+```
+
+## Visualise full networks
+
+```{r plot_full, fig.width=14, fig.height=14}
+for (comp in names(network_results)) {
+  
+  g <- network_results[[comp]]$graph
+  if (is.null(g) || ecount(g) == 0) next
+  
+  # Remove isolated nodes (degree 0) for cleaner plot
+  g_plot <- delete_vertices(g, V(g)[degree(g) == 0])
+  if (vcount(g_plot) < 3) next
+  
+  # Style
+  V(g_plot)$label     <- V(g_plot)$Gene
+  V(g_plot)$size      <- scales::rescale(degree(g_plot), to = c(5, 20))
+  V(g_plot)$label.cex <- scales::rescale(degree(g_plot), to = c(0.6, 1.3))
+  V(g_plot)$label.font <- 2
+  V(g_plot)$color     <- "steelblue"
+  V(g_plot)$frame.color <- "grey30"
+  E(g_plot)$color     <- "grey75"
+  E(g_plot)$width     <- 0.8
+  
+  # Highlight top 10 hubs
+  top_hubs <- names(sort(degree(g_plot), decreasing = TRUE))[1:min(10, vcount(g_plot))]
+  V(g_plot)$color[V(g_plot)$name %in% top_hubs] <- "firebrick3"
+  
+  pdf(file.path(ppi_dir, paste0("network_full_", comp, ".pdf")), width = 14, height = 14)
+  set.seed(42)
+  plot(g_plot,
+       layout = layout_with_fr(g_plot),
+       vertex.label.color = "black",
+       main = paste0(comp, "\nUpregulated proteins | STRING physical >= ", STRING_SCORE,
+                     "\nNodes: ", vcount(g_plot), " | Edges: ", ecount(g_plot),
+                     " | Red = top 10 hubs"))
+  dev.off()
+  
+  # Also render in notebook
+  set.seed(42)
+  plot(g_plot,
+       layout = layout_with_fr(g_plot),
+       vertex.label.color = "black",
+       main = paste0(comp, "\nUpregulated proteins | STRING physical >= ", STRING_SCORE,
+                     "\nNodes: ", vcount(g_plot), " | Edges: ", ecount(g_plot),
+                     " | Red = top 10 hubs"))
+}
+```
+
+## Visualise top-N subnetworks
+
+Focused view of the most connected proteins only.
+
+```{r plot_topN, fig.width=12, fig.height=12}
+TOP_N <- 30
+
+for (comp in names(network_results)) {
+  
+  g <- network_results[[comp]]$graph
+  if (is.null(g) || ecount(g) == 0) next
+  
+  # Select top N by degree
+  top_nodes <- names(sort(degree(g), decreasing = TRUE))[1:min(TOP_N, vcount(g))]
+  g_top <- induced_subgraph(g, top_nodes)
+  g_top <- delete_vertices(g_top, V(g_top)[degree(g_top) == 0])
+  
+  if (vcount(g_top) < 3) next
+  
+  V(g_top)$label      <- V(g_top)$Gene
+  V(g_top)$size       <- scales::rescale(degree(g_top), to = c(8, 22))
+  V(g_top)$label.cex  <- 1.0
+  V(g_top)$label.font <- 2
+  V(g_top)$frame.color <- "grey30"
+  E(g_top)$color      <- "grey70"
+  E(g_top)$width      <- 1.2
+  
+  # Colour by logFC
+  fc <- V(g_top)$log2FC
+  fc_pal <- colorRampPalette(c("gold", "orange", "firebrick3"))(100)
+  fc_idx <- findInterval(fc, seq(min(fc), max(fc), length.out = 100))
+  fc_idx[fc_idx == 0] <- 1
+  V(g_top)$color <- fc_pal[fc_idx]
+  
+  pdf(file.path(ppi_dir, paste0("network_top", TOP_N, "_", comp, ".pdf")), 
+      width = 12, height = 12)
+  set.seed(42)
+  plot(g_top,
+       layout = layout_with_fr(g_top),
+       vertex.label.color = "black",
+       main = paste0(comp, " — Top ", vcount(g_top), " by degree",
+                     "\nColoured by log2FC | Edges: ", ecount(g_top)))
+  dev.off()
+  
+  set.seed(42)
+  plot(g_top,
+       layout = layout_with_fr(g_top),
+       vertex.label.color = "black",
+       main = paste0(comp, " — Top ", vcount(g_top), " by degree",
+                     "\nColoured by log2FC | Edges: ", ecount(g_top)))
+}
+```
+
+## Hub protein summary tables
+
+```{r hub_tables}
+hub_list <- list()
+
+for (comp in names(network_results)) {
+  
+  g <- network_results[[comp]]$graph
+  if (is.null(g)) next
+  
+  hub_df <- data.frame(
+    Gene   = V(g)$Gene,
+    log2FC = V(g)$log2FC,
+    Degree = degree(g),
+    Comparison = comp
+  ) %>%
+    filter(Degree > 0) %>%
+    arrange(desc(Degree))
+  
+  hub_list[[comp]] <- hub_df
+  
+  cat("\n--- Top 20 hubs:", comp, "---\n")
+  print(head(hub_df, 20))
+  
+  fwrite(hub_df, file.path(ppi_dir, paste0("hub_proteins_", comp, ".csv")))
+}
+
+# Combined table across comparisons
+if (length(hub_list) > 0) {
+  hub_combined <- bind_rows(hub_list)
+  fwrite(hub_combined, file.path(ppi_dir, "hub_proteins_all_comparisons.csv"))
+  
+  # Proteins that are hubs in both comparisons
+  if (length(hub_list) == 2) {
+    shared_hubs <- inner_join(
+      hub_list[[1]] %>% dplyr::select(Gene, Degree_Near = Degree, log2FC_Near = log2FC),
+      hub_list[[2]] %>% dplyr::select(Gene, Degree_Far = Degree, log2FC_Far = log2FC),
+      by = "Gene"
+    ) %>%
+      mutate(Total_Degree = Degree_Near + Degree_Far) %>%
+      arrange(desc(Total_Degree))
+    
+    cat("\n--- Shared hubs (present in both comparisons) ---\n")
+    print(head(shared_hubs, 20))
+    
+    fwrite(shared_hubs, file.path(ppi_dir, "hub_proteins_shared.csv"))
+  }
+}
+```
+
+## Network summary statistics
+
+```{r summary_stats}
+summary_table <- data.frame(
+  Comparison           = character(),
+  Upregulated_proteins = integer(),
+  Mapped_to_STRING     = integer(),
+  Nodes_with_edges     = integer(),
+  Edges                = integer(),
+  stringsAsFactors     = FALSE
+)
+
+for (comp in names(network_results)) {
+  
+  nr <- network_results[[comp]]
+  g  <- nr$graph
+  
+  n_with_edges <- if (!is.null(g)) sum(degree(g) > 0) else 0
+  n_edges      <- if (!is.null(g)) ecount(g) else 0
+  
+  summary_table <- rbind(summary_table, data.frame(
+    Comparison           = comp,
+    Upregulated_proteins = nrow(msstats_ready %>% filter(Label == comp, Status == "Upregulated") %>% distinct(Gene)),
+    Mapped_to_STRING     = nrow(nr$proteins),
+    Nodes_with_edges     = n_with_edges,
+    Edges                = n_edges
+  ))
+}
+
+cat("\n--- Network summary ---\n")
+print(summary_table)
+fwrite(summary_table, file.path(ppi_dir, "network_summary.csv"))
+```
+
+## Session info
+
+```{r session_info}
+sessionInfo()
+```

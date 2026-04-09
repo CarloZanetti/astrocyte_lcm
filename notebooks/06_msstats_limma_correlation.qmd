@@ -1,5 +1,5 @@
 ---
-title: "06: MSstats limma correlation"
+title: "6. Concordance between limma and MSstats"
 format: html
 ---
 
@@ -42,6 +42,7 @@ This script evaluates the consistency between MSstats and limma. It merges resul
 ## Load libraries
 
 ```{r}
+suppressPackageStartupMessages({
 library(data.table)
 library(qs2)
 library(dplyr)
@@ -53,13 +54,13 @@ library(clusterProfiler)
 library(org.Mm.eg.db)
 library(enrichplot)
 library(ggVennDiagram)
+})
 ```
 
 ## Read in limma and msstats objects
-
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run3"
+run_num <- "run5"
 results_dir <- file.path(base_dir, "results", run_num)
 
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -73,7 +74,6 @@ millie_n_v_f <- read.csv(file.path(millie_dir, "limma_all_proteins_Plaque_near_v
 
 res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
 clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
-
 ```
 
 ## Convert msstats to gene names

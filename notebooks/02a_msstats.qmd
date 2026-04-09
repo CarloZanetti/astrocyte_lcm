@@ -1,5 +1,5 @@
 ---
-title: "ms_stats_initial"
+title: "2a. MSstats workflow"
 ---
 
 ## Libraries
@@ -20,7 +20,7 @@ library(stringr)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run4"
+run_num <- "run5"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -48,6 +48,7 @@ dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
 
 ```{r}
 raw_spectronaut <- qs_read(file.path(base_dir, "data/processed/run1/msstats_report.qs2"))
+raw_spec
 ```
 
 ## Read in metadata
@@ -168,24 +169,17 @@ fwrite(msstats_annotation, file.path(objects_dir, "msstats_annotation.csv"))
 ```
 
 
-##Rerun - load data and make directories
+##Rerun - load in data and edit to remove Keratin
 ```{r}
-final_msstats_input <- qs_read(file.path(objects_dir, "final_msstats_input.qs2"))
-msstats_annotation <- fread(file.path(objects_dir, "msstats_annotation.csv"))
+final_msstats_input <- qs_read(file.path(base_dir, "data/processed/run1/final_msstats_input.qs2"))
+msstats_annotation <- fread(file.path(base_dir, "data/processed/run1/msstats_annotation.csv"))
 
-run_num <- "run3"
 
-results_dir <- file.path(base_dir, "results", run_num)
-objects_dir <- file.path(base_dir, "data", "processed", run_num)
-
-dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
-dir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)
+final_msstats_input <- final_msstats_input %>%
+  filter(!str_detect(PG.ProteinGroups, "^(?i)Krt")) %>%
+  as.data.table()
+final_msstats_input
 ```
-
-
-
-
-## Convert to MSstats format
 
 ```{r}
 #Initial feature-level filtering and maps Spectronaut columns to MSstats required headers
@@ -203,7 +197,6 @@ qs_save(msstats_input, file.path(objects_dir, "msstats_input.qs2"))
 ## input filtering at the condition level
 ```{r}
 msstats_input <- qs_read(file.path(base_dir, "data/processed/run2/msstats_input.qs2"))
-
 # 1. Convert to a standard data frame
 input_df <- as.data.frame(msstats_input)
 
@@ -233,23 +226,34 @@ message("Filtered Rows: ", nrow(msstats_input_filtered))
 
 ```
 
+## Filtering out keratin
+```{r}
+clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
 
+protein_dictionary <- clean_spec_raw %>%
+  dplyr::select(Protein = PG.ProteinGroups, 
+         Gene = PG.Genes, 
+         Description = PG.ProteinDescriptions) %>%
+  distinct()
 
-
-
-
-
+msstats_input_filtered_keratin <- msstats_input_filtered %>%
+  left_join(protein_dictionary, by=c("ProteinName" = "Protein")) %>%
+  filter(!grepl("^Krt", Gene)) %>%
+  dplyr::select(-c("Gene", "Description"))
+  
+msstats_input_filtered_keratin
+```
 ## Data summarisation and normalisation
 
 ```{r}
 # Roll up the peptide intensities to protein-level abundances
 
 processed_data <- dataProcess(
-  msstats_input_filtered,
+  msstats_input_filtered_keratin,
   normalization = "equalizeMedians",
   summaryMethod = "TMP",
   censoredInt = "NA",
-  MBimpute = TRUE,
+  MBimpute = FALSE,
   featureSubset = "highQuality",
   remove_uninformative_feature_outlier = TRUE
   )

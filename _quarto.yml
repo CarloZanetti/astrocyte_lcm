@@ -7,6 +7,7 @@ project:
     - "!notebooks/megena.qmd"
     - "!notebooks/02a_msstats.qmd"
     - "!notebooks/02b_msstats_plots.qmd"
+    - "!notebooks/02c_msstats_abundance.qmd"
 
 execute:
   freeze: auto
@@ -33,6 +34,8 @@ website:
         file: notebooks/06_msstats_limma_correlation.qmd
       - text: "7: Putative cell-cell interactions"
         file: notebooks/07_cell_interactions.qmd
+      - text: "8: PPI Network analysis"
+        file: notebooks/08_PPI.qmd
 format:
   html:
     theme: cosmo

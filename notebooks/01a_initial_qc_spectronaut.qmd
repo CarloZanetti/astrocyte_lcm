@@ -5,6 +5,7 @@ title: "Initial QC & Data Cleaning"
 ## Libraries
 
 ```{r setup, include=FALSE}
+suppressPackageStartupMessages({
 knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
 library(data.table)
 library(MSstats)
@@ -14,6 +15,7 @@ library(ggplot2)
 library(stringr)
 library(tidyr)
 library(pheatmap)
+})
 ```
 
 ## Set directories

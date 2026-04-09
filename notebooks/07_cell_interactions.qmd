@@ -29,6 +29,9 @@ library(tidyr)
 library(data.table)
 library(qs2)
 library(ggplot2)
+library(igraph)
+library(ggraph)
+library(patchwork)
 })
 ```
 
@@ -36,7 +39,7 @@ library(ggplot2)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run3"
+run_num <- "run5"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -180,10 +183,10 @@ for (i in 1:n_perms) {
   
   # Rebuild fake ligand/receptor tables
   shuffled_ligands <- shuffled_msstats %>%
-    select(Label, Ligand = Gene, logFC_Ligand = log2FC, pval_Ligand = adj.pvalue)
+    dplyr::select(Label, Ligand = Gene, logFC_Ligand = log2FC, pval_Ligand = adj.pvalue)
   
   shuffled_receptors <- shuffled_msstats %>%
-    select(Label, Receptor = Gene, logFC_Receptor = log2FC, pval_Receptor = adj.pvalue)
+    dplyr::select(Label, Receptor = Gene, logFC_Receptor = log2FC, pval_Receptor = adj.pvalue)
   
   # Re-run the network merge and filtering with fake data
   shuffled_cross_talk <- lr_with_evidence %>%
@@ -301,10 +304,10 @@ for (i in 1:n_perms) {
   
   # Rebuild fake ligand/receptor tables
   shuffled_ligands <- shuffled_msstats %>%
-    select(Label, Ligand = Gene, logFC_Ligand = log2FC, pval_Ligand = adj.pvalue)
+    dplyr::select(Label, Ligand = Gene, logFC_Ligand = log2FC, pval_Ligand = adj.pvalue)
   
   shuffled_receptors <- shuffled_msstats %>%
-    select(Label, Receptor = Gene, logFC_Receptor = log2FC, pval_Receptor = adj.pvalue)
+    dplyr::select(Label, Receptor = Gene, logFC_Receptor = log2FC, pval_Receptor = adj.pvalue)
   
   # Re-run the network merge and filtering with fake data
   shuffled_cross_talk <- lr_with_evidence %>%
@@ -362,3 +365,145 @@ perm_plot <- ggplot(null_distribution_df, aes(x = Simulated_Interactions)) +
 
 print(perm_plot)
 ```
+
+
+```{r}
+# ==============================================================================
+# Ligand-Receptor Interaction Heatmap (logFC > 0.5) - NEAR VS CONTROL ONLY
+# Uses all_cross_talk object
+# ==============================================================================
+
+
+# ------------------------------------------------------------------------------
+# 1. Prepare data — logFC > 0.5 co-upregulated pairs (PlaqueNear only)
+# ------------------------------------------------------------------------------
+
+lr_heatmap_data <- all_cross_talk %>%
+  # Isolate only the PlaqueNear_vs_Control condition
+  filter(Label == "PlaqueNear_vs_Control") %>%
+  filter(logFC_Ligand > 0.5 & logFC_Receptor > 0.5) %>%
+  mutate(
+    combined_logFC = logFC_Ligand + logFC_Receptor,
+    comparison = "Near vs Ctrl", 
+    # Create a pair label for ordering
+    pair = paste0(Ligand, " \u2192 ", Receptor)
+  ) %>%
+  dplyr::select(pair, Ligand, Receptor, comparison, 
+                combined_logFC, logFC_Ligand, logFC_Receptor, paper_count)
+
+# ------------------------------------------------------------------------------
+# 2. Dot plot heatmap — pair x comparison
+# ------------------------------------------------------------------------------
+
+# Order pairs by combined logFC (descending)
+pair_order <- lr_heatmap_data %>%
+  group_by(pair) %>%
+  summarise(max_fc = max(combined_logFC), .groups = "drop") %>%
+  arrange(desc(max_fc)) %>%
+  pull(pair)
+
+lr_heatmap_data$pair <- factor(lr_heatmap_data$pair, levels = rev(pair_order))
+
+p_dot <- ggplot(lr_heatmap_data, 
+                aes(x = comparison, y = pair)) +
+  geom_point(
+    aes(size = paper_count + 1, fill = combined_logFC),
+    shape = 21, colour = "black", stroke = 0.4
+  ) +
+  # Add logFC text inside/beside each dot
+  geom_text(
+    aes(label = sprintf("%.2f", combined_logFC)),
+    size = 2.8, colour = "grey30", nudge_x = 0.3
+  ) +
+  scale_fill_gradient2(
+    low = "lightyellow", mid = "#F0997B", high = "firebrick3",
+    midpoint = median(lr_heatmap_data$combined_logFC),
+    name = "Combined\nlog2FC"
+  ) +
+  scale_size_continuous(
+    range = c(3, 12),
+    name = "Paper\nevidence",
+    breaks = c(1, 3, 7, 13),
+    labels = c("0", "2", "6", "12")
+  ) +
+  labs(
+    title = "Co-upregulated Ligand-Receptor Pairs",
+    subtitle = "Near vs Control | Both log2FC > 0.5, adj.p < 0.05 | Dot size = supporting publications",
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 10, colour = "grey40", margin = margin(b = 15)),
+    axis.text.y = element_text(size = 10, face = "bold"),
+    axis.text.x = element_text(size = 12, face = "bold"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "right",
+    plot.margin = margin(20, 20, 20, 10)
+  )
+
+print(p_dot)
+
+ggsave(
+  filename = file.path(results_dir, "LR_dotplot_Near_logFC05.pdf"),
+  plot = p_dot,
+  width = 8, height = 8, dpi = 300 # Slightly narrowed width for single column
+)
+
+# ------------------------------------------------------------------------------
+# 3. Tile heatmap — ligand x receptor matrix
+# ------------------------------------------------------------------------------
+
+# Create a complete grid for the axes
+all_ligands <- sort(unique(lr_heatmap_data$Ligand))
+all_receptors <- sort(unique(lr_heatmap_data$Receptor))
+
+tile_data <- lr_heatmap_data %>%
+  dplyr::select(Ligand, Receptor, combined_logFC, paper_count) %>%
+  # Dropped "comparison" from complete() since there is only one
+  complete(Ligand = all_ligands, Receptor = all_receptors, 
+           fill = list(combined_logFC = NA, paper_count = NA))
+
+p_tile <- ggplot(tile_data, aes(x = Receptor, y = Ligand)) +
+  geom_tile(
+    aes(fill = combined_logFC),
+    colour = "white", linewidth = 0.8
+  ) +
+  # Paper count as text overlay
+  geom_text(
+    aes(label = ifelse(!is.na(paper_count) & paper_count > 0, paper_count, "")),
+    size = 3.5, fontface = "bold", colour = "white"
+  ) +
+  scale_fill_gradient(
+    low = "#F5C4B3", high = "firebrick3",
+    na.value = "grey95",
+    name = "Combined\nlog2FC"
+  ) +
+  # Removed facet_wrap since we only have one condition to plot
+  labs(
+    title = "Ligand-Receptor Interaction Heatmap (Near vs Control)",
+    subtitle = "log2FC > 0.5, adj.p < 0.05 | Numbers = supporting publications",
+    x = "Receptor", y = "Ligand"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 10, colour = "grey40", margin = margin(b = 15)),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9, face = "bold"),
+    axis.text.y = element_text(size = 10, face = "bold"),
+    axis.title = element_text(face = "bold"),
+    panel.grid = element_blank(),
+    legend.position = "right",
+    plot.margin = margin(20, 20, 20, 10)
+  )
+
+print(p_tile)
+
+ggsave(
+  filename = file.path(results_dir, "LR_heatmap_tile_Near_logFC05.pdf"),
+  plot = p_tile,
+  width = 9, height = 7, dpi = 300 # Scaled down width for a single heatmap
+)
+```
+

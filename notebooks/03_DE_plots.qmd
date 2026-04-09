@@ -1,24 +1,25 @@
 ---
-title: "03_DE_plots"
+title: "3. DE plots"
 ---
 
 ## Libraries
 
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')
+suppressPackageStartupMessages({
 library(data.table)
 library(qs2)
 library(dplyr)
 library(ggplot2)
 library(ggrepel)
 library(MSstats)
+})
 ```
 
 ## Directories
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run3"
+run_num <- "run5"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -41,7 +42,7 @@ res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
 clean_spec_raw <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv"))
 
 protein_dictionary <- clean_spec_raw %>%
-  select(Protein = PG.ProteinGroups, 
+  dplyr::select(Protein = PG.ProteinGroups, 
          Gene = PG.Genes, 
          Description = PG.ProteinDescriptions) %>%
   distinct()
@@ -140,7 +141,7 @@ generate_swanky_volcano <- function(msstats_results, dict, comparison_label, log
   # Save Data Table
   # Select only the most useful columns and sort by significance for easy reading
   export_data <- volcano_data %>%
-    select(Protein, Gene, Description, log2FC, pvalue, adj.pvalue, Status) %>%
+    dplyr::select(Protein, Gene, Description, log2FC, pvalue, adj.pvalue, Status) %>%
     arrange(adj.pvalue)
   
   fwrite(export_data, file = file.path(graphs_dir, paste0("Volcano_Data_", safe_name, ".csv")))
@@ -179,7 +180,7 @@ for (comp in all_comparisons) {
 res_df
 floor_check <- res_df %>%
   filter(Label == "PlaqueNear_vs_Control", adj.pvalue > 0.99) %>%
-  select(Protein, log2FC, pvalue, adj.pvalue, SE, DF) %>%
+  dplyr::select(Protein, log2FC, pvalue, adj.pvalue, SE, DF) %>%
   arrange(desc(abs(log2FC)))
 
 # Look at the top results
