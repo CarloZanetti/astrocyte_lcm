@@ -216,8 +216,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#msstats-exclusive-significant-in-msstats-not-in-limma" id="toc-msstats-exclusive-significant-in-msstats-not-in-limma" class="nav-link" data-scroll-target="#msstats-exclusive-significant-in-msstats-not-in-limma">MSstats-exclusive: significant in MSstats, not in limma</a></li>
   <li><a href="#limma-exclusive-significant-in-limma-not-in-msstats" id="toc-limma-exclusive-significant-in-limma-not-in-msstats" class="nav-link" data-scroll-target="#limma-exclusive-significant-in-limma-not-in-msstats">Limma-exclusive: significant in limma, not in MSstats</a></li>
   </ul></li>
-  <li><a href="#prepare-raw-spectronaut-protein-level-data-long-format" id="toc-prepare-raw-spectronaut-protein-level-data-long-format" class="nav-link" data-scroll-target="#prepare-raw-spectronaut-protein-level-data-long-format">Prepare raw Spectronaut protein-level data (long format)</a></li>
   <li><a href="#prepare-msstats-normalised-protein-level-data" id="toc-prepare-msstats-normalised-protein-level-data" class="nav-link" data-scroll-target="#prepare-msstats-normalised-protein-level-data">Prepare MSstats normalised protein-level data</a></li>
+  <li><a href="#prepare-raw-spectronaut-protein-level-data-long-format" id="toc-prepare-raw-spectronaut-protein-level-data-long-format" class="nav-link" data-scroll-target="#prepare-raw-spectronaut-protein-level-data-long-format">Prepare raw Spectronaut protein-level data (long format)</a>
+  <ul class="collapse">
+  <li><a href="#sanity-check-do-exclusive-protein-ids-exist-in-spec_long" id="toc-sanity-check-do-exclusive-protein-ids-exist-in-spec_long" class="nav-link" data-scroll-target="#sanity-check-do-exclusive-protein-ids-exist-in-spec_long">Sanity check: do exclusive protein IDs exist in spec_long?</a></li>
+  </ul></li>
   <li><a href="#define-plotting-function" id="toc-define-plotting-function" class="nav-link" data-scroll-target="#define-plotting-function">Define plotting function</a></li>
   <li><a href="#generate-boxplots-msstats-exclusive-proteins" id="toc-generate-boxplots-msstats-exclusive-proteins" class="nav-link" data-scroll-target="#generate-boxplots-msstats-exclusive-proteins">Generate boxplots: MSstats-exclusive proteins</a></li>
   <li><a href="#generate-boxplots-limma-exclusive-proteins" id="toc-generate-boxplots-limma-exclusive-proteins" class="nav-link" data-scroll-target="#generate-boxplots-limma-exclusive-proteins">Generate boxplots: Limma-exclusive proteins</a></li>
@@ -263,8 +266,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="1">
 <li><strong>Rebuild comparison_df</strong> merging MSstats and limma results</li>
 <li><strong>Extract pipeline-exclusive hits</strong> in both directions (MSstats-only and limma-only)</li>
-<li><strong>Prepare raw Spectronaut</strong> PG.Quantity values (long format, log2-transformed)</li>
 <li><strong>Prepare MSstats normalised</strong> ProteinLevelData abundances</li>
+<li><strong>Prepare raw Spectronaut</strong> PG.Quantity values (long format, log2-transformed, batch-filtered)</li>
 <li><strong>Generate faceted boxplots</strong> for both data sources, per comparison, per direction</li>
 <li><strong>Export summary tables</strong> with side-by-side pipeline statistics</li>
 </ol>
@@ -422,28 +425,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    protein_dictionary <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Protein, <span class="at">Gene_dict =</span> Gene),</span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"Protein"</span></span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># If Protein is still NA, try matching Gene back to dictionary</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Protein =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>      <span class="sc">!</span><span class="fu">is.na</span>(Protein) <span class="sc">~</span> Protein,</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> {</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        matched <span class="ot">&lt;-</span> protein_dictionary<span class="sc">$</span>Protein[<span class="fu">match</span>(Gene, protein_dictionary<span class="sc">$</span>Gene)]</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        matched</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>Gene_dict) <span class="sc">%&gt;%</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_limma, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    Protein, Gene, Label,</span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    log2FC_msstats, adj.pvalue_msstats, Status_msstats,</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    log2FC_limma, adj.pvalue_limma, Status_limma</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Limma-exclusive top 20 per comparison:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Protein =</span> <span class="fu">case_when</span>(</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>      <span class="sc">!</span><span class="fu">is.na</span>(Protein) <span class="sc">~</span> Protein,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> {</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        matched <span class="ot">&lt;-</span> protein_dictionary<span class="sc">$</span>Protein[<span class="fu">match</span>(Gene, protein_dictionary<span class="sc">$</span>Gene)]</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        matched</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>Gene_dict) <span class="sc">%&gt;%</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Label) <span class="sc">%&gt;%</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(adj.pvalue_limma, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    Protein, Gene, Label,</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    log2FC_msstats, adj.pvalue_msstats, Status_msstats,</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    log2FC_limma, adj.pvalue_limma, Status_limma</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Limma-exclusive top 20 per comparison:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -470,59 +472,141 @@ Limma-exclusive top 20 per comparison:</code></pre>
 </div>
 </section>
 </section>
-<section id="prepare-raw-spectronaut-protein-level-data-long-format" class="level2">
-<h2 class="anchored" data-anchor-id="prepare-raw-spectronaut-protein-level-data-long-format">Prepare raw Spectronaut protein-level data (long format)</h2>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>anno_cols    <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PG.ProteinGroups"</span>, <span class="st">"PG.Genes"</span>, <span class="st">"PG.ProteinDescriptions"</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>run_cols_raw <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">colnames</span>(clean_spec_raw), anno_cols)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>spec_long <span class="ot">&lt;-</span> clean_spec_raw <span class="sc">%&gt;%</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols      =</span> <span class="fu">all_of</span>(run_cols_raw),</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to  =</span> <span class="st">"Run"</span>,</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"Intensity"</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">Protein =</span> PG.ProteinGroups) <span class="sc">%&gt;%</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    clean_meta <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Run, Condition, BioReplicate, Batch),</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"Run"</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Condition)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Log2_Intensity =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(Intensity) <span class="sc">&amp;</span> Intensity <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="fu">log2</span>(Intensity), <span class="cn">NA_real_</span>)</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Spectronaut long format rows:"</span>, <span class="fu">nrow</span>(spec_long), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Spectronaut long format rows: 1185345 </code></pre>
-</div>
-</div>
-</section>
 <section id="prepare-msstats-normalised-protein-level-data" class="level2">
 <h2 class="anchored" data-anchor-id="prepare-msstats-normalised-protein-level-data">Prepare MSstats normalised protein-level data</h2>
+<p>Loaded first so we can verify batch/run alignment with the raw data.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>processed_data <span class="ot">&lt;-</span> <span class="fu">qs_read</span>(<span class="fu">file.path</span>(objects_dir, <span class="st">"processed_msstats_data.qs2"</span>))</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>msstats_abundance <span class="ot">&lt;-</span> processed_data<span class="sc">$</span>ProteinLevelData <span class="sc">%&gt;%</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Condition      =</span> GROUP,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">BioReplicate   =</span> SUBJECT,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Run            =</span> RUN,</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">LogIntensities =</span> LogIntensities</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"MSstats abundance rows:"</span>, <span class="fu">nrow</span>(msstats_abundance), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>processed_data <span class="ot">&lt;-</span> <span class="fu">qs_read</span>(<span class="fu">file.path</span>(objects_dir, <span class="st">"processed_msstats_data.qs2"</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>msstats_abundance <span class="ot">&lt;-</span> processed_data<span class="sc">$</span>ProteinLevelData <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Condition      =</span> GROUP,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">BioReplicate   =</span> SUBJECT,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Run            =</span> RUN,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">LogIntensities =</span> LogIntensities</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"MSstats abundance rows:"</span>, <span class="fu">nrow</span>(msstats_abundance), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>MSstats abundance rows: 397393 </code></pre>
 </div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"MSstats unique runs:"</span>, <span class="fu">n_distinct</span>(msstats_abundance<span class="sc">$</span>Run), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>MSstats unique runs: 82 </code></pre>
 </div>
+</div>
+</section>
+<section id="prepare-raw-spectronaut-protein-level-data-long-format" class="level2">
+<h2 class="anchored" data-anchor-id="prepare-raw-spectronaut-protein-level-data-long-format">Prepare raw Spectronaut protein-level data (long format)</h2>
+<p>We filter to batches 1, 3, 4 via metadata to match the samples used by MSstats. We cannot match on Run names directly because MSstats strips the <code>[nnn]</code> prefix and <code>.d.PG.Quantity</code> suffix during processing.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>anno_cols    <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PG.ProteinGroups"</span>, <span class="st">"PG.Genes"</span>, <span class="st">"PG.ProteinDescriptions"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>run_cols_raw <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">colnames</span>(clean_spec_raw), anno_cols)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Batches retained after QC in the MSstats workflow</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>good_batches <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>spec_long <span class="ot">&lt;-</span> clean_spec_raw <span class="sc">%&gt;%</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols      =</span> <span class="fu">all_of</span>(run_cols_raw),</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to  =</span> <span class="st">"Run"</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"Intensity"</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">Protein =</span> PG.ProteinGroups) <span class="sc">%&gt;%</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    clean_meta <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Run, Condition, BioReplicate, Batch),</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"Run"</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(Condition),</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    Batch <span class="sc">%in%</span> good_batches</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Log2_Intensity =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(Intensity) <span class="sc">&amp;</span> Intensity <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="fu">log2</span>(Intensity), <span class="cn">NA_real_</span>)</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Spectronaut long format rows:"</span>, <span class="fu">nrow</span>(spec_long), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Spectronaut long format rows: 611310 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Unique runs after batch filtering:"</span>, <span class="fu">n_distinct</span>(spec_long<span class="sc">$</span>Run), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Unique runs after batch filtering: 82 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Runs per condition:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Runs per condition:</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">as.data.frame</span>(spec_long <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(Run, Condition) <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">count</span>(Condition))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Condition"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"control","2":"29"},{"1":"plaque_far","2":"29"},{"1":"plaque_near","2":"24"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<section id="sanity-check-do-exclusive-protein-ids-exist-in-spec_long" class="level3">
+<h3 class="anchored" data-anchor-id="sanity-check-do-exclusive-protein-ids-exist-in-spec_long">Sanity check: do exclusive protein IDs exist in spec_long?</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>msstats_excl_proteins <span class="ot">&lt;-</span> <span class="fu">unique</span>(msstats_exclusive<span class="sc">$</span>Protein)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>limma_excl_proteins   <span class="ot">&lt;-</span> <span class="fu">unique</span>(limma_exclusive<span class="sc">$</span>Protein)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>spec_proteins         <span class="ot">&lt;-</span> <span class="fu">unique</span>(spec_long<span class="sc">$</span>Protein)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"MSstats-exclusive proteins found in spec_long:"</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(msstats_excl_proteins <span class="sc">%in%</span> spec_proteins), <span class="st">"/"</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(msstats_excl_proteins), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>MSstats-exclusive proteins found in spec_long: 45 / 45 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Limma-exclusive proteins found in spec_long:"</span>,</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(limma_excl_proteins <span class="sc">%in%</span> spec_proteins), <span class="st">"/"</span>,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(limma_excl_proteins), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Limma-exclusive proteins found in spec_long: 41 / 41 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># If any are missing, show which ones</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>missing_msstats <span class="ot">&lt;-</span> msstats_excl_proteins[<span class="sc">!</span>msstats_excl_proteins <span class="sc">%in%</span> spec_proteins]</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>missing_limma   <span class="ot">&lt;-</span> limma_excl_proteins[<span class="sc">!</span>limma_excl_proteins <span class="sc">%in%</span> spec_proteins]</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(missing_msstats) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Missing MSstats-exclusive proteins:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(missing_msstats)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(missing_limma) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Missing Limma-exclusive proteins:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(missing_limma)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
 </section>
 <section id="define-plotting-function" class="level2">
 <h2 class="anchored" data-anchor-id="define-plotting-function">Define plotting function</h2>
@@ -530,158 +614,170 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>cond_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"control"</span>     <span class="ot">=</span> <span class="st">"#1b9e77"</span>,</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"plaque_near"</span> <span class="ot">=</span> <span class="st">"#d95f02"</span>,</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"plaque_far"</span>  <span class="ot">=</span> <span class="st">"#7570b3"</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>plot_exclusive_boxplots <span class="ot">&lt;-</span> <span class="cf">function</span>(proteins_df, spec_long_df, msstats_abund_df,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                                    comparison_label, output_dir,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">pipeline_label =</span> <span class="st">"MSstats-exclusive"</span>,</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">rank_by_col =</span> <span class="st">"adj.pvalue_msstats"</span>) {</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  genes_to_plot <span class="ot">&lt;-</span> proteins_df <span class="sc">%&gt;%</span></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Label <span class="sc">==</span> comparison_label) <span class="sc">%&gt;%</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(.data[[rank_by_col]])</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(genes_to_plot) <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"No "</span>, pipeline_label, <span class="st">" proteins for: "</span>, comparison_label)</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">invisible</span>(<span class="cn">NULL</span>))</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">--- Plotting"</span>, <span class="fu">nrow</span>(genes_to_plot), pipeline_label,</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>      <span class="st">"proteins for:"</span>, comparison_label, <span class="st">"---</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>  safe_comp  <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(comparison_label, <span class="st">"[^A-Za-z0-9]+"</span>, <span class="st">"_"</span>)</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>  safe_label <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(pipeline_label, <span class="st">"[^A-Za-z0-9]+"</span>, <span class="st">"_"</span>)</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>  clean_title <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, comparison_label)</span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build facet labels showing stats from BOTH pipelines</span></span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>  make_facet_label <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">msstats_info =</span> <span class="fu">ifelse</span>(</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>          <span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue_msstats),</span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>          <span class="fu">paste0</span>(<span class="st">"MS: FC="</span>, <span class="fu">round</span>(log2FC_msstats, <span class="dv">2</span>),</span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>                 <span class="st">" p="</span>, <span class="fu">formatC</span>(adj.pvalue_msstats, <span class="at">format =</span> <span class="st">"e"</span>, <span class="at">digits =</span> <span class="dv">1</span>)),</span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>          <span class="st">"MS: not tested"</span></span>
-<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">limma_info =</span> <span class="fu">ifelse</span>(</span>
-<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>          <span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue_limma),</span>
-<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>          <span class="fu">paste0</span>(<span class="st">"LM: FC="</span>, <span class="fu">round</span>(log2FC_limma, <span class="dv">2</span>),</span>
-<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>                 <span class="st">" p="</span>, <span class="fu">formatC</span>(adj.pvalue_limma, <span class="at">format =</span> <span class="st">"e"</span>, <span class="at">digits =</span> <span class="dv">1</span>)),</span>
-<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>          <span class="st">"LM: not tested"</span></span>
-<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">facet_label =</span> <span class="fu">paste0</span>(Gene, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, msstats_info, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, limma_info)</span>
-<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>  order_facets <span class="ot">&lt;-</span> <span class="cf">function</span>(plot_df, genes_df, rank_col) {</span>
-<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>    ordered_genes <span class="ot">&lt;-</span> genes_df <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(.data[[rank_col]]) <span class="sc">%&gt;%</span> <span class="fu">pull</span>(Gene)</span>
-<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a>    facet_map <span class="ot">&lt;-</span> plot_df <span class="sc">%&gt;%</span></span>
-<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a>      dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, facet_label) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
-<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a>    ordered_labels <span class="ot">&lt;-</span> <span class="fu">left_join</span>(</span>
-<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a>      <span class="fu">data.frame</span>(<span class="at">Gene =</span> ordered_genes), facet_map, <span class="at">by =</span> <span class="st">"Gene"</span></span>
-<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> <span class="fu">pull</span>(facet_label) <span class="sc">%&gt;%</span> <span class="fu">na.omit</span>() <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
-<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a>    plot_df<span class="sc">$</span>facet_label <span class="ot">&lt;-</span> <span class="fu">factor</span>(plot_df<span class="sc">$</span>facet_label, <span class="at">levels =</span> ordered_labels)</span>
-<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a>    plot_df</span>
-<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ---- A) Raw Spectronaut boxplots ----</span></span>
-<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a>  raw_plot_data <span class="ot">&lt;-</span> spec_long_df <span class="sc">%&gt;%</span></span>
-<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Protein <span class="sc">%in%</span> genes_to_plot<span class="sc">$</span>Protein) <span class="sc">%&gt;%</span></span>
-<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
-<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>      genes_to_plot <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Protein, Gene,</span>
-<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>                                       log2FC_msstats, adj.pvalue_msstats,</span>
-<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>                                       log2FC_limma, adj.pvalue_limma),</span>
-<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="st">"Protein"</span></span>
-<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Log2_Intensity)) <span class="sc">%&gt;%</span></span>
-<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a>    <span class="fu">make_facet_label</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a>    <span class="fu">order_facets</span>(genes_to_plot, rank_by_col)</span>
-<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(raw_plot_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a>    n_facets <span class="ot">&lt;-</span> <span class="fu">n_distinct</span>(raw_plot_data<span class="sc">$</span>facet_label)</span>
-<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a>    p_raw <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(raw_plot_data,</span>
-<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">aes</span>(<span class="at">x =</span> Condition, <span class="at">y =</span> Log2_Intensity, <span class="at">fill =</span> Condition)) <span class="sc">+</span></span>
-<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span> facet_label, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
-<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> cond_colors) <span class="sc">+</span></span>
-<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
-<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>        <span class="at">title    =</span> <span class="fu">paste0</span>(<span class="st">"Raw Spectronaut: "</span>, pipeline_label, <span class="st">" DE Proteins"</span>),</span>
-<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste0</span>(clean_title, <span class="st">" | Top "</span>, <span class="fu">nrow</span>(genes_to_plot), <span class="st">" by FDR"</span>),</span>
-<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Log2(PG.Quantity)"</span></span>
-<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
-<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(</span>
-<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x   =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
-<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text     =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">6</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
-<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title     =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>),</span>
-<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"grey40"</span>)</span>
-<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(p_raw)</span>
-<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-98"><a href="#cb16-98" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggsave</span>(</span>
-<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>      <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"Raw_"</span>, safe_label, <span class="st">"_"</span>, safe_comp, <span class="st">".pdf"</span>)),</span>
-<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot =</span> p_raw,</span>
-<span id="cb16-101"><a href="#cb16-101" aria-hidden="true" tabindex="-1"></a>      <span class="at">width =</span> <span class="dv">16</span>, <span class="at">height =</span> <span class="fu">max</span>(<span class="fu">ceiling</span>(n_facets <span class="sc">/</span> <span class="dv">5</span>) <span class="sc">*</span> <span class="dv">4</span>, <span class="dv">5</span>),</span>
-<span id="cb16-102"><a href="#cb16-102" aria-hidden="true" tabindex="-1"></a>      <span class="at">dpi =</span> <span class="dv">300</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span></span>
-<span id="cb16-103"><a href="#cb16-103" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-104"><a href="#cb16-104" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ---- B) MSstats normalised boxplots ----</span></span>
-<span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a>  norm_plot_data <span class="ot">&lt;-</span> msstats_abund_df <span class="sc">%&gt;%</span></span>
-<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Protein <span class="sc">%in%</span> genes_to_plot<span class="sc">$</span>Protein) <span class="sc">%&gt;%</span></span>
-<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
-<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a>      genes_to_plot <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Protein, Gene,</span>
-<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a>                                       log2FC_msstats, adj.pvalue_msstats,</span>
-<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>                                       log2FC_limma, adj.pvalue_limma),</span>
-<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="st">"Protein"</span></span>
-<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(LogIntensities)) <span class="sc">%&gt;%</span></span>
-<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a>    <span class="fu">make_facet_label</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a>    <span class="fu">order_facets</span>(genes_to_plot, rank_by_col)</span>
-<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(norm_plot_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb16-120"><a href="#cb16-120" aria-hidden="true" tabindex="-1"></a>    n_facets_norm <span class="ot">&lt;-</span> <span class="fu">n_distinct</span>(norm_plot_data<span class="sc">$</span>facet_label)</span>
-<span id="cb16-121"><a href="#cb16-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-122"><a href="#cb16-122" aria-hidden="true" tabindex="-1"></a>    p_norm <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(norm_plot_data,</span>
-<span id="cb16-123"><a href="#cb16-123" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">aes</span>(<span class="at">x =</span> Condition, <span class="at">y =</span> LogIntensities, <span class="at">fill =</span> Condition)) <span class="sc">+</span></span>
-<span id="cb16-124"><a href="#cb16-124" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb16-125"><a href="#cb16-125" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb16-126"><a href="#cb16-126" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span> facet_label, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
-<span id="cb16-127"><a href="#cb16-127" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> cond_colors) <span class="sc">+</span></span>
-<span id="cb16-128"><a href="#cb16-128" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb16-129"><a href="#cb16-129" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
-<span id="cb16-130"><a href="#cb16-130" aria-hidden="true" tabindex="-1"></a>        <span class="at">title    =</span> <span class="fu">paste0</span>(<span class="st">"MSstats Normalised: "</span>, pipeline_label, <span class="st">" DE Proteins"</span>),</span>
-<span id="cb16-131"><a href="#cb16-131" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste0</span>(clean_title, <span class="st">" | Top "</span>, <span class="fu">nrow</span>(genes_to_plot), <span class="st">" by FDR"</span>),</span>
-<span id="cb16-132"><a href="#cb16-132" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb16-133"><a href="#cb16-133" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Log2 Intensity (TMP normalised)"</span></span>
-<span id="cb16-134"><a href="#cb16-134" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
-<span id="cb16-135"><a href="#cb16-135" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(</span>
-<span id="cb16-136"><a href="#cb16-136" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x   =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
-<span id="cb16-137"><a href="#cb16-137" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text     =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">6</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb16-138"><a href="#cb16-138" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
-<span id="cb16-139"><a href="#cb16-139" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title     =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>),</span>
-<span id="cb16-140"><a href="#cb16-140" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"grey40"</span>)</span>
-<span id="cb16-141"><a href="#cb16-141" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb16-142"><a href="#cb16-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-143"><a href="#cb16-143" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(p_norm)</span>
-<span id="cb16-144"><a href="#cb16-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-145"><a href="#cb16-145" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggsave</span>(</span>
-<span id="cb16-146"><a href="#cb16-146" aria-hidden="true" tabindex="-1"></a>      <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"Normalised_"</span>, safe_label, <span class="st">"_"</span>, safe_comp, <span class="st">".pdf"</span>)),</span>
-<span id="cb16-147"><a href="#cb16-147" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot =</span> p_norm,</span>
-<span id="cb16-148"><a href="#cb16-148" aria-hidden="true" tabindex="-1"></a>      <span class="at">width =</span> <span class="dv">16</span>, <span class="at">height =</span> <span class="fu">max</span>(<span class="fu">ceiling</span>(n_facets_norm <span class="sc">/</span> <span class="dv">5</span>) <span class="sc">*</span> <span class="dv">4</span>, <span class="dv">5</span>),</span>
-<span id="cb16-149"><a href="#cb16-149" aria-hidden="true" tabindex="-1"></a>      <span class="at">dpi =</span> <span class="dv">300</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span></span>
-<span id="cb16-150"><a href="#cb16-150" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-151"><a href="#cb16-151" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-152"><a href="#cb16-152" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>cond_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"control"</span>     <span class="ot">=</span> <span class="st">"#1b9e77"</span>,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"plaque_near"</span> <span class="ot">=</span> <span class="st">"#d95f02"</span>,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"plaque_far"</span>  <span class="ot">=</span> <span class="st">"#7570b3"</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>plot_exclusive_boxplots <span class="ot">&lt;-</span> <span class="cf">function</span>(proteins_df, spec_long_df, msstats_abund_df,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>                                    comparison_label, output_dir,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">pipeline_label =</span> <span class="st">"MSstats-exclusive"</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">rank_by_col =</span> <span class="st">"adj.pvalue_msstats"</span>) {</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  genes_to_plot <span class="ot">&lt;-</span> proteins_df <span class="sc">%&gt;%</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Label <span class="sc">==</span> comparison_label) <span class="sc">%&gt;%</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(.data[[rank_by_col]])</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(genes_to_plot) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">"No "</span>, pipeline_label, <span class="st">" proteins for: "</span>, comparison_label)</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">invisible</span>(<span class="cn">NULL</span>))</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">--- Plotting"</span>, <span class="fu">nrow</span>(genes_to_plot), pipeline_label,</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>      <span class="st">"proteins for:"</span>, comparison_label, <span class="st">"---</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>  safe_comp   <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(comparison_label, <span class="st">"[^A-Za-z0-9]+"</span>, <span class="st">"_"</span>)</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>  safe_label  <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(pipeline_label, <span class="st">"[^A-Za-z0-9]+"</span>, <span class="st">"_"</span>)</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>  clean_title <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, comparison_label)</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build facet labels showing stats from BOTH pipelines</span></span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>  make_facet_label <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">msstats_info =</span> <span class="fu">ifelse</span>(</span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>          <span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue_msstats),</span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>          <span class="fu">paste0</span>(<span class="st">"MS: FC="</span>, <span class="fu">round</span>(log2FC_msstats, <span class="dv">2</span>),</span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a>                 <span class="st">" p="</span>, <span class="fu">formatC</span>(adj.pvalue_msstats, <span class="at">format =</span> <span class="st">"e"</span>, <span class="at">digits =</span> <span class="dv">1</span>)),</span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a>          <span class="st">"MS: not tested"</span></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">limma_info =</span> <span class="fu">ifelse</span>(</span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a>          <span class="sc">!</span><span class="fu">is.na</span>(adj.pvalue_limma),</span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a>          <span class="fu">paste0</span>(<span class="st">"LM: FC="</span>, <span class="fu">round</span>(log2FC_limma, <span class="dv">2</span>),</span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a>                 <span class="st">" p="</span>, <span class="fu">formatC</span>(adj.pvalue_limma, <span class="at">format =</span> <span class="st">"e"</span>, <span class="at">digits =</span> <span class="dv">1</span>)),</span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a>          <span class="st">"LM: not tested"</span></span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb28-44"><a href="#cb28-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">facet_label =</span> <span class="fu">paste0</span>(Gene, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, msstats_info, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, limma_info)</span>
+<span id="cb28-45"><a href="#cb28-45" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a>  order_facets <span class="ot">&lt;-</span> <span class="cf">function</span>(plot_df, genes_df, rank_col) {</span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a>    ordered_genes <span class="ot">&lt;-</span> genes_df <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(.data[[rank_col]]) <span class="sc">%&gt;%</span> <span class="fu">pull</span>(Gene)</span>
+<span id="cb28-50"><a href="#cb28-50" aria-hidden="true" tabindex="-1"></a>    facet_map <span class="ot">&lt;-</span> plot_df <span class="sc">%&gt;%</span></span>
+<span id="cb28-51"><a href="#cb28-51" aria-hidden="true" tabindex="-1"></a>      dplyr<span class="sc">::</span><span class="fu">select</span>(Gene, facet_label) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
+<span id="cb28-52"><a href="#cb28-52" aria-hidden="true" tabindex="-1"></a>    ordered_labels <span class="ot">&lt;-</span> <span class="fu">left_join</span>(</span>
+<span id="cb28-53"><a href="#cb28-53" aria-hidden="true" tabindex="-1"></a>      <span class="fu">data.frame</span>(<span class="at">Gene =</span> ordered_genes), facet_map, <span class="at">by =</span> <span class="st">"Gene"</span></span>
+<span id="cb28-54"><a href="#cb28-54" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> <span class="fu">pull</span>(facet_label) <span class="sc">%&gt;%</span> <span class="fu">na.omit</span>() <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
+<span id="cb28-55"><a href="#cb28-55" aria-hidden="true" tabindex="-1"></a>    plot_df<span class="sc">$</span>facet_label <span class="ot">&lt;-</span> <span class="fu">factor</span>(plot_df<span class="sc">$</span>facet_label, <span class="at">levels =</span> ordered_labels)</span>
+<span id="cb28-56"><a href="#cb28-56" aria-hidden="true" tabindex="-1"></a>    plot_df</span>
+<span id="cb28-57"><a href="#cb28-57" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-58"><a href="#cb28-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-59"><a href="#cb28-59" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ---- A) Raw Spectronaut boxplots ----</span></span>
+<span id="cb28-60"><a href="#cb28-60" aria-hidden="true" tabindex="-1"></a>  raw_plot_data <span class="ot">&lt;-</span> spec_long_df <span class="sc">%&gt;%</span></span>
+<span id="cb28-61"><a href="#cb28-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Protein <span class="sc">%in%</span> genes_to_plot<span class="sc">$</span>Protein) <span class="sc">%&gt;%</span></span>
+<span id="cb28-62"><a href="#cb28-62" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb28-63"><a href="#cb28-63" aria-hidden="true" tabindex="-1"></a>      genes_to_plot <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Protein, Gene,</span>
+<span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a>                                       log2FC_msstats, adj.pvalue_msstats,</span>
+<span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a>                                       log2FC_limma, adj.pvalue_limma),</span>
+<span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="st">"Protein"</span></span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Log2_Intensity))</span>
+<span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"  Raw plot data rows:"</span>, <span class="fu">nrow</span>(raw_plot_data), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(raw_plot_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a>    raw_plot_data <span class="ot">&lt;-</span> raw_plot_data <span class="sc">%&gt;%</span></span>
+<span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a>      <span class="fu">make_facet_label</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb28-75"><a href="#cb28-75" aria-hidden="true" tabindex="-1"></a>      <span class="fu">order_facets</span>(genes_to_plot, rank_by_col)</span>
+<span id="cb28-76"><a href="#cb28-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-77"><a href="#cb28-77" aria-hidden="true" tabindex="-1"></a>    n_facets <span class="ot">&lt;-</span> <span class="fu">n_distinct</span>(raw_plot_data<span class="sc">$</span>facet_label)</span>
+<span id="cb28-78"><a href="#cb28-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-79"><a href="#cb28-79" aria-hidden="true" tabindex="-1"></a>    p_raw <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(raw_plot_data,</span>
+<span id="cb28-80"><a href="#cb28-80" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">aes</span>(<span class="at">x =</span> Condition, <span class="at">y =</span> Log2_Intensity, <span class="at">fill =</span> Condition)) <span class="sc">+</span></span>
+<span id="cb28-81"><a href="#cb28-81" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb28-82"><a href="#cb28-82" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb28-83"><a href="#cb28-83" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span> facet_label, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb28-84"><a href="#cb28-84" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> cond_colors) <span class="sc">+</span></span>
+<span id="cb28-85"><a href="#cb28-85" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb28-86"><a href="#cb28-86" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
+<span id="cb28-87"><a href="#cb28-87" aria-hidden="true" tabindex="-1"></a>        <span class="at">title    =</span> <span class="fu">paste0</span>(<span class="st">"Raw Spectronaut: "</span>, pipeline_label, <span class="st">" DE Proteins"</span>),</span>
+<span id="cb28-88"><a href="#cb28-88" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste0</span>(clean_title, <span class="st">" | Top "</span>, <span class="fu">nrow</span>(genes_to_plot), <span class="st">" by FDR"</span>),</span>
+<span id="cb28-89"><a href="#cb28-89" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb28-90"><a href="#cb28-90" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Log2(PG.Quantity)"</span></span>
+<span id="cb28-91"><a href="#cb28-91" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb28-92"><a href="#cb28-92" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(</span>
+<span id="cb28-93"><a href="#cb28-93" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x    =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb28-94"><a href="#cb28-94" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text     =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">6</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb28-95"><a href="#cb28-95" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
+<span id="cb28-96"><a href="#cb28-96" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title     =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb28-97"><a href="#cb28-97" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"grey40"</span>)</span>
+<span id="cb28-98"><a href="#cb28-98" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb28-99"><a href="#cb28-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-100"><a href="#cb28-100" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(p_raw)</span>
+<span id="cb28-101"><a href="#cb28-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-102"><a href="#cb28-102" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggsave</span>(</span>
+<span id="cb28-103"><a href="#cb28-103" aria-hidden="true" tabindex="-1"></a>      <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"Raw_"</span>, safe_label, <span class="st">"_"</span>, safe_comp, <span class="st">".pdf"</span>)),</span>
+<span id="cb28-104"><a href="#cb28-104" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot =</span> p_raw,</span>
+<span id="cb28-105"><a href="#cb28-105" aria-hidden="true" tabindex="-1"></a>      <span class="at">width =</span> <span class="dv">16</span>, <span class="at">height =</span> <span class="fu">max</span>(<span class="fu">ceiling</span>(n_facets <span class="sc">/</span> <span class="dv">5</span>) <span class="sc">*</span> <span class="dv">4</span>, <span class="dv">5</span>),</span>
+<span id="cb28-106"><a href="#cb28-106" aria-hidden="true" tabindex="-1"></a>      <span class="at">dpi =</span> <span class="dv">300</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span></span>
+<span id="cb28-107"><a href="#cb28-107" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-108"><a href="#cb28-108" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb28-109"><a href="#cb28-109" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"  WARNING: No raw data found for these proteins. Check Protein ID format.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-110"><a href="#cb28-110" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-111"><a href="#cb28-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-112"><a href="#cb28-112" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ---- B) MSstats normalised boxplots ----</span></span>
+<span id="cb28-113"><a href="#cb28-113" aria-hidden="true" tabindex="-1"></a>  norm_plot_data <span class="ot">&lt;-</span> msstats_abund_df <span class="sc">%&gt;%</span></span>
+<span id="cb28-114"><a href="#cb28-114" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Protein <span class="sc">%in%</span> genes_to_plot<span class="sc">$</span>Protein) <span class="sc">%&gt;%</span></span>
+<span id="cb28-115"><a href="#cb28-115" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb28-116"><a href="#cb28-116" aria-hidden="true" tabindex="-1"></a>      genes_to_plot <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Protein, Gene,</span>
+<span id="cb28-117"><a href="#cb28-117" aria-hidden="true" tabindex="-1"></a>                                       log2FC_msstats, adj.pvalue_msstats,</span>
+<span id="cb28-118"><a href="#cb28-118" aria-hidden="true" tabindex="-1"></a>                                       log2FC_limma, adj.pvalue_limma),</span>
+<span id="cb28-119"><a href="#cb28-119" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="st">"Protein"</span></span>
+<span id="cb28-120"><a href="#cb28-120" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-121"><a href="#cb28-121" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(LogIntensities))</span>
+<span id="cb28-122"><a href="#cb28-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-123"><a href="#cb28-123" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"  Normalised plot data rows:"</span>, <span class="fu">nrow</span>(norm_plot_data), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-124"><a href="#cb28-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-125"><a href="#cb28-125" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(norm_plot_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb28-126"><a href="#cb28-126" aria-hidden="true" tabindex="-1"></a>    norm_plot_data <span class="ot">&lt;-</span> norm_plot_data <span class="sc">%&gt;%</span></span>
+<span id="cb28-127"><a href="#cb28-127" aria-hidden="true" tabindex="-1"></a>      <span class="fu">make_facet_label</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb28-128"><a href="#cb28-128" aria-hidden="true" tabindex="-1"></a>      <span class="fu">order_facets</span>(genes_to_plot, rank_by_col)</span>
+<span id="cb28-129"><a href="#cb28-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-130"><a href="#cb28-130" aria-hidden="true" tabindex="-1"></a>    n_facets_norm <span class="ot">&lt;-</span> <span class="fu">n_distinct</span>(norm_plot_data<span class="sc">$</span>facet_label)</span>
+<span id="cb28-131"><a href="#cb28-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-132"><a href="#cb28-132" aria-hidden="true" tabindex="-1"></a>    p_norm <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(norm_plot_data,</span>
+<span id="cb28-133"><a href="#cb28-133" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">aes</span>(<span class="at">x =</span> Condition, <span class="at">y =</span> LogIntensities, <span class="at">fill =</span> Condition)) <span class="sc">+</span></span>
+<span id="cb28-134"><a href="#cb28-134" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb28-135"><a href="#cb28-135" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb28-136"><a href="#cb28-136" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span> facet_label, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb28-137"><a href="#cb28-137" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> cond_colors) <span class="sc">+</span></span>
+<span id="cb28-138"><a href="#cb28-138" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb28-139"><a href="#cb28-139" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(</span>
+<span id="cb28-140"><a href="#cb28-140" aria-hidden="true" tabindex="-1"></a>        <span class="at">title    =</span> <span class="fu">paste0</span>(<span class="st">"MSstats Normalised: "</span>, pipeline_label, <span class="st">" DE Proteins"</span>),</span>
+<span id="cb28-141"><a href="#cb28-141" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste0</span>(clean_title, <span class="st">" | Top "</span>, <span class="fu">nrow</span>(genes_to_plot), <span class="st">" by FDR"</span>),</span>
+<span id="cb28-142"><a href="#cb28-142" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb28-143"><a href="#cb28-143" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Log2 Intensity (TMP normalised)"</span></span>
+<span id="cb28-144"><a href="#cb28-144" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb28-145"><a href="#cb28-145" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(</span>
+<span id="cb28-146"><a href="#cb28-146" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x    =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb28-147"><a href="#cb28-147" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text     =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">6</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb28-148"><a href="#cb28-148" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
+<span id="cb28-149"><a href="#cb28-149" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title     =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb28-150"><a href="#cb28-150" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">color =</span> <span class="st">"grey40"</span>)</span>
+<span id="cb28-151"><a href="#cb28-151" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb28-152"><a href="#cb28-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-153"><a href="#cb28-153" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(p_norm)</span>
+<span id="cb28-154"><a href="#cb28-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-155"><a href="#cb28-155" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggsave</span>(</span>
+<span id="cb28-156"><a href="#cb28-156" aria-hidden="true" tabindex="-1"></a>      <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"Normalised_"</span>, safe_label, <span class="st">"_"</span>, safe_comp, <span class="st">".pdf"</span>)),</span>
+<span id="cb28-157"><a href="#cb28-157" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot =</span> p_norm,</span>
+<span id="cb28-158"><a href="#cb28-158" aria-hidden="true" tabindex="-1"></a>      <span class="at">width =</span> <span class="dv">16</span>, <span class="at">height =</span> <span class="fu">max</span>(<span class="fu">ceiling</span>(n_facets_norm <span class="sc">/</span> <span class="dv">5</span>) <span class="sc">*</span> <span class="dv">4</span>, <span class="dv">5</span>),</span>
+<span id="cb28-159"><a href="#cb28-159" aria-hidden="true" tabindex="-1"></a>      <span class="at">dpi =</span> <span class="dv">300</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span></span>
+<span id="cb28-160"><a href="#cb28-160" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-161"><a href="#cb28-161" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb28-162"><a href="#cb28-162" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"  WARNING: No normalised data found for these proteins. Check Protein ID format.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-163"><a href="#cb28-163" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-164"><a href="#cb28-164" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -690,94 +786,22 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> <span class="fu">unique</span>(msstats_exclusive<span class="sc">$</span>Label)) {</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_exclusive_boxplots</span>(</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">proteins_df      =</span> msstats_exclusive,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">spec_long_df     =</span> spec_long,</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">msstats_abund_df =</span> msstats_abundance,</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparison_label =</span> comp,</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">output_dir       =</span> boxplot_dir,</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">pipeline_label   =</span> <span class="st">"MSstats-exclusive"</span>,</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">rank_by_col      =</span> <span class="st">"adj.pvalue_msstats"</span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> <span class="fu">unique</span>(msstats_exclusive<span class="sc">$</span>Label)) {</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_exclusive_boxplots</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">proteins_df      =</span> msstats_exclusive,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">spec_long_df     =</span> spec_long,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">msstats_abund_df =</span> msstats_abundance,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparison_label =</span> comp,</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">output_dir       =</span> boxplot_dir,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">pipeline_label   =</span> <span class="st">"MSstats-exclusive"</span>,</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">rank_by_col      =</span> <span class="st">"adj.pvalue_msstats"</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
---- Plotting 20 MSstats-exclusive proteins for: PlaqueFar_vs_Control ---</code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="1536"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-11-2.png" class="img-fluid figure-img" width="1536"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
---- Plotting 20 MSstats-exclusive proteins for: PlaqueNear_vs_Control ---</code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-11-3.png" class="img-fluid figure-img" width="1536"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-11-4.png" class="img-fluid figure-img" width="1536"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
---- Plotting 8 MSstats-exclusive proteins for: PlaqueNear_vs_PlaqueFar ---</code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-11-5.png" class="img-fluid figure-img" width="1536"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-11-6.png" class="img-fluid figure-img" width="1536"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="generate-boxplots-limma-exclusive-proteins" class="level2">
-<h2 class="anchored" data-anchor-id="generate-boxplots-limma-exclusive-proteins">Generate boxplots: Limma-exclusive proteins</h2>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> <span class="fu">unique</span>(limma_exclusive<span class="sc">$</span>Label)) {</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_exclusive_boxplots</span>(</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">proteins_df      =</span> limma_exclusive,</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">spec_long_df     =</span> spec_long,</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">msstats_abund_df =</span> msstats_abundance,</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparison_label =</span> comp,</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">output_dir       =</span> boxplot_dir,</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">pipeline_label   =</span> <span class="st">"Limma-exclusive"</span>,</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">rank_by_col      =</span> <span class="st">"adj.pvalue_limma"</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>
---- Plotting 3 Limma-exclusive proteins for: PlaqueFar_vs_Control ---</code></pre>
+--- Plotting 20 MSstats-exclusive proteins for: PlaqueFar_vs_Control ---
+  Raw plot data rows: 1603 </code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -785,6 +809,9 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="1536"></p>
 </figure>
 </div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Normalised plot data rows: 1607 </code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -795,7 +822,8 @@ Limma-exclusive top 20 per comparison:</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
---- Plotting 20 Limma-exclusive proteins for: PlaqueNear_vs_Control ---</code></pre>
+--- Plotting 20 MSstats-exclusive proteins for: PlaqueNear_vs_Control ---
+  Raw plot data rows: 1591 </code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -803,6 +831,9 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid figure-img" width="1536"></p>
 </figure>
 </div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Normalised plot data rows: 1594 </code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -813,7 +844,8 @@ Limma-exclusive top 20 per comparison:</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
---- Plotting 20 Limma-exclusive proteins for: PlaqueNear_vs_PlaqueFar ---</code></pre>
+--- Plotting 8 MSstats-exclusive proteins for: PlaqueNear_vs_PlaqueFar ---
+  Raw plot data rows: 412 </code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -821,6 +853,9 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-12-5.png" class="img-fluid figure-img" width="1536"></p>
 </figure>
 </div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Normalised plot data rows: 406 </code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -831,47 +866,132 @@ Limma-exclusive top 20 per comparison:</code></pre>
 </div>
 </div>
 </section>
+<section id="generate-boxplots-limma-exclusive-proteins" class="level2">
+<h2 class="anchored" data-anchor-id="generate-boxplots-limma-exclusive-proteins">Generate boxplots: Limma-exclusive proteins</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> <span class="fu">unique</span>(limma_exclusive<span class="sc">$</span>Label)) {</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_exclusive_boxplots</span>(</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">proteins_df      =</span> limma_exclusive,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">spec_long_df     =</span> spec_long,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">msstats_abund_df =</span> msstats_abundance,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparison_label =</span> comp,</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">output_dir       =</span> boxplot_dir,</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">pipeline_label   =</span> <span class="st">"Limma-exclusive"</span>,</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">rank_by_col      =</span> <span class="st">"adj.pvalue_limma"</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+--- Plotting 3 Limma-exclusive proteins for: PlaqueFar_vs_Control ---
+  Raw plot data rows: 153 </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Normalised plot data rows: 146 </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+--- Plotting 20 Limma-exclusive proteins for: PlaqueNear_vs_Control ---
+  Raw plot data rows: 1411 </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Normalised plot data rows: 1350 </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-13-4.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+--- Plotting 20 Limma-exclusive proteins for: PlaqueNear_vs_PlaqueFar ---
+  Raw plot data rows: 1282 </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-13-5.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Normalised plot data rows: 1262 </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06b_msstats_exclusive_DE_protein_boxplots_files/figure-html/unnamed-chunk-13-6.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
 <section id="summary-tables" class="level2">
 <h2 class="anchored" data-anchor-id="summary-tables">Summary tables</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>make_summary <span class="ot">&lt;-</span> <span class="cf">function</span>(exclusive_df, <span class="at">calling_pipeline =</span> <span class="st">"msstats"</span>) {</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  other_pipeline <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(calling_pipeline <span class="sc">==</span> <span class="st">"msstats"</span>, <span class="st">"limma"</span>, <span class="st">"msstats"</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  calling_fdr    <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"adj.pvalue_"</span>, calling_pipeline)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  other_fdr      <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"adj.pvalue_"</span>, other_pipeline)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  calling_fc     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"log2FC_"</span>, calling_pipeline)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  other_fc       <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"log2FC_"</span>, other_pipeline)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  exclusive_df <span class="sc">%&gt;%</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">direction =</span> <span class="fu">ifelse</span>(.data[[calling_fc]] <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Up"</span>, <span class="st">"Down"</span>),</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">other_detected =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(.data[[other_fdr]]), <span class="st">"Yes"</span>, <span class="st">"No"</span>),</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">other_note =</span> <span class="fu">case_when</span>(</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">is.na</span>(.data[[other_fdr]])   <span class="sc">~</span> <span class="st">"Not detected"</span>,</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>        .data[[other_fdr]] <span class="sc">&lt;</span> <span class="fl">0.1</span>    <span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"Trend (FDR="</span>,</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>                                              <span class="fu">formatC</span>(.data[[other_fdr]], <span class="at">format =</span> <span class="st">"e"</span>, <span class="at">digits =</span> <span class="dv">1</span>), <span class="st">")"</span>),</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"NS (FDR="</span>, <span class="fu">round</span>(.data[[other_fdr]], <span class="dv">3</span>), <span class="st">")"</span>)</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>      Label, Gene, Protein, direction,</span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">all_of</span>(<span class="fu">c</span>(calling_fc, calling_fdr, other_fc, other_fdr)),</span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>      other_note</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(Label, .data[[calling_fdr]])</span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 <section id="msstats-exclusive-summary" class="level3">
 <h3 class="anchored" data-anchor-id="msstats-exclusive-summary">MSstats-exclusive summary</h3>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>make_summary <span class="ot">&lt;-</span> <span class="cf">function</span>(exclusive_df, <span class="at">calling_pipeline =</span> <span class="st">"msstats"</span>) {</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  other_pipeline <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(calling_pipeline <span class="sc">==</span> <span class="st">"msstats"</span>, <span class="st">"limma"</span>, <span class="st">"msstats"</span>)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  calling_fdr    <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"adj.pvalue_"</span>, calling_pipeline)</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  other_fdr      <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"adj.pvalue_"</span>, other_pipeline)</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  calling_fc     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"log2FC_"</span>, calling_pipeline)</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  other_fc       <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"log2FC_"</span>, other_pipeline)</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  exclusive_df <span class="sc">%&gt;%</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">direction =</span> <span class="fu">ifelse</span>(.data[[calling_fc]] <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Up"</span>, <span class="st">"Down"</span>),</span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">other_detected =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(.data[[other_fdr]]), <span class="st">"Yes"</span>, <span class="st">"No"</span>),</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">other_note =</span> <span class="fu">case_when</span>(</span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">is.na</span>(.data[[other_fdr]])   <span class="sc">~</span> <span class="st">"Not detected"</span>,</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>        .data[[other_fdr]] <span class="sc">&lt;</span> <span class="fl">0.1</span>    <span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"Trend (FDR="</span>,</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>                                              <span class="fu">formatC</span>(.data[[other_fdr]], <span class="at">format =</span> <span class="st">"e"</span>, <span class="at">digits =</span> <span class="dv">1</span>), <span class="st">")"</span>),</span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>        <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"NS (FDR="</span>, <span class="fu">round</span>(.data[[other_fdr]], <span class="dv">3</span>), <span class="st">")"</span>)</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>      Label, Gene, Protein, direction,</span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">all_of</span>(<span class="fu">c</span>(calling_fc, calling_fdr, other_fc, other_fdr)),</span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>      other_note</span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(Label, .data[[calling_fdr]])</span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>summary_msstats_excl <span class="ot">&lt;-</span> <span class="fu">make_summary</span>(msstats_exclusive, <span class="st">"msstats"</span>)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fwrite</span>(summary_msstats_excl, <span class="fu">file.path</span>(boxplot_dir, <span class="st">"summary_msstats_exclusive.csv"</span>))</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>summary_msstats_excl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>summary_msstats_excl <span class="ot">&lt;-</span> <span class="fu">make_summary</span>(msstats_exclusive, <span class="st">"msstats"</span>)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fwrite</span>(summary_msstats_excl, <span class="fu">file.path</span>(boxplot_dir, <span class="st">"summary_msstats_exclusive.csv"</span>))</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>summary_msstats_excl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -887,9 +1007,9 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>summary_limma_excl <span class="ot">&lt;-</span> <span class="fu">make_summary</span>(limma_exclusive, <span class="st">"limma"</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fwrite</span>(summary_limma_excl, <span class="fu">file.path</span>(boxplot_dir, <span class="st">"summary_limma_exclusive.csv"</span>))</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>summary_limma_excl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>summary_limma_excl <span class="ot">&lt;-</span> <span class="fu">make_summary</span>(limma_exclusive, <span class="st">"limma"</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fwrite</span>(summary_limma_excl, <span class="fu">file.path</span>(boxplot_dir, <span class="st">"summary_limma_exclusive.csv"</span>))</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>summary_limma_excl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -906,18 +1026,18 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>limma_exclusive <span class="sc">%&gt;%</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">msstats_category =</span> <span class="fu">case_when</span>(</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(adj.pvalue_msstats)      <span class="sc">~</span> <span class="st">"Not in MSstats"</span>,</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>      adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.1</span>       <span class="sc">~</span> <span class="st">"MSstats trend (FDR&lt;0.1)"</span>,</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>      adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.2</span>       <span class="sc">~</span> <span class="st">"MSstats marginal (FDR 0.1-0.2)"</span>,</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span>                           <span class="sc">~</span> <span class="st">"MSstats NS (FDR&gt;0.2)"</span></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(Label, msstats_category) <span class="sc">%&gt;%</span></span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> msstats_category, <span class="at">values_from =</span> n, <span class="at">values_fill =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>limma_exclusive <span class="sc">%&gt;%</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">msstats_category =</span> <span class="fu">case_when</span>(</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(adj.pvalue_msstats)      <span class="sc">~</span> <span class="st">"Not in MSstats"</span>,</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>      adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.1</span>       <span class="sc">~</span> <span class="st">"MSstats trend (FDR&lt;0.1)"</span>,</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>      adj.pvalue_msstats <span class="sc">&lt;</span> <span class="fl">0.2</span>       <span class="sc">~</span> <span class="st">"MSstats marginal (FDR 0.1-0.2)"</span>,</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span>                           <span class="sc">~</span> <span class="st">"MSstats NS (FDR&gt;0.2)"</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(Label, msstats_category) <span class="sc">%&gt;%</span></span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> msstats_category, <span class="at">values_from =</span> n, <span class="at">values_fill =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div data-pagedtable="false">
@@ -930,7 +1050,7 @@ Limma-exclusive top 20 per comparison:</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">All pipeline-exclusive boxplots saved to:"</span>, boxplot_dir, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">All pipeline-exclusive boxplots saved to:"</span>, boxplot_dir, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>

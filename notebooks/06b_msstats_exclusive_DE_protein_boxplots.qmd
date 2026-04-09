@@ -13,12 +13,12 @@ This script identifies proteins called as differentially expressed by one pipeli
 
 ### Workflow overview
 
-1. **Rebuild comparison_df** merging MSstats and limma results
-2. **Extract pipeline-exclusive hits** in both directions (MSstats-only and limma-only)
-3. **Prepare raw Spectronaut** PG.Quantity values (long format, log2-transformed)
-4. **Prepare MSstats normalised** ProteinLevelData abundances
-5. **Generate faceted boxplots** for both data sources, per comparison, per direction
-6. **Export summary tables** with side-by-side pipeline statistics
+1.  **Rebuild comparison_df** merging MSstats and limma results
+2.  **Extract pipeline-exclusive hits** in both directions (MSstats-only and limma-only)
+3.  **Prepare MSstats normalised** ProteinLevelData abundances
+4.  **Prepare raw Spectronaut** PG.Quantity values (long format, log2-transformed, batch-filtered)
+5.  **Generate faceted boxplots** for both data sources, per comparison, per direction
+6.  **Export summary tables** with side-by-side pipeline statistics
 
 ==================================================================
 
@@ -145,7 +145,6 @@ limma_exclusive <- comparison_df %>%
     protein_dictionary %>% dplyr::select(Protein, Gene_dict = Gene),
     by = "Protein"
   ) %>%
-  # If Protein is still NA, try matching Gene back to dictionary
   mutate(
     Protein = case_when(
       !is.na(Protein) ~ Protein,
@@ -175,32 +174,9 @@ fwrite(msstats_exclusive, file.path(boxplot_dir, "msstats_exclusive_top20.csv"))
 fwrite(limma_exclusive, file.path(boxplot_dir, "limma_exclusive_top20.csv"))
 ```
 
-## Prepare raw Spectronaut protein-level data (long format)
-
-```{r}
-anno_cols    <- c("PG.ProteinGroups", "PG.Genes", "PG.ProteinDescriptions")
-run_cols_raw <- setdiff(colnames(clean_spec_raw), anno_cols)
-
-spec_long <- clean_spec_raw %>%
-  tidyr::pivot_longer(
-    cols      = all_of(run_cols_raw),
-    names_to  = "Run",
-    values_to = "Intensity"
-  ) %>%
-  dplyr::rename(Protein = PG.ProteinGroups) %>%
-  left_join(
-    clean_meta %>% dplyr::select(Run, Condition, BioReplicate, Batch),
-    by = "Run"
-  ) %>%
-  filter(!is.na(Condition)) %>%
-  mutate(
-    Log2_Intensity = ifelse(!is.na(Intensity) & Intensity > 0, log2(Intensity), NA_real_)
-  )
-
-cat("Spectronaut long format rows:", nrow(spec_long), "\n")
-```
-
 ## Prepare MSstats normalised protein-level data
+
+Loaded first so we can verify batch/run alignment with the raw data.
 
 ```{r}
 processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
@@ -215,6 +191,71 @@ msstats_abundance <- processed_data$ProteinLevelData %>%
   )
 
 cat("MSstats abundance rows:", nrow(msstats_abundance), "\n")
+cat("MSstats unique runs:", n_distinct(msstats_abundance$Run), "\n")
+```
+
+## Prepare raw Spectronaut protein-level data (long format)
+
+We filter to batches 1, 3, 4 via metadata to match the samples used by MSstats. We cannot match on Run names directly because MSstats strips the `[nnn] ` prefix and `.d.PG.Quantity` suffix during processing.
+
+```{r}
+anno_cols    <- c("PG.ProteinGroups", "PG.Genes", "PG.ProteinDescriptions")
+run_cols_raw <- setdiff(colnames(clean_spec_raw), anno_cols)
+
+# Batches retained after QC in the MSstats workflow
+good_batches <- c(1, 3, 4)
+
+spec_long <- clean_spec_raw %>%
+  tidyr::pivot_longer(
+    cols      = all_of(run_cols_raw),
+    names_to  = "Run",
+    values_to = "Intensity"
+  ) %>%
+  dplyr::rename(Protein = PG.ProteinGroups) %>%
+  left_join(
+    clean_meta %>% dplyr::select(Run, Condition, BioReplicate, Batch),
+    by = "Run"
+  ) %>%
+  filter(
+    !is.na(Condition),
+    Batch %in% good_batches
+  ) %>%
+  mutate(
+    Log2_Intensity = ifelse(!is.na(Intensity) & Intensity > 0, log2(Intensity), NA_real_)
+  )
+
+cat("Spectronaut long format rows:", nrow(spec_long), "\n")
+cat("Unique runs after batch filtering:", n_distinct(spec_long$Run), "\n")
+cat("Runs per condition:\n")
+as.data.frame(spec_long %>% distinct(Run, Condition) %>% dplyr::count(Condition))
+```
+
+### Sanity check: do exclusive protein IDs exist in spec_long?
+
+```{r}
+msstats_excl_proteins <- unique(msstats_exclusive$Protein)
+limma_excl_proteins   <- unique(limma_exclusive$Protein)
+spec_proteins         <- unique(spec_long$Protein)
+
+cat("MSstats-exclusive proteins found in spec_long:",
+    sum(msstats_excl_proteins %in% spec_proteins), "/",
+    length(msstats_excl_proteins), "\n")
+cat("Limma-exclusive proteins found in spec_long:",
+    sum(limma_excl_proteins %in% spec_proteins), "/",
+    length(limma_excl_proteins), "\n")
+
+# If any are missing, show which ones
+missing_msstats <- msstats_excl_proteins[!msstats_excl_proteins %in% spec_proteins]
+missing_limma   <- limma_excl_proteins[!limma_excl_proteins %in% spec_proteins]
+
+if (length(missing_msstats) > 0) {
+  cat("\nMissing MSstats-exclusive proteins:\n")
+  print(missing_msstats)
+}
+if (length(missing_limma) > 0) {
+  cat("\nMissing Limma-exclusive proteins:\n")
+  print(missing_limma)
+}
 ```
 
 ## Define plotting function
@@ -245,8 +286,8 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
   cat("\n--- Plotting", nrow(genes_to_plot), pipeline_label,
       "proteins for:", comparison_label, "---\n")
 
-  safe_comp  <- str_replace_all(comparison_label, "[^A-Za-z0-9]+", "_")
-  safe_label <- str_replace_all(pipeline_label, "[^A-Za-z0-9]+", "_")
+  safe_comp   <- str_replace_all(comparison_label, "[^A-Za-z0-9]+", "_")
+  safe_label  <- str_replace_all(pipeline_label, "[^A-Za-z0-9]+", "_")
   clean_title <- gsub("_", " ", comparison_label)
 
   # Build facet labels showing stats from BOTH pipelines
@@ -289,11 +330,15 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
                                        log2FC_limma, adj.pvalue_limma),
       by = "Protein"
     ) %>%
-    filter(!is.na(Log2_Intensity)) %>%
-    make_facet_label() %>%
-    order_facets(genes_to_plot, rank_by_col)
+    filter(!is.na(Log2_Intensity))
+
+  cat("  Raw plot data rows:", nrow(raw_plot_data), "\n")
 
   if (nrow(raw_plot_data) > 0) {
+    raw_plot_data <- raw_plot_data %>%
+      make_facet_label() %>%
+      order_facets(genes_to_plot, rank_by_col)
+
     n_facets <- n_distinct(raw_plot_data$facet_label)
 
     p_raw <- ggplot(raw_plot_data,
@@ -310,7 +355,7 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
         y = "Log2(PG.Quantity)"
       ) +
       theme(
-        axis.text.x   = element_text(angle = 45, hjust = 1, size = 8),
+        axis.text.x    = element_text(angle = 45, hjust = 1, size = 8),
         strip.text     = element_text(size = 6, face = "bold"),
         legend.position = "bottom",
         plot.title     = element_text(face = "bold", size = 14),
@@ -325,6 +370,8 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
       width = 16, height = max(ceiling(n_facets / 5) * 4, 5),
       dpi = 300, limitsize = FALSE
     )
+  } else {
+    cat("  WARNING: No raw data found for these proteins. Check Protein ID format.\n")
   }
 
   # ---- B) MSstats normalised boxplots ----
@@ -336,11 +383,15 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
                                        log2FC_limma, adj.pvalue_limma),
       by = "Protein"
     ) %>%
-    filter(!is.na(LogIntensities)) %>%
-    make_facet_label() %>%
-    order_facets(genes_to_plot, rank_by_col)
+    filter(!is.na(LogIntensities))
+
+  cat("  Normalised plot data rows:", nrow(norm_plot_data), "\n")
 
   if (nrow(norm_plot_data) > 0) {
+    norm_plot_data <- norm_plot_data %>%
+      make_facet_label() %>%
+      order_facets(genes_to_plot, rank_by_col)
+
     n_facets_norm <- n_distinct(norm_plot_data$facet_label)
 
     p_norm <- ggplot(norm_plot_data,
@@ -357,7 +408,7 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
         y = "Log2 Intensity (TMP normalised)"
       ) +
       theme(
-        axis.text.x   = element_text(angle = 45, hjust = 1, size = 8),
+        axis.text.x    = element_text(angle = 45, hjust = 1, size = 8),
         strip.text     = element_text(size = 6, face = "bold"),
         legend.position = "bottom",
         plot.title     = element_text(face = "bold", size = 14),
@@ -372,6 +423,8 @@ plot_exclusive_boxplots <- function(proteins_df, spec_long_df, msstats_abund_df,
       width = 16, height = max(ceiling(n_facets_norm / 5) * 4, 5),
       dpi = 300, limitsize = FALSE
     )
+  } else {
+    cat("  WARNING: No normalised data found for these proteins. Check Protein ID format.\n")
   }
 }
 ```
@@ -410,8 +463,6 @@ for (comp in unique(limma_exclusive$Label)) {
 
 ## Summary tables
 
-### MSstats-exclusive summary
-
 ```{r}
 make_summary <- function(exclusive_df, calling_pipeline = "msstats") {
 
@@ -440,6 +491,8 @@ make_summary <- function(exclusive_df, calling_pipeline = "msstats") {
     arrange(Label, .data[[calling_fdr]])
 }
 ```
+
+### MSstats-exclusive summary
 
 ```{r}
 summary_msstats_excl <- make_summary(msstats_exclusive, "msstats")
