@@ -2,12 +2,12 @@
 title: "LCM Proteomics Pipeline"
 ---
 
-Documentation for Millie's Proteomics project. 
-This site tracks the processing of LCM samples from initial QC to Differential abundance analysis. 
+Documentation for Millie's Proteomics project.
+This site tracks the processing of LCM samples from initial QC to Differential abundance analysis.
 
 ## Update Parameter changes (run3) - 13/03/26
 Updated data filtering criteria to be more stringent:
-* **Filtering Rule:** Proteins must have ≥ 50% non-missing values in at least one condition, ensuring that differential abundance analysis is on robustly detected features. 
+* **Filtering Rule:** Proteins must have ≥ 50% non-missing values in at least one condition, ensuring that differential abundance analysis is on robustly detected features.
 
 ### Pipeline Stages
 
@@ -20,4 +20,4 @@ Updated data filtering criteria to be more stringent:
 7. [MSstats limma comparison](notebooks/06b_msstats_exclusive_DE_protein_boxplots.qmd)
 8. [Cell-cell interactions](notebooks/07_cell_interactions.qmd)
 9. [PPI network](notebooks/08_PPI.qmd)
-
+10. [Tripartite Astrocyte Signature](notebooks/09_tripartite_astrocyte.qmd)

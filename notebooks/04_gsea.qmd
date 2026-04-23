@@ -226,36 +226,47 @@ run_gsea_analysis <- function(ranks,
   ggsave(filename = file.path(current_graphs_dir, glue("Barplot_{geneset_name}.pdf")), 
          plot = p_bar, width = dyn_w, height = dyn_h, limitsize = FALSE)
   
-  # --- Dotplot ---
-  top_sig_gsea <- fgsea_res_tidy %>%
-    arrange(padj) %>%
-    slice_head(n = 20) %>%
+  # --- Dotplot (Top 10 Highest NES) ---
+  top_nes_gsea <- fgsea_res_tidy %>%
+    arrange(desc(NES)) %>%   
+    slice_head(n = 10) %>%   
     mutate(pathway = factor(pathway, levels = unique(pathway[order(NES)])))
 
-  if (nrow(top_sig_gsea) > 0) {
-    p_sig <- ggplot(top_sig_gsea, aes(x = NES, y = pathway, color = NES, size = -log10(padj))) +
+  if (nrow(top_nes_gsea) > 0) {
+    # Define our wrap width
+    wrap_width <- 45
+    
+    p_sig <- ggplot(top_nes_gsea, aes(x = NES, y = pathway, color = NES, size = -log10(padj))) +
       geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
       geom_point(alpha = 0.8) +
       scale_color_gradient2(low = color_B, mid = "grey90", high = color_A, midpoint = 0, name = "NES") +
       scale_size_continuous(range = c(3, 8), name = "-log10(padj)") +
       labs(x = "Normalized Enrichment Score (NES)", y = NULL, 
-           title = glue("Top 20 Significant: {clean_comp_title} ({geneset_name})")) +
+           title = glue("Top 10 Highest NES:\n{clean_comp_title} ({geneset_name})")) +
       theme_bw(base_size = 14) +
       theme(
         panel.grid.major.x = element_line(color = "grey92", linewidth = 0.5),
         panel.grid.major.y = element_line(color = "grey92", linewidth = 0.5, linetype = "dotted"),
         panel.grid.minor   = element_blank(),
         panel.border = element_rect(colour = "black", fill = NA, linewidth = 1.5),
-        plot.title = element_text(hjust = 0.5, face = "bold", size = 16, margin = margin(b = 20)),
-        plot.margin = margin(t = 20, r = 10, b = 10, l = 10, unit = "pt")
-      ) 
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 14, margin = margin(b = 20)),
+        plot.margin = margin(t = 20, r = 10, b = 10, l = 10, unit = "pt"),
+        axis.text.y = element_text(lineheight = 0.8) 
+      ) +
+      scale_y_discrete(labels = function(x) str_wrap(gsub("_", " ", x), width = wrap_width))
 
-    dyn_h_sig <- 2 + (nrow(top_sig_gsea) * 0.4)
-    dyn_w_sig <- 5.5 + (max(nchar(as.character(top_sig_gsea$pathway))) * 0.12) 
+    # --- DYNAMIC SIZING ---
+    # Cap the character count at wrap_width so the plot doesn't stretch endlessly horizontally
+    max_chars <- min(max(nchar(as.character(top_nes_gsea$pathway))), wrap_width)
     
-    ggsave(filename = file.path(current_graphs_dir, glue("Dotplot_Top20_Sig_{geneset_name}.pdf")), 
+    # Calculate dimensions: enough base room for the plot/legends + scaled room for text/points
+    dyn_h_sig <- 3 + (nrow(top_nes_gsea) * 0.4)
+    dyn_w_sig <- 4.5 + (max_chars * 0.1) 
+    
+    ggsave(filename = file.path(current_graphs_dir, glue("Dotplot_Top10_NES_{geneset_name}.pdf")), 
            plot = p_sig, width = dyn_w_sig, height = dyn_h_sig, limitsize = FALSE)
   }
+  
   
   return(fgsea_res_tidy)
 }

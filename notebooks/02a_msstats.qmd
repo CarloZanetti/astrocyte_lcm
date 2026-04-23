@@ -20,7 +20,7 @@ library(stringr)
 
 ```{r}
 base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
-run_num <- "run5"
+run_num <- "run6"
 
 results_dir <- file.path(base_dir, "results", run_num)
 objects_dir <- file.path(base_dir, "data", "processed", run_num)
@@ -244,7 +244,7 @@ msstats_input_filtered_keratin <- msstats_input_filtered %>%
 msstats_input_filtered_keratin
 ```
 ## Data summarisation and normalisation
-
+Edited censoredInt from NA to Null 
 ```{r}
 # Roll up the peptide intensities to protein-level abundances
 
@@ -252,7 +252,8 @@ processed_data <- dataProcess(
   msstats_input_filtered_keratin,
   normalization = "equalizeMedians",
   summaryMethod = "TMP",
-  censoredInt = "NA",
+  #edited this from NA to NULL
+  censoredInt = NULL,
   MBimpute = FALSE,
   featureSubset = "highQuality",
   remove_uninformative_feature_outlier = TRUE
@@ -298,3 +299,21 @@ res_df <- test_results$ComparisonResult
 # Save the full and filtered results
 fwrite(res_df, file.path(results_dir, "Full_GroupComparison_Results.csv"))
 ```
+
+
+```{r}
+msstats_annotation %>%
+  group_by(Condition, BioReplicate) %>%
+  summarise(Technical_Runs = n_distinct(Run), .groups = 'drop') %>%
+  arrange(desc(Technical_Runs))
+```
+
+```{r}
+test_results <- qs_read(file.path(objects_dir, "comparison_results.qs2"))
+
+model_proof <- test_results$FittedModel[[""]]
+
+test_results$FittedModel
+summary(model_proof)
+```
+

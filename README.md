@@ -3,23 +3,13 @@
 ## Project Overview
 Analysis of Laser Capture Microdissection (LCM) proteomics samples.
 - **Run Number:** 05
-- **Date:** 2026-03-20
+- **Date:** 2026-04-09
 
 [📊 Project Website](https://CarloZanetti.github.io/astrocyte_lcm/)
 
 ## Navigation
 - `notebooks/`: Contains the `.qmd` analysis files.
 - `docs/`: Rendered HTML website for viewing results.
-- `scripts/`: Modular R/Python scripts.
+- `scripts/`: R scripts.
 - `data/`: (Not synced to GitHub) Raw and processed data stored at `/camp/home/zanettc/home/shared/zanettc/millie_proteomics/data
 - `archive`: Rendered PDFs from Run1
-
-## Reproducibility
-This project uses `renv`. To restore the environment, run:
-```R
-renv::restore()
-
-### How to set up the environment
-1. Open the project in RStudio.
-2. If `renv` is not installed on your system, run: `install.packages("renv")`.
-3. Run `renv::restore()` to install the exact package versions used in this analysis.

@@ -1,0 +1,1044 @@
+---
+title: "9. Zemke 2026 Tripartite Astrocyte Signature"
+---
+
+This notebook evaluates whether the LCM proteomics data contains an enriched tripartite astrocyte signature, using the 18-gene module from Zemke et al. (2026). The same genes were used in that study with Seurat's `AddModuleScore` to identify putative tripartite astrocyte clusters. Here we ask whether these proteins are detected, whether their aggregate abundance differs across conditions, and whether the gene set is enriched in each pairwise comparison.
+
+------------------------------------------------------------------------
+
+## Libraries
+
+```{r}
+suppressPackageStartupMessages({
+  library(data.table)
+  library(qs2)
+  library(dplyr)
+  library(tidyr)
+  library(tibble)
+  library(ggplot2)
+  library(ggrepel)
+  library(stringr)
+  library(glue)
+  library(fgsea)
+})
+```
+
+## Directories & gene set
+
+```{r}
+base_dir    <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num     <- "run5"
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+
+dir.create(file.path(results_dir, "Tripartite_Astrocyte"), recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(results_dir, "Tripartite_Astrocyte")
+
+# Zemke et al. 2026 — 18 tripartite synaptic genes as reported (human HGNC symbols)
+zemke_genes_human <- c(
+  "NRXN1", "NLGN3", "ITGB1", "ITGAV", "CDH2",
+  "CADM3", "CADM1", "NCAM1", "TGFB2", "ATP1B2",
+  "EPHA4", "GJB6",  "BCAN",  "CSPG5", "SPARCL1",
+  "SDC2",  "SDC4",  "GPC1"
+)
+
+# Convert to mouse MGI symbols (title case; all 18 have verified 1:1 mouse orthologs
+# with identical names differing only in capitalisation — confirmed via Ensembl BioMart)
+zemke_genes_mouse <- paste0(
+  toupper(substr(zemke_genes_human, 1, 1)),
+  tolower(substr(zemke_genes_human, 2, nchar(zemke_genes_human)))
+)
+
+# Uppercase versions used for case-insensitive matching against the proteomics dictionary
+zemke_genes <- toupper(zemke_genes_mouse)
+
+cat("Mouse gene symbols:\n", paste(zemke_genes_mouse, collapse = ", "), "\n")
+
+# Condition display order and colours (consistent with the rest of the project)
+cond_levels <- c("control", "plaque_far", "plaque_near")
+cond_labels <- c("Control", "Plaque Far", "Plaque Near")
+cond_cols   <- c("control" = "#1b9e77", "plaque_far" = "#7570b3", "plaque_near" = "#d95f02")
+```
+
+## Load data
+
+```{r}
+# Protein dictionary
+protein_dict <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv")) %>%
+  dplyr::select(Protein = PG.ProteinGroups,
+                Gene    = PG.Genes,
+                Description = PG.ProteinDescriptions) %>%
+  distinct()
+
+# MSstats summarised protein-level abundances (ProteinLevelData)
+processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
+
+# DE results for GSEA ranking
+res_df <- fread(file.path(results_dir, "Full_GroupComparison_Results.csv"))
+```
+
+------------------------------------------------------------------------
+
+## 1. Detection check
+
+How many of the 18 Zemke genes are quantified in the proteome?
+
+```{r}
+# All detected genes (uppercase)
+detected_genes <- protein_dict %>%
+  filter(!is.na(Gene) & Gene != "") %>%
+  mutate(Gene_upper = toupper(Gene)) %>%
+  pull(Gene_upper) %>%
+  unique()
+
+detected_zemke <- zemke_genes[zemke_genes %in% detected_genes]
+missing_zemke  <- zemke_genes[!zemke_genes %in% detected_genes]
+
+cat(glue("Detected : {length(detected_zemke)} / {length(zemke_genes)}\n"))
+cat("Detected genes :", paste(detected_zemke, collapse = ", "), "\n")
+cat("Missing genes  :", paste(missing_zemke,  collapse = ", "), "\n")
+```
+
+```{r fig.width=7, fig.height=4}
+det_df <- data.frame(
+  Gene    = zemke_genes,
+  Status  = ifelse(zemke_genes %in% detected_genes, "Detected", "Not detected")
+)
+
+ggplot(det_df, aes(x = reorder(Gene, Status == "Detected"), fill = Status)) +
+  geom_bar(width = 0.7) +
+  scale_fill_manual(values = c("Detected" = "#2c7bb6", "Not detected" = "grey70")) +
+  labs(title = "Zemke 2026 Tripartite Astrocyte Genes — Detection in Proteome",
+       x = NULL, y = "Count", fill = NULL) +
+  theme_bw(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "bold"),
+        plot.title  = element_text(hjust = 0.5, face = "bold"),
+        legend.position = "top")
+
+ggsave(file.path(out_dir, "Detection_Summary.pdf"), width = 8, height = 4)
+```
+
+------------------------------------------------------------------------
+
+## 2. Individual protein abundance per condition
+
+Boxplots for each detected tripartite gene, coloured by Condition (as in notebook 01b).
+
+```{r fig.width=11, fig.height=12}
+# Build long-format abundance data for detected tripartite genes
+tripartite_long <- processed_data$ProteinLevelData %>%
+  rename(Condition = GROUP) %>%
+  left_join(protein_dict, by = "Protein") %>%
+  filter(!is.na(Gene) & Gene != "") %>%
+  mutate(Gene_upper = toupper(Gene)) %>%
+  filter(Gene_upper %in% detected_zemke) %>%
+  mutate(Gene_upper = factor(Gene_upper, levels = sort(detected_zemke))) %>%
+  mutate(Condition  = factor(Condition, levels = cond_levels, labels = cond_labels))
+
+p_boxes <- ggplot(tripartite_long,
+                  aes(x = Condition, y = LogIntensities, fill = Condition)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.6) +
+  geom_jitter(width = 0.2, size = 1.2, alpha = 0.6) +
+  facet_wrap(~ Gene_upper, scales = "free_y") +
+  scale_fill_manual(values = c(
+    "Control"     = cond_cols["control"],
+    "Plaque Far"  = cond_cols["plaque_far"],
+    "Plaque Near" = cond_cols["plaque_near"]
+  )) +
+  labs(title = "Tripartite Astrocyte Proteins — Abundance per Condition",
+       x = NULL, y = "Log2 Intensity", fill = "Condition") +
+  theme_bw(base_size = 12) +
+  theme(axis.text.x  = element_text(angle = 45, hjust = 1),
+        strip.text   = element_text(face = "bold"),
+        plot.title   = element_text(hjust = 0.5, face = "bold"),
+        legend.position = "top")
+
+print(p_boxes)
+
+dyn_h <- 3 * ceiling(length(detected_zemke) / 4)
+ggsave(file.path(out_dir, "Individual_Protein_Boxplots.pdf"),
+       plot = p_boxes, width = 11, height = dyn_h, limitsize = FALSE)
+```
+
+------------------------------------------------------------------------
+
+## 3. Aggregate module score per sample
+
+Average log-intensity of detected tripartite genes per run, compared across conditions. Runs with fewer than 3 detected genes are excluded.
+
+```{r}
+module_scores <- processed_data$ProteinLevelData %>%
+  rename(Condition = GROUP) %>%
+  left_join(protein_dict, by = "Protein") %>%
+  filter(!is.na(Gene) & Gene != "") %>%
+  mutate(Gene_upper = toupper(Gene)) %>%
+  filter(Gene_upper %in% detected_zemke) %>%
+  group_by(originalRUN, Condition) %>%
+  summarise(
+    module_score  = mean(LogIntensities, na.rm = TRUE),
+    n_genes_used  = sum(!is.na(LogIntensities)),
+    .groups = "drop"
+  ) %>%
+  filter(n_genes_used >= 3) %>%
+  mutate(Condition = factor(Condition, levels = cond_levels, labels = cond_labels))
+
+module_scores
+```
+
+```{r fig.width=5, fig.height=5}
+p_module <- ggplot(module_scores, aes(x = Condition, y = module_score, fill = Condition)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.6, width = 0.5) +
+  geom_jitter(aes(color = Condition), width = 0.15, size = 2, alpha = 0.8) +
+  scale_fill_manual(values  = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  scale_color_manual(values = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  labs(title    = "Zemke Tripartite Astrocyte Module Score",
+       subtitle = glue("Mean log2 intensity of {length(detected_zemke)} detected genes"),
+       x = NULL, y = "Module Score (mean log2 intensity)") +
+  theme_bw(base_size = 14) +
+  theme(legend.position = "none",
+        plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+        axis.text.x   = element_text(face = "bold"))
+
+print(p_module)
+ggsave(file.path(out_dir, "Module_Score_Boxplot.pdf"), plot = p_module, width = 5, height = 5)
+```
+
+### Pairwise Wilcoxon tests on module score
+
+```{r}
+pairwise.wilcox.test(
+  x      = module_scores$module_score,
+  g      = module_scores$Condition,
+  p.adjust.method = "BH"
+)
+```
+
+------------------------------------------------------------------------
+
+## 4. GSEA enrichment across comparisons
+
+Ranks proteins by log2FC (from MSstats) per comparison and tests whether the Zemke tripartite gene set is enriched. This directly mirrors the Habib 2020 DAA analysis in notebook 04.
+
+```{r}
+# Helper: build a named, sorted rank vector from MSstats DE results
+prep_ranks <- function(res, dict, comp_label) {
+  res %>%
+    filter(Label == comp_label, is.finite(log2FC)) %>%
+    left_join(dict, by = "Protein") %>%
+    filter(!is.na(Gene), Gene != "") %>%
+    mutate(Gene = toupper(Gene)) %>%
+    group_by(Gene) %>%
+    slice_max(order_by = abs(log2FC), n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    { setNames(.$log2FC, .$Gene) } %>%
+    sort(decreasing = TRUE)
+}
+
+comparisons <- list(
+  "PlaqueNear_vs_Control"   = prep_ranks(res_df, protein_dict, "PlaqueNear_vs_Control"),
+  "PlaqueFar_vs_Control"    = prep_ranks(res_df, protein_dict, "PlaqueFar_vs_Control"),
+  "PlaqueNear_vs_PlaqueFar" = prep_ranks(res_df, protein_dict, "PlaqueNear_vs_PlaqueFar")
+)
+
+zemke_pathway <- list("Zemke_2026_Tripartite" = zemke_genes)
+```
+
+```{r message=FALSE, warning=FALSE}
+gsea_results <- purrr::map_dfr(
+  names(comparisons),
+  function(comp_name) {
+    set.seed(42)
+    fgsea(
+      pathways     = zemke_pathway,
+      stats        = comparisons[[comp_name]],
+      minSize      = 5,    # relaxed — small gene set
+      maxSize      = 500,
+      nPermSimple  = 10000
+    ) %>%
+      as_tibble() %>%
+      mutate(
+        Comparison    = comp_name,
+        leadingEdge   = sapply(leadingEdge, paste, collapse = ", ")
+      )
+  }
+) %>%
+  dplyr::select(Comparison, NES, pval, padj, size, leadingEdge)
+
+gsea_results
+write.csv(gsea_results, file.path(out_dir, "GSEA_Tripartite_Summary.csv"), row.names = FALSE)
+```
+
+### Enrichment plots (mountain plots) per comparison
+
+```{r fig.width=8, fig.height=5}
+comp_colors <- list(
+  "PlaqueNear_vs_Control"   = list(pos = "#d95f02", neg = "#1b9e77"),
+  "PlaqueFar_vs_Control"    = list(pos = "#7570b3", neg = "#1b9e77"),
+  "PlaqueNear_vs_PlaqueFar" = list(pos = "#d95f02", neg = "#7570b3")
+)
+
+purrr::walk(names(comparisons), function(comp_name) {
+  cols   <- comp_colors[[comp_name]]
+  parts  <- str_split(comp_name, "_vs_")[[1]]
+
+  p <- plotEnrichment(zemke_pathway[["Zemke_2026_Tripartite"]], comparisons[[comp_name]]) +
+    labs(
+      title    = "Zemke 2026 — Tripartite Astrocyte Gene Set",
+      subtitle = glue("Comparison: {parts[1]} (positive) vs {parts[2]} (negative)"),
+      x = "Rank", y = "Enrichment Score"
+    ) +
+    theme_bw(base_size = 14) +
+    theme(
+      plot.title    = element_text(face = "bold", hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+      panel.grid    = element_blank()
+    )
+
+  # Annotate NES and p-value from results table
+  row <- gsea_results %>% filter(Comparison == comp_name)
+  p <- p + annotate("text", x = Inf, y = Inf,
+                    label = glue("NES = {round(row$NES, 2)}\npadj = {signif(row$padj, 2)}"),
+                    hjust = 1.1, vjust = 1.5, size = 4.5, color = "grey30")
+
+  print(p)
+  ggsave(
+    filename = file.path(out_dir, glue("EnrichmentPlot_{comp_name}.pdf")),
+    plot = p, width = 8, height = 5
+  )
+})
+```
+
+### NES summary bar chart
+
+```{r fig.width=6, fig.height=3.5}
+gsea_results %>%
+  mutate(
+    sig_label  = case_when(padj < 0.001 ~ "***", padj < 0.01 ~ "**",
+                           padj < 0.05 ~ "*", TRUE ~ "ns"),
+    Comparison = str_replace_all(Comparison, "_", " "),
+    fill_col   = ifelse(NES > 0, "#d95f02", "#1b9e77")
+  ) %>%
+  ggplot(aes(x = NES, y = reorder(Comparison, NES), fill = fill_col)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = sig_label,
+                hjust = ifelse(NES > 0, -0.3, 1.3)),
+            size = 5, fontface = "bold", color = "grey20") +
+  geom_vline(xintercept = 0, linewidth = 0.5, color = "grey40") +
+  scale_fill_identity() +
+  labs(title = "GSEA — Zemke 2026 Tripartite Astrocyte Gene Set",
+       x = "Normalized Enrichment Score (NES)", y = NULL) +
+  theme_bw(base_size = 13) +
+  theme(plot.title   = element_text(hjust = 0.5, face = "bold"),
+        panel.grid.major.y = element_blank()) +
+  xlim(c(min(gsea_results$NES) * 1.3, max(gsea_results$NES) * 1.3)) -> p_nes
+
+print(p_nes)
+ggsave(file.path(out_dir, "NES_Summary_Barplot.pdf"), plot = p_nes, width = 7, height = 3.5)
+```
+
+------------------------------------------------------------------------
+
+## 5a. Permutation test: are tripartite genes more abundant than expected by chance?
+
+Tests whether the tripartite gene set has higher absolute protein levels than would be expected if you picked the same number of proteins at random from the full proteome. For each condition the observed mean log-intensity of the detected tripartite genes is compared to a null distribution from 10,000 random draws of equal size. A complementary two-sample Wilcoxon rank-sum test (tripartite vs. all other proteins) is also reported.
+
+Note: this test asks about baseline expression level, not directionality across conditions. See section 5b for the differential enrichment test.
+
+```{r}
+set.seed(42)
+n_perm <- 10000
+
+# Condition-level mean abundance per protein (average across runs within condition)
+protein_means_per_cond <- processed_data$ProteinLevelData %>%
+  rename(Condition = GROUP) %>%
+  left_join(protein_dict, by = "Protein") %>%
+  filter(!is.na(Gene) & Gene != "") %>%
+  mutate(Gene_upper = toupper(Gene)) %>%
+  group_by(Condition, Gene_upper) %>%
+  summarise(mean_abundance = mean(LogIntensities, na.rm = TRUE), .groups = "drop") %>%
+  filter(!is.nan(mean_abundance))
+
+perm_results_abund <- purrr::map_dfr(cond_levels, function(cond) {
+
+  cond_data <- protein_means_per_cond %>% filter(Condition == cond)
+  all_abund  <- cond_data$mean_abundance
+  gene_names <- cond_data$Gene_upper
+
+  detected_in_cond <- intersect(detected_zemke, gene_names)
+  n_detected        <- length(detected_in_cond)
+
+  if (n_detected < 3) {
+    message(glue("Skipping {cond}: fewer than 3 tripartite genes detected"))
+    return(NULL)
+  }
+
+  observed_mean <- mean(all_abund[gene_names %in% detected_in_cond], na.rm = TRUE)
+
+  null_dist <- replicate(n_perm, mean(sample(all_abund, n_detected, replace = FALSE)))
+  emp_pval  <- mean(null_dist >= observed_mean)
+
+  # Two-sample Wilcoxon: tripartite vs. rest of proteome
+  tripartite_abund <- all_abund[gene_names %in% detected_in_cond]
+  rest_abund       <- all_abund[!(gene_names %in% detected_in_cond)]
+  wx <- wilcox.test(tripartite_abund, rest_abund, alternative = "greater")
+
+  tibble(
+    Condition     = cond,
+    n_genes       = n_detected,
+    observed_mean = observed_mean,
+    null_mean     = mean(null_dist),
+    null_sd       = sd(null_dist),
+    perm_pval     = emp_pval,
+    wilcox_pval   = wx$p.value,
+    null_dist     = list(null_dist)
+  )
+})
+
+perm_results_abund %>%
+  dplyr::select(-null_dist) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4)))
+```
+
+```{r fig.width=10, fig.height=4}
+plot_data_abund <- perm_results_abund %>%
+  tidyr::unnest(null_dist) %>%
+  mutate(Condition = factor(Condition, levels = cond_levels, labels = cond_labels))
+
+obs_data_abund <- perm_results_abund %>%
+  mutate(Condition = factor(Condition, levels = cond_levels, labels = cond_labels))
+
+p_perm_abund <- ggplot(plot_data_abund, aes(x = null_dist, fill = Condition)) +
+  geom_histogram(bins = 60, alpha = 0.7, color = NA) +
+  geom_vline(data = obs_data_abund,
+             aes(xintercept = observed_mean, color = Condition),
+             linewidth = 1.2, linetype = "dashed") +
+  geom_text(data = obs_data_abund,
+            aes(x = observed_mean, y = Inf,
+                label = glue("p = {signif(perm_pval, 2)}")),
+            vjust = 2, hjust = -0.1, size = 4, fontface = "bold") +
+  facet_wrap(~ Condition, scales = "free") +
+  scale_fill_manual(values  = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  scale_color_manual(values = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  labs(title    = "5a. Permutation Test — Absolute Abundance vs. Null",
+       subtitle = glue("Dashed line = observed mean; null = {n_perm} random draws of equal size"),
+       x = "Mean log2 intensity (random gene sets)", y = "Count") +
+  theme_bw(base_size = 13) +
+  theme(legend.position = "none",
+        plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+        strip.text    = element_text(face = "bold"))
+
+print(p_perm_abund)
+ggsave(file.path(out_dir, "5a_Permutation_Absolute_Abundance.pdf"),
+       plot = p_perm_abund, width = 10, height = 4)
+```
+
+```{r}
+perm_results_abund %>%
+  dplyr::select(-null_dist) %>%
+  mutate(
+    Condition       = factor(Condition, levels = cond_levels, labels = cond_labels),
+    perm_pval_adj   = p.adjust(perm_pval,  method = "BH"),
+    wilcox_pval_adj = p.adjust(wilcox_pval, method = "BH")
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4)))
+```
+
+------------------------------------------------------------------------
+
+## 5b. Permutation test: are tripartite genes enriched in abundance across conditions?
+
+This test asks whether the tripartite genes are **systematically upregulated** in each pairwise comparison — i.e., do they carry consistently positive log2FCs more than a random gene set of the same size would? For each comparison the observed mean log2FC of the tripartite gene set is tested against a null distribution from 10,000 random draws.
+
+A one-sample Wilcoxon signed-rank test (H₀: median log2FC = 0; H₁: \> 0) provides a complementary parametric-free test of directional abundance enrichment.
+
+```{r}
+perm_results_fc <- purrr::map_dfr(names(comparisons), function(comp_name) {
+
+  ranks_vec <- comparisons[[comp_name]]  # named log2FC vector for all proteins
+
+  # Tripartite genes that have an FC value in this comparison
+  tripartite_fc <- ranks_vec[names(ranks_vec) %in% zemke_genes]
+  n_fc <- length(tripartite_fc)
+
+  if (n_fc < 3) {
+    message(glue("Skipping {comp_name}: fewer than 3 tripartite genes with FC data"))
+    return(NULL)
+  }
+
+  observed_mean_fc <- mean(tripartite_fc)
+
+  # Null: 10,000 random draws of same size from all protein FCs
+  null_fc  <- replicate(n_perm, mean(sample(ranks_vec, n_fc, replace = FALSE)))
+  emp_pval <- mean(null_fc >= observed_mean_fc)
+
+  # One-sample Wilcoxon signed-rank: is median log2FC of tripartite genes > 0?
+  wx_signed <- wilcox.test(tripartite_fc, mu = 0, alternative = "greater")
+
+  tibble(
+    Comparison       = comp_name,
+    n_genes          = n_fc,
+    observed_mean_fc = observed_mean_fc,
+    null_mean_fc     = mean(null_fc),
+    null_sd_fc       = sd(null_fc),
+    perm_pval        = emp_pval,
+    wilcox_signed_pval = wx_signed$p.value,
+    null_dist        = list(null_fc),
+    fc_values        = list(tripartite_fc)
+  )
+})
+
+perm_results_fc %>%
+  dplyr::select(-null_dist, -fc_values) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4)))
+```
+
+### Null distribution plots (log2FC)
+
+```{r fig.width=10, fig.height=4}
+plot_data_fc <- perm_results_fc %>%
+  tidyr::unnest(null_dist) %>%
+  mutate(Comparison = str_replace_all(Comparison, "_", " "))
+
+obs_data_fc <- perm_results_fc %>%
+  mutate(Comparison = str_replace_all(Comparison, "_", " "))
+
+p_perm_fc <- ggplot(plot_data_fc, aes(x = null_dist)) +
+  geom_histogram(bins = 60, alpha = 0.7, fill = "grey60", color = NA) +
+  geom_vline(data = obs_data_fc,
+             aes(xintercept = observed_mean_fc),
+             color = "#d95f02", linewidth = 1.2, linetype = "dashed") +
+  geom_vline(xintercept = 0, linewidth = 0.5, linetype = "dotted", color = "grey30") +
+  geom_text(data = obs_data_fc,
+            aes(x = observed_mean_fc, y = Inf,
+                label = glue("p = {signif(perm_pval, 2)}")),
+            vjust = 2, hjust = -0.1, size = 4, fontface = "bold", color = "#d95f02") +
+  facet_wrap(~ Comparison, scales = "free") +
+  labs(title    = "5b. Permutation Test — Differential Abundance Enrichment",
+       subtitle = glue("Dashed line = observed mean log2FC; dotted = 0; null = {n_perm} random draws"),
+       x = "Mean log2FC (random gene sets)", y = "Count") +
+  theme_bw(base_size = 13) +
+  theme(plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+        strip.text    = element_text(face = "bold"))
+
+print(p_perm_fc)
+ggsave(file.path(out_dir, "5b_Permutation_Differential_Abundance.pdf"),
+       plot = p_perm_fc, width = 10, height = 4)
+```
+
+### Per-gene log2FC strip plots
+
+Shows the individual log2FC values of the tripartite genes per comparison so you can see which genes drive (or oppose) any enrichment signal.
+
+```{r fig.width=9, fig.height=4}
+fc_long <- perm_results_fc %>%
+  dplyr::select(Comparison, fc_values) %>%
+  tidyr::unnest_longer(fc_values, indices_to = "Gene") %>%
+  mutate(Comparison = str_replace_all(Comparison, "_", " "))
+
+ggplot(fc_long, aes(x = fc_values, y = reorder(Gene, fc_values))) +
+  geom_col(aes(fill = fc_values > 0), width = 0.6) +
+  geom_vline(xintercept = 0, linewidth = 0.5, color = "grey30") +
+  scale_fill_manual(values = c("TRUE" = "#d95f02", "FALSE" = "#7570b3"), guide = "none") +
+  facet_wrap(~ Comparison, scales = "free_x") +
+  labs(title = "Tripartite Gene log2FC per Comparison",
+       x = "log2 Fold Change", y = NULL) +
+  theme_bw(base_size = 12) +
+  theme(plot.title  = element_text(hjust = 0.5, face = "bold"),
+        strip.text  = element_text(face = "bold"),
+        axis.text.y = element_text(size = 9))
+
+ggsave(file.path(out_dir, "5b_PerGene_FC_Stripplot.pdf"), width = 9, height = 4)
+```
+
+### Summary table with BH correction
+
+```{r}
+perm_results_fc %>%
+  dplyr::select(-null_dist, -fc_values) %>%
+  mutate(
+    perm_pval_adj        = p.adjust(perm_pval,         method = "BH"),
+    wilcox_signed_pval_adj = p.adjust(wilcox_signed_pval, method = "BH")
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4)))
+```
+
+------------------------------------------------------------------------
+
+## 6. Cell-type identity validation: astrocyte vs. non-astrocyte marker enrichment
+
+To validate that the LCM samples are genuinely astrocyte-enriched, the same permutation test from section 5a is run across five cell-type marker sets simultaneously. The prediction is that astrocyte marker sets (canonical astrocyte + Zemke tripartite) should have significantly higher-than-chance abundance in the proteome, while neuronal, microglial, and oligodendrocyte marker sets should not. A significant result for non-astrocyte sets would indicate contamination from those cell types.
+
+Marker sources: - **Canonical astrocyte**: Sharma et al. 2015 (*Nat Neurosci* 18:1819) — SILAC-MS cell-type resolved mouse brain proteome; top proteins enriched \>2-fold in astrocytes over neurons, oligodendrocytes and microglia. This is the primary proteomic reference for this context. Boisvert et al. 2018 (*Cell Reports* 22:1964) — Ribo-Tag MS from mouse astrocytes in vivo (translated proteome) provides additional validation for the core set. - **Neurons, microglia, oligodendrocytes**: Sharma et al. 2015 (same study); consensus from Zeisel et al. 2018 and standard immunomarker literature
+
+```{r}
+cell_type_markers <- list(
+  "Zemke_Tripartite_Astrocyte" = toupper(zemke_genes_mouse),
+
+  # Sharma et al. 2015 (Nat Neurosci 18:1819) SILAC-MS; top astrocyte-enriched proteins
+  # confirmed in Boisvert et al. 2018 (Cell Reports 22:1964) Ribo-Tag MS
+  "Canonical_Astrocyte" = toupper(c(
+    "Aldh1l1", "Gfap",   "Aqp4",   "Glul",   "Gja1",
+    "Atp1a2",  "Mfge8",  "Ndrg2",  "Clu",    "Slc1a2",
+    "Slc1a3",  "Kcnj10", "Slc4a4", "Aldoc",  "Ddah1",
+    "Ezr",     "Vim",    "S100b",  "Apoe"
+  )),
+
+  "Neuron" = toupper(c(
+    "Tubb3", "Snap25", "Stmn2", "Eno2", "Syn1",
+    "Rbfox3", "Map2", "Nefh", "Nefl", "Nefm",
+    "Syt1", "Sv2b", "Gpm6a", "Dlg4", "Camk2a", "Atp1b1"
+  )),
+
+  "Microglia" = toupper(c(
+    "Aif1", "Csf1r", "Cx3cr1", "Tmem119", "P2ry12",
+    "Trem2", "Tyrobp", "C1qa", "C1qb", "C1qc",
+    "Hexb", "Cd68", "Itgam", "Siglech", "Fcrls"
+  )),
+
+  "Oligodendrocyte" = toupper(c(
+    "Mbp", "Plp1", "Mog", "Cnp", "Mag",
+    "Mobp", "Sox10", "Mal", "Cldn11", "Gjb1",
+    "Ermn", "Opalin", "Fa2h", "Ndrg1", "Aspa"
+  ))
+)
+
+# Colour palette for cell types
+ct_cols <- c(
+  "Zemke_Tripartite_Astrocyte" = "#d95f02",
+  "Canonical_Astrocyte"        = "#1b9e77",
+  "Neuron"                     = "#377eb8",
+  "Microglia"                  = "#984ea3",
+  "Oligodendrocyte"            = "#ff7f00"
+)
+```
+
+### Detection rates per cell type
+
+```{r}
+detection_summary <- purrr::map_dfr(names(cell_type_markers), function(ct) {
+  genes    <- cell_type_markers[[ct]]
+  detected <- sum(genes %in% detected_genes)
+  tibble(
+    Cell_type    = ct,
+    n_in_set     = length(genes),
+    n_detected   = detected,
+    pct_detected = round(100 * detected / length(genes), 1)
+  )
+})
+
+detection_summary
+```
+
+### Permutation test across all cell types
+
+Performed on the full proteome (all conditions pooled) to give the most powered estimate of whether each cell-type marker set is broadly enriched in these LCM samples.
+
+```{r}
+# Proteome-wide mean abundance per protein (pooled across all conditions)
+protein_means_all <- processed_data$ProteinLevelData %>%
+  left_join(protein_dict, by = "Protein") %>%
+  filter(!is.na(Gene) & Gene != "") %>%
+  mutate(Gene_upper = toupper(Gene)) %>%
+  group_by(Gene_upper) %>%
+  summarise(mean_abundance = mean(LogIntensities, na.rm = TRUE), .groups = "drop") %>%
+  filter(!is.nan(mean_abundance))
+
+all_abund_pooled <- protein_means_all$mean_abundance
+all_genes_pooled <- protein_means_all$Gene_upper
+
+set.seed(42)
+
+ct_perm_results <- purrr::map_dfr(names(cell_type_markers), function(ct) {
+  genes_in_set    <- cell_type_markers[[ct]]
+  detected_in_set <- intersect(genes_in_set, all_genes_pooled)
+  n_det           <- length(detected_in_set)
+
+  if (n_det < 3) {
+    message(glue("Skipping {ct}: fewer than 3 genes detected"))
+    return(NULL)
+  }
+
+  observed_mean <- mean(all_abund_pooled[all_genes_pooled %in% detected_in_set])
+
+  null_dist <- replicate(n_perm,
+                         mean(sample(all_abund_pooled, n_det, replace = FALSE)))
+  emp_pval  <- mean(null_dist >= observed_mean)
+
+  # Effect size: how many SDs above the null mean (z-score equivalent)
+  effect_size <- (observed_mean - mean(null_dist)) / sd(null_dist)
+
+  # Two-sample Wilcoxon: this cell type vs. all other proteins
+  target_abund <- all_abund_pooled[all_genes_pooled %in% detected_in_set]
+  rest_abund   <- all_abund_pooled[!(all_genes_pooled %in% detected_in_set)]
+  wx <- wilcox.test(target_abund, rest_abund, alternative = "greater")
+
+  tibble(
+    Cell_type     = ct,
+    n_detected    = n_det,
+    observed_mean = observed_mean,
+    null_mean     = mean(null_dist),
+    null_sd       = sd(null_dist),
+    effect_size_z = effect_size,
+    perm_pval     = emp_pval,
+    wilcox_pval   = wx$p.value,
+    null_dist     = list(null_dist)
+  )
+})
+
+ct_perm_results %>%
+  dplyr::select(-null_dist) %>%
+  mutate(
+    perm_pval_adj   = p.adjust(perm_pval,  method = "BH"),
+    wilcox_pval_adj = p.adjust(wilcox_pval, method = "BH")
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4)))
+```
+
+### Summary plot: enrichment z-score by cell type
+
+The effect size (z-score) represents how many standard deviations above the permutation null the observed mean sits. Positive = enriched above chance; negative = depleted.
+
+```{r fig.width=7, fig.height=5}
+ct_plot_df <- ct_perm_results %>%
+  mutate(
+    sig_label = case_when(
+      perm_pval < 0.001 ~ "***",
+      perm_pval < 0.01  ~ "**",
+      perm_pval < 0.05  ~ "*",
+      TRUE              ~ "ns"
+    ),
+    Cell_type = factor(Cell_type, levels = names(cell_type_markers)),
+    is_astrocyte = Cell_type %in% c("Zemke_Tripartite_Astrocyte", "Canonical_Astrocyte")
+  )
+
+p_ct_summary <- ggplot(ct_plot_df,
+                       aes(x = effect_size_z, y = reorder(Cell_type, effect_size_z),
+                           fill = Cell_type)) +
+  geom_col(width = 0.65, alpha = 0.85) +
+  geom_text(aes(label = glue("{sig_label}  (n={n_detected})"),
+                hjust = ifelse(effect_size_z >= 0, -0.1, 1.1)),
+            size = 4.2, fontface = "bold") +
+  geom_vline(xintercept = 0, linewidth = 0.6, color = "grey30") +
+  scale_fill_manual(values = ct_cols, guide = "none") +
+  scale_y_discrete(labels = function(x) str_replace_all(x, "_", " ")) +
+  labs(
+    title    = "LCM Sample Cell-Type Identity Validation",
+    subtitle = "Enrichment z-score vs. proteome-wide null (higher = more enriched than chance)",
+    x        = "Effect size (z-score above permutation null)",
+    y        = NULL
+  ) +
+  theme_bw(base_size = 13) +
+  theme(
+    plot.title    = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, color = "grey40", size = 10),
+    axis.text.y   = element_text(face = "bold")
+  ) +
+  xlim(c(min(ct_plot_df$effect_size_z) * 1.4,
+         max(ct_plot_df$effect_size_z) * 1.6))
+
+print(p_ct_summary)
+ggsave(file.path(out_dir, "6_CellType_Identity_Validation.pdf"),
+       plot = p_ct_summary, width = 7, height = 5)
+```
+
+### Null distribution plots per cell type
+
+```{r fig.width=12, fig.height=8}
+null_plot_df <- ct_perm_results %>%
+  tidyr::unnest(null_dist) %>%
+  mutate(Cell_type = factor(Cell_type, levels = names(cell_type_markers)))
+
+obs_plot_df <- ct_perm_results %>%
+  mutate(Cell_type = factor(Cell_type, levels = names(cell_type_markers)))
+
+p_null_all <- ggplot(null_plot_df, aes(x = null_dist, fill = Cell_type)) +
+  geom_histogram(bins = 60, alpha = 0.75, color = NA) +
+  geom_vline(data = obs_plot_df,
+             aes(xintercept = observed_mean, color = Cell_type),
+             linewidth = 1.2, linetype = "dashed") +
+  geom_text(data = obs_plot_df,
+            aes(x = observed_mean, y = Inf,
+                label = glue("z={round(effect_size_z,1)}\np={signif(perm_pval,2)}")),
+            vjust = 1.5, hjust = -0.1, size = 3.5, fontface = "bold") +
+  facet_wrap(~ Cell_type, scales = "free", ncol = 3,
+             labeller = labeller(Cell_type = function(x) str_replace_all(x, "_", " "))) +
+  scale_fill_manual(values  = ct_cols, guide = "none") +
+  scale_color_manual(values = ct_cols, guide = "none") +
+  labs(title    = "Permutation Null Distributions — Cell Type Marker Sets",
+       subtitle = glue("Dashed line = observed mean; null = {n_perm} random draws"),
+       x = "Mean log2 intensity (random gene sets)", y = "Count") +
+  theme_bw(base_size = 12) +
+  theme(plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+        strip.text    = element_text(face = "bold"))
+
+print(p_null_all)
+ggsave(file.path(out_dir, "6_CellType_NullDistributions.pdf"),
+       plot = p_null_all, width = 12, height = 8)
+```
+
+------------------------------------------------------------------------
+
+## 7. Cellular composition across conditions
+
+Section 6 showed enrichment of neuronal and oligodendrocyte markers alongside astrocyte markers. Three linked checks determine whether this is benign consistent co-capture or a confound that varies with condition.
+
+-   **Step 1** — do non-astrocyte scores differ across conditions?
+-   **Step 3** — per-sample astrocyte purity index
+-   **Step 2** — does non-astrocyte signal explain tripartite score variance?
+
+### 7.1 Per-sample module scores — all cell types
+
+```{r}
+all_ct_scores <- purrr::map_dfr(names(cell_type_markers), function(ct) {
+  processed_data$ProteinLevelData %>%
+    rename(Condition = GROUP) %>%
+    left_join(protein_dict, by = "Protein") %>%
+    filter(!is.na(Gene), Gene != "") %>%
+    mutate(Gene_upper = toupper(Gene)) %>%
+    filter(Gene_upper %in% cell_type_markers[[ct]]) %>%
+    group_by(originalRUN, Condition) %>%
+    summarise(
+      module_score = mean(LogIntensities, na.rm = TRUE),
+      n_detected   = sum(!is.na(LogIntensities)),
+      .groups = "drop"
+    ) %>%
+    mutate(Cell_type = ct)
+}) %>%
+  mutate(
+    Condition = factor(Condition, levels = cond_levels, labels = cond_labels),
+    Cell_type = factor(Cell_type, levels = names(cell_type_markers))
+  )
+```
+
+### 7.2 Step 1 — condition-specificity of non-astrocyte signal
+
+If neuronal or oligodendrocyte scores differ across conditions, co-capture is not uniform and will confound comparisons.
+
+```{r fig.width=14, fig.height=8}
+p_ct_cond <- ggplot(all_ct_scores,
+                    aes(x = Condition, y = module_score, fill = Condition)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.6, width = 0.5) +
+  geom_jitter(aes(color = Condition, size = n_detected), width = 0.15, alpha = 0.7) +
+  scale_fill_manual(values  = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  scale_color_manual(values = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  scale_size_continuous(range = c(1, 4), name = "n markers\ndetected") +
+  facet_wrap(~ Cell_type, scales = "free_y", ncol = 3,
+             labeller = labeller(Cell_type = function(x) str_replace_all(x, "_", " "))) +
+  labs(title    = "Cell-Type Module Scores per Condition",
+       subtitle = "Point size = number of marker genes detected in that run",
+       x = NULL, y = "Mean log2 intensity") +
+  theme_bw(base_size = 12) +
+  theme(legend.position = "top",
+        plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40"),
+        strip.text    = element_text(face = "bold"),
+        axis.text.x   = element_text(angle = 30, hjust = 1))
+
+print(p_ct_cond)
+ggsave(file.path(out_dir, "7_AllCellType_Scores_ByCondition.pdf"),
+       plot = p_ct_cond, width = 14, height = 8)
+```
+
+Pairwise Wilcoxon (BH-corrected) for each cell type across conditions:
+
+```{r}
+wilcox_ct_cond <- purrr::map_dfr(levels(all_ct_scores$Cell_type), function(ct) {
+  sub <- filter(all_ct_scores, Cell_type == ct)
+  pw  <- pairwise.wilcox.test(sub$module_score, sub$Condition,
+                               p.adjust.method = "BH")
+  as.data.frame(pw$p.value) %>%
+    rownames_to_column("Condition_A") %>%
+    pivot_longer(-Condition_A, names_to = "Condition_B", values_to = "padj") %>%
+    filter(!is.na(padj)) %>%
+    mutate(
+      Cell_type = ct,
+      sig = case_when(padj < 0.001 ~ "***", padj < 0.01 ~ "**",
+                      padj < 0.05  ~ "*",   TRUE         ~ "ns")
+    )
+})
+
+wilcox_ct_cond %>%
+  dplyr::select(Cell_type, Condition_A, Condition_B, padj, sig) %>%
+  arrange(Cell_type, padj)
+
+write.csv(wilcox_ct_cond,
+          file.path(out_dir, "7_CellType_Condition_Wilcoxon.csv"),
+          row.names = FALSE)
+```
+
+------------------------------------------------------------------------
+
+### 7.3 Step 3 — Astrocyte purity index
+
+Z-score each cell-type module score within cell type (across all samples), placing all marker sets on a common scale.
+
+`purity index = mean(astrocyte z-scores) − mean(neuron + oligodendrocyte z-scores)`
+
+Positive = astrocyte-dominated; negative = non-astrocyte-dominated. Microglia excluded (globally absent in section 6; scores near zero and noisy).
+
+```{r}
+ct_z_wide <- all_ct_scores %>%
+  group_by(Cell_type) %>%
+  mutate(z = as.numeric(scale(module_score))) %>%
+  ungroup() %>%
+  dplyr::select(originalRUN, Condition, Cell_type, z) %>%
+  pivot_wider(names_from = Cell_type, values_from = z)
+
+purity_df <- ct_z_wide %>%
+  rowwise() %>%
+  mutate(
+    astro_z     = mean(c(Canonical_Astrocyte, Zemke_Tripartite_Astrocyte), na.rm = TRUE),
+    non_astro_z = mean(c(Neuron, Oligodendrocyte), na.rm = TRUE),
+    purity_idx  = astro_z - non_astro_z
+  ) %>%
+  ungroup()
+
+purity_df %>%
+  group_by(Condition) %>%
+  summarise(
+    mean_purity = mean(purity_idx, na.rm = TRUE),
+    sd_purity   = sd(purity_idx,   na.rm = TRUE),
+    n = n(), .groups = "drop"
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+```
+
+```{r fig.width=5, fig.height=5}
+p_purity <- ggplot(purity_df, aes(x = Condition, y = purity_idx, fill = Condition)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.7) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.6, width = 0.5) +
+  geom_jitter(aes(color = Condition), width = 0.15, size = 2, alpha = 0.8) +
+  scale_fill_manual(values  = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  scale_color_manual(values = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  labs(
+    title    = "Astrocyte Purity Index per Condition",
+    subtitle = "Δ z-score: mean astrocyte − mean (neuron + oligo) signal\npositive = astrocyte-dominated",
+    x = NULL, y = "Purity index (Δ z-score)"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(legend.position = "none",
+        plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40", size = 10),
+        axis.text.x   = element_text(face = "bold"))
+
+print(p_purity)
+ggsave(file.path(out_dir, "7_Purity_Index.pdf"), plot = p_purity, width = 5, height = 5)
+```
+
+```{r}
+pairwise.wilcox.test(purity_df$purity_idx, purity_df$Condition, p.adjust.method = "BH")
+```
+
+------------------------------------------------------------------------
+
+### 7.4 Step 2 — Covariate structure
+
+#### Spearman correlation of cell-type z-scores across samples
+
+High correlation between astrocyte and neuronal scores would indicate co-capture that tracks sample quality rather than biology.
+
+```{r fig.width=7, fig.height=6}
+cor_mat <- ct_z_wide %>%
+  dplyr::select(-originalRUN, -Condition) %>%
+  cor(method = "spearman", use = "pairwise.complete.obs")
+
+cor_long <- as.data.frame(cor_mat) %>%
+  rownames_to_column("A") %>%
+  pivot_longer(-A, names_to = "B", values_to = "rho") %>%
+  mutate(
+    A = str_replace_all(A, "_", "\n"),
+    B = str_replace_all(B, "_", "\n")
+  )
+
+p_cor <- ggplot(cor_long, aes(x = B, y = A, fill = rho)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = round(rho, 2)), size = 3.5) +
+  scale_fill_gradient2(low = "#2c7bb6", mid = "white", high = "#d7191c",
+                       midpoint = 0, limits = c(-1, 1), name = "Spearman ρ") +
+  labs(title = "Spearman correlation — cell-type module z-scores", x = NULL, y = NULL) +
+  theme_bw(base_size = 11) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 8),
+        axis.text.y = element_text(size = 8),
+        plot.title  = element_text(hjust = 0.5, face = "bold"),
+        panel.grid  = element_blank())
+
+print(p_cor)
+ggsave(file.path(out_dir, "7_CellType_Correlation.pdf"), plot = p_cor, width = 7, height = 6)
+```
+
+#### Does the tripartite score persist after controlling for non-astrocyte contamination?
+
+F-test (ANOVA) comparing null model (tripartite \~ neuron + oligo contamination) against full model (+ Condition). A significant Condition term means condition differences in the tripartite score cannot be explained by co-capture alone.
+
+```{r}
+lm_null <- lm(Zemke_Tripartite_Astrocyte ~ Neuron + Oligodendrocyte, data = purity_df)
+lm_full <- lm(Zemke_Tripartite_Astrocyte ~ Neuron + Oligodendrocyte + Condition,
+              data = purity_df)
+anova(lm_null, lm_full)
+```
+
+```{r}
+summary(lm_full)
+```
+
+```{r fig.width=5, fig.height=5}
+purity_df <- purity_df %>%
+  mutate(tripartite_residual = residuals(lm_null))
+
+p_resid <- ggplot(purity_df, aes(x = Condition, y = tripartite_residual, fill = Condition)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.7) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.6, width = 0.5) +
+  geom_jitter(aes(color = Condition), width = 0.15, size = 2, alpha = 0.8) +
+  scale_fill_manual(values  = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  scale_color_manual(values = c("Control"     = cond_cols["control"],
+                                "Plaque Far"  = cond_cols["plaque_far"],
+                                "Plaque Near" = cond_cols["plaque_near"])) +
+  labs(
+    title    = "Tripartite Score — Residuals After\nRegressing Out Non-Astrocyte Signal",
+    subtitle = "Residuals from: Zemke_z ~ Neuron_z + Oligodendrocyte_z",
+    x = NULL, y = "Residual (z-score units)"
+  ) +
+  theme_bw(base_size = 13) +
+  theme(legend.position = "none",
+        plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, color = "grey40", size = 9),
+        axis.text.x   = element_text(face = "bold"))
+
+print(p_resid)
+ggsave(file.path(out_dir, "7_Tripartite_Residuals.pdf"), plot = p_resid, width = 5, height = 5)
+```
+
+```{r}
+pairwise.wilcox.test(purity_df$tripartite_residual, purity_df$Condition,
+                     p.adjust.method = "BH")
+```
+
+------------------------------------------------------------------------
+
+## Session info
+
+```{r}
+sessionInfo()
+```

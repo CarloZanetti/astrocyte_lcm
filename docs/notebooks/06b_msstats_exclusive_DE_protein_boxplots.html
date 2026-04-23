@@ -194,6 +194,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">8: PPI Network analysis</span></a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/09_tripartite_astrocyte.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9: Tripartite Astrocyte Signature</span></a>
+  </div>
+</li>
     </ul>
     </div>
 </nav>
@@ -295,7 +301,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>base_dir <span class="ot">&lt;-</span> <span class="st">"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run5"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run6"</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"results"</span>, run_num)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>objects_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed"</span>, run_num)</span>
@@ -1054,7 +1060,7 @@ Limma-exclusive top 20 per comparison:</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-All pipeline-exclusive boxplots saved to: /nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics/results/run5/concordance/pipeline_exclusive_boxplots </code></pre>
+All pipeline-exclusive boxplots saved to: /nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics/results/run6/concordance/pipeline_exclusive_boxplots </code></pre>
 </div>
 </div>
 

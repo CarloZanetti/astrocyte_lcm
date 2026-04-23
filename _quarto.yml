@@ -11,7 +11,7 @@ project:
 
 execute:
   freeze: auto
-  
+
 website:
   title: "Millie's Proteomics Project"
   sidebar:
@@ -37,6 +37,8 @@ website:
         file: notebooks/07_cell_interactions.qmd
       - text: "8: PPI Network analysis"
         file: notebooks/08_PPI.qmd
+      - text: "9: Tripartite Astrocyte Signature"
+        file: notebooks/09_tripartite_astrocyte.qmd
 format:
   html:
     theme: cosmo
