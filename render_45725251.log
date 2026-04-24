@@ -1,15 +1,0 @@
-[1m[34m[ 1/12] index.qmd[39m[22m
-[1m[34m[ 2/12] notebooks/01b_DAA_marker_check.qmd[39m[22m
-[1m[34m[ 3/12] notebooks/05_gfap_correlation.qmd[39m[22m
-[1m[34m[ 4/12] notebooks/03_DE_plots.qmd[39m[22m
-[1m[34m[ 5/12] notebooks/04_gsea.qmd[39m[22m
-[1m[34m[ 6/12] notebooks/08_PPI.qmd[39m[22m
-[1m[34m[ 7/12] notebooks/06c_variance_diagnostics.qmd[39m[22m
-[1m[34m[ 8/12] notebooks/06_msstats_limma_correlation.qmd[39m[22m
-[1m[34m[ 9/12] notebooks/07_cell_interactions.qmd[39m[22m
-[1m[34m[10/12] notebooks/06b_msstats_exclusive_DE_protein_boxplots.qmd[39m[22m
-[1m[34m[11/12] notebooks/01a_initial_qc_spectronaut.qmd[39m[22m
-[1m[34m[12/12] notebooks/09_tripartite_astrocyte.qmd[39m[22m
-
-Output created: docs/index.html
-
