@@ -39,6 +39,8 @@ website:
         file: notebooks/08_PPI.qmd
       - text: "9: Tripartite Astrocyte Signature"
         file: notebooks/09_tripartite_astrocyte.qmd
+      - text: "10: Aβ tryptic peptide correlation"
+        file: notebooks/10_ab_correlation.qmd
 format:
   html:
     theme: cosmo
