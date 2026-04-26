@@ -1,0 +1,334 @@
+---
+title: "10. Aβ tryptic peptide correlation"
+format: html
+---
+
+Identify proteins whose MSstats-summarised abundance tracks the Aβ tryptic
+peptide (`LVFFAEDVGSNK`) signal across samples.
+
+Primary analysis is restricted to `plaque_near` — asks "within plaque regions,
+what co-varies with Aβ load?". A secondary `plaque_near + plaque_far`
+analysis serves as a sensitivity check with wider dynamic range.
+
+## Libraries
+
+```{r}
+suppressPackageStartupMessages({
+  library(data.table)
+  library(qs2)
+  library(dplyr)
+  library(tidyr)
+  library(tibble)
+  library(ggplot2)
+  library(ggrepel)
+  library(purrr)
+})
+```
+
+## Directories
+
+```{r}
+base_dir <- "/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"
+run_num <- "run5"
+
+results_dir <- file.path(base_dir, "results", run_num)
+objects_dir <- file.path(base_dir, "data", "processed", run_num)
+graphs_dir <- file.path(results_dir, "ab_correlation")
+
+dir.create(graphs_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## Load protein-level data and build wide matrix
+
+```{r}
+processed_data <- qs_read(file.path(objects_dir, "processed_msstats_data.qs2"))
+
+protein_dict <- fread(file.path(base_dir, "data/processed/run1/clean_spec_raw.csv")) %>%
+  dplyr::select(Protein = PG.ProteinGroups, Gene = PG.Genes) %>%
+  distinct()
+
+wide_df <- processed_data$ProteinLevelData %>%
+  left_join(protein_dict, by = "Protein") %>%
+  mutate(Gene = ifelse(is.na(Gene) | Gene == "", Protein, Gene)) %>%
+  group_by(originalRUN, Gene) %>%
+  summarize(Abundance = mean(LogIntensities, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = Gene, values_from = Abundance) %>%
+  column_to_rownames("originalRUN")
+
+cat("Wide matrix: ", nrow(wide_df), "runs x ", ncol(wide_df), "genes\n")
+```
+
+## Build Aβ peptide target vector
+
+Sum fragment-level `F.PeakArea` across all precursors of `LVFFAEDVGSNK` per run,
+then log2-transform. Runs not covered by the clean msstats data are dropped.
+
+```{r}
+target_peptide <- "LVFFAEDVGSNK"
+
+msstats_clean <- qs_read(file.path(base_dir, "data/processed/run1/clean_msstats_input.qs2"))
+
+ab_target <- as.data.table(msstats_clean)[
+    PEP.StrippedSequence == target_peptide,
+    .(ab_intensity = sum(F.PeakArea, na.rm = TRUE)),
+    by = R.FileName
+  ] %>%
+  as_tibble() %>%
+  mutate(Ab_log2 = log2(ab_intensity + 1)) %>%
+  dplyr::rename(Run = R.FileName) %>%
+  dplyr::select(Run, Ab_log2)
+
+rm(msstats_clean); invisible(gc())
+
+cat("Aβ target vector: ", nrow(ab_target), "runs\n")
+summary(ab_target$Ab_log2)
+```
+
+## Metadata and sample sets
+
+```{r}
+final_clean_meta <- read.csv(file.path(base_dir, "data/processed/run1/msstats_annotation.csv"))
+
+near_runs    <- final_clean_meta$Run[final_clean_meta$Condition == "plaque_near"]
+nearfar_runs <- final_clean_meta$Run[final_clean_meta$Condition %in% c("plaque_near", "plaque_far")]
+
+cat("plaque_near runs:", length(near_runs), "\n")
+cat("plaque_near + plaque_far runs:", length(nearfar_runs), "\n")
+
+# Intersect with the runs that actually have an Aβ measurement
+cat("plaque_near with Aβ signal:",      sum(near_runs    %in% ab_target$Run), "\n")
+cat("near+far with Aβ signal:",          sum(nearfar_runs %in% ab_target$Run), "\n")
+```
+
+## Correlation function (Pearson + Spearman + FDR)
+
+```{r}
+correlate_to_ab <- function(sample_runs, wide_df, ab_target, min_n = 4) {
+
+  runs_keep <- intersect(intersect(sample_runs, rownames(wide_df)), ab_target$Run)
+  if (length(runs_keep) < min_n) {
+    stop("Fewer than ", min_n, " samples available for correlation.")
+  }
+
+  data_sub <- wide_df[runs_keep, , drop = FALSE]
+  ab_vec   <- ab_target$Ab_log2[match(runs_keep, ab_target$Run)]
+
+  genes <- colnames(data_sub)
+
+  results <- map_dfr(genes, function(g) {
+    x <- data_sub[[g]]
+    y <- ab_vec
+    keep <- !is.na(x) & !is.na(y)
+    n <- sum(keep)
+    if (n < min_n) return(NULL)
+
+    # Guard against zero-variance vectors (Spearman/Pearson throw warnings)
+    if (sd(x[keep]) == 0 || sd(y[keep]) == 0) return(NULL)
+
+    p_test <- suppressWarnings(cor.test(x[keep], y[keep], method = "pearson"))
+    s_test <- suppressWarnings(cor.test(x[keep], y[keep], method = "spearman",
+                                        exact = FALSE))
+
+    tibble(
+      Gene         = g,
+      n_pairs      = n,
+      Pearson_R    = unname(p_test$estimate),
+      Pearson_p    = p_test$p.value,
+      Spearman_rho = unname(s_test$estimate),
+      Spearman_p   = s_test$p.value
+    )
+  })
+
+  results %>%
+    mutate(
+      Pearson_FDR  = p.adjust(Pearson_p,  method = "BH"),
+      Spearman_FDR = p.adjust(Spearman_p, method = "BH")
+    ) %>%
+    arrange(desc(Pearson_R))
+}
+```
+
+## Primary analysis: plaque_near
+
+```{r}
+ab_cors_near <- correlate_to_ab(near_runs, wide_df, ab_target)
+
+cat("Primary analysis: ", nrow(ab_cors_near), "genes correlated, n_pairs =",
+    unique(ab_cors_near$n_pairs), "\n\n")
+
+head(ab_cors_near, 20)
+tail(ab_cors_near, 20)
+
+write.csv(ab_cors_near,
+          file.path(objects_dir, "ab_correlation_near.csv"),
+          row.names = FALSE)
+```
+
+## Secondary (sensitivity check): plaque_near + plaque_far
+
+```{r}
+ab_cors_nearfar <- correlate_to_ab(nearfar_runs, wide_df, ab_target)
+
+cat("Sensitivity analysis: ", nrow(ab_cors_nearfar), "genes correlated, n_pairs =",
+    unique(ab_cors_nearfar$n_pairs), "\n\n")
+
+head(ab_cors_nearfar, 20)
+tail(ab_cors_nearfar, 20)
+
+write.csv(ab_cors_nearfar,
+          file.path(objects_dir, "ab_correlation_near_far.csv"),
+          row.names = FALSE)
+```
+
+## Concordance between the two analyses
+
+Top hits that survive both are the most defensible candidates.
+
+```{r}
+concord <- ab_cors_near %>%
+  dplyr::select(Gene,
+                R_near = Pearson_R,
+                p_near = Pearson_p,
+                FDR_near = Pearson_FDR) %>%
+  inner_join(
+    ab_cors_nearfar %>%
+      dplyr::select(Gene,
+                    R_nearfar = Pearson_R,
+                    p_nearfar = Pearson_p,
+                    FDR_nearfar = Pearson_FDR),
+    by = "Gene"
+  ) %>%
+  arrange(desc(R_near))
+
+ggplot(concord, aes(R_near, R_nearfar)) +
+  geom_hline(yintercept = 0, colour = "grey70") +
+  geom_vline(xintercept = 0, colour = "grey70") +
+  geom_point(alpha = 0.4, size = 1) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "red") +
+  geom_text_repel(
+    data = concord %>% filter(abs(R_near) > 0.8 & abs(R_nearfar) > 0.6),
+    aes(label = Gene), size = 3, max.overlaps = 30
+  ) +
+  labs(
+    title = "Pearson R concordance: plaque_near vs plaque_near+plaque_far",
+    x = "Pearson R (plaque_near only)",
+    y = "Pearson R (plaque_near + plaque_far)"
+  ) +
+  theme_minimal()
+
+ggsave(file.path(graphs_dir, "concordance_R_near_vs_nearfar.pdf"),
+       width = 8, height = 7)
+```
+
+## Volcano: Pearson R vs -log10(p) — primary analysis
+
+```{r}
+volcano_df <- ab_cors_near %>%
+  mutate(neg_log10_p = -log10(Pearson_p),
+         sig = case_when(
+           Pearson_FDR < 0.05 & Pearson_R > 0 ~ "Pos (FDR<0.05)",
+           Pearson_FDR < 0.05 & Pearson_R < 0 ~ "Neg (FDR<0.05)",
+           Pearson_p  < 0.05 & Pearson_R > 0  ~ "Pos (p<0.05)",
+           Pearson_p  < 0.05 & Pearson_R < 0  ~ "Neg (p<0.05)",
+           TRUE                                ~ "n.s."
+         ))
+
+top_labels <- volcano_df %>%
+  filter(Pearson_p < 0.05) %>%
+  slice_max(order_by = abs(Pearson_R), n = 30)
+
+ggplot(volcano_df, aes(Pearson_R, neg_log10_p, colour = sig)) +
+  geom_point(alpha = 0.5, size = 1) +
+  geom_vline(xintercept = 0, colour = "grey70") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed", colour = "grey50") +
+  geom_text_repel(
+    data = top_labels,
+    aes(label = Gene),
+    size = 3, max.overlaps = 35,
+    box.padding = 0.4, segment.alpha = 0.5
+  ) +
+  scale_colour_manual(values = c(
+    "Pos (FDR<0.05)" = "#d95f02",
+    "Neg (FDR<0.05)" = "#1b9e77",
+    "Pos (p<0.05)"   = "#fdb462",
+    "Neg (p<0.05)"   = "#8dd3c7",
+    "n.s."           = "grey70"
+  )) +
+  labs(
+    title = paste0("Correlation of protein abundance with Aβ peptide (",
+                   target_peptide, ")"),
+    subtitle = "plaque_near samples",
+    x = "Pearson R",
+    y = "-log10(p)"
+  ) +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+
+ggsave(file.path(graphs_dir, "volcano_ab_correlation_near.pdf"),
+       width = 10, height = 7)
+```
+
+## Sanity-check scatter plots for known markers
+
+```{r}
+marker_genes <- c("Gfap", "App", "Apoe", "Clu", "C1qa", "C1qb", "C1qc",
+                  "Trem2", "Cd44", "Vim", "S100b")
+marker_genes <- intersect(marker_genes, colnames(wide_df))
+
+scatter_runs <- intersect(nearfar_runs, ab_target$Run)
+scatter_runs <- intersect(scatter_runs, rownames(wide_df))
+
+scatter_df <- tibble(Run = scatter_runs) %>%
+  mutate(Ab_log2 = ab_target$Ab_log2[match(Run, ab_target$Run)]) %>%
+  left_join(final_clean_meta %>% dplyr::select(Run, Condition), by = "Run")
+
+for (g in marker_genes) {
+  scatter_df[[g]] <- wide_df[scatter_df$Run, g]
+}
+
+scatter_long <- scatter_df %>%
+  pivot_longer(cols = all_of(marker_genes),
+               names_to = "Gene",
+               values_to = "LogIntensity")
+
+# Compute per-gene R within plaque_near only, for the panel annotations
+anno_df <- scatter_long %>%
+  filter(Condition == "plaque_near") %>%
+  group_by(Gene) %>%
+  summarise(
+    R = cor(Ab_log2, LogIntensity, use = "pairwise.complete.obs"),
+    .groups = "drop"
+  ) %>%
+  mutate(label = sprintf("R[near] = %.2f", R))
+
+ggplot(scatter_long, aes(Ab_log2, LogIntensity, colour = Condition)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(data = scatter_long %>% filter(Condition == "plaque_near"),
+              aes(group = 1), method = "lm", se = FALSE,
+              colour = "black", linewidth = 0.6) +
+  geom_text(data = anno_df,
+            aes(x = -Inf, y = Inf, label = label),
+            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 3) +
+  facet_wrap(~ Gene, scales = "free_y") +
+  scale_colour_manual(values = c(
+    "control"     = "#1b9e77",
+    "plaque_far"  = "#7570b3",
+    "plaque_near" = "#d95f02"
+  )) +
+  labs(
+    title = "Known markers vs Aβ peptide intensity",
+    subtitle = "fit line on plaque_near only",
+    x = "Log2(Aβ peptide intensity)",
+    y = "Log2 protein intensity (MSstats summarised)"
+  ) +
+  theme_minimal()
+
+ggsave(file.path(graphs_dir, "ab_marker_scatter.pdf"),
+       width = 12, height = 9)
+```
+
+## Session info
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>10. Aβ tryptic peptide correlation – Millie’s Proteomics Project</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link href="../site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="../site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+</head>
+
+<body class="nav-sidebar docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">
+      Millie's Proteomics Project
+      </li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Millie’s Proteomics Project</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/01a_initial_qc_spectronaut.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1a. Initial QC</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/01b_DAA_marker_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1b. DAA marker check</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/03_DE_plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3. DE plots</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/04_gsea.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4. GSEA</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/05_gfap_correlation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5. GFAP correlation</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/06_msstats_limma_correlation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6a. Concordance between limma and MSstats</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/06b_msstats_exclusive_DE_protein_boxplots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6b. Pipeline-Exclusive DE Proteins: Raw &amp; Normalised Boxplots</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/07_cell_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7: Putative cell-cell interactions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/08_PPI.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8: PPI Network analysis</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/09_tripartite_astrocyte.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9: Tripartite Astrocyte Signature</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#libraries" id="toc-libraries" class="nav-link active" data-scroll-target="#libraries">Libraries</a></li>
+  <li><a href="#directories" id="toc-directories" class="nav-link" data-scroll-target="#directories">Directories</a></li>
+  <li><a href="#load-protein-level-data-and-build-wide-matrix" id="toc-load-protein-level-data-and-build-wide-matrix" class="nav-link" data-scroll-target="#load-protein-level-data-and-build-wide-matrix">Load protein-level data and build wide matrix</a></li>
+  <li><a href="#build-aβ-peptide-target-vector" id="toc-build-aβ-peptide-target-vector" class="nav-link" data-scroll-target="#build-aβ-peptide-target-vector">Build Aβ peptide target vector</a></li>
+  <li><a href="#metadata-and-sample-sets" id="toc-metadata-and-sample-sets" class="nav-link" data-scroll-target="#metadata-and-sample-sets">Metadata and sample sets</a></li>
+  <li><a href="#correlation-function-pearson-spearman-fdr" id="toc-correlation-function-pearson-spearman-fdr" class="nav-link" data-scroll-target="#correlation-function-pearson-spearman-fdr">Correlation function (Pearson + Spearman + FDR)</a></li>
+  <li><a href="#primary-analysis-plaque_near" id="toc-primary-analysis-plaque_near" class="nav-link" data-scroll-target="#primary-analysis-plaque_near">Primary analysis: plaque_near</a></li>
+  <li><a href="#secondary-sensitivity-check-plaque_near-plaque_far" id="toc-secondary-sensitivity-check-plaque_near-plaque_far" class="nav-link" data-scroll-target="#secondary-sensitivity-check-plaque_near-plaque_far">Secondary (sensitivity check): plaque_near + plaque_far</a></li>
+  <li><a href="#concordance-between-the-two-analyses" id="toc-concordance-between-the-two-analyses" class="nav-link" data-scroll-target="#concordance-between-the-two-analyses">Concordance between the two analyses</a></li>
+  <li><a href="#volcano-pearson-r-vs--log10p-primary-analysis" id="toc-volcano-pearson-r-vs--log10p-primary-analysis" class="nav-link" data-scroll-target="#volcano-pearson-r-vs--log10p-primary-analysis">Volcano: Pearson R vs -log10(p) — primary analysis</a></li>
+  <li><a href="#sanity-check-scatter-plots-for-known-markers" id="toc-sanity-check-scatter-plots-for-known-markers" class="nav-link" data-scroll-target="#sanity-check-scatter-plots-for-known-markers">Sanity-check scatter plots for known markers</a></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">10. Aβ tryptic peptide correlation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Identify proteins whose MSstats-summarised abundance tracks the Aβ tryptic peptide (<code>LVFFAEDVGSNK</code>) signal across samples.</p>
+<p>Primary analysis is restricted to <code>plaque_near</code> — asks “within plaque regions, what co-varies with Aβ load?”. A secondary <code>plaque_near + plaque_far</code> analysis serves as a sensitivity check with wider dynamic range.</p>
+<section id="libraries" class="level2">
+<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(data.table)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(qs2)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(tidyr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(tibble)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(ggrepel)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(purrr)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="directories" class="level2">
+<h2 class="anchored" data-anchor-id="directories">Directories</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>base_dir <span class="ot">&lt;-</span> <span class="st">"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>run_num <span class="ot">&lt;-</span> <span class="st">"run5"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"results"</span>, run_num)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>objects_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(base_dir, <span class="st">"data"</span>, <span class="st">"processed"</span>, run_num)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>graphs_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(results_dir, <span class="st">"ab_correlation"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(graphs_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="load-protein-level-data-and-build-wide-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="load-protein-level-data-and-build-wide-matrix">Load protein-level data and build wide matrix</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>processed_data <span class="ot">&lt;-</span> <span class="fu">qs_read</span>(<span class="fu">file.path</span>(objects_dir, <span class="st">"processed_msstats_data.qs2"</span>))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>protein_dict <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/clean_spec_raw.csv"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">Protein =</span> PG.ProteinGroups, <span class="at">Gene =</span> PG.Genes) <span class="sc">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>wide_df <span class="ot">&lt;-</span> processed_data<span class="sc">$</span>ProteinLevelData <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(protein_dict, <span class="at">by =</span> <span class="st">"Protein"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Gene =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Gene) <span class="sc">|</span> Gene <span class="sc">==</span> <span class="st">""</span>, Protein, Gene)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(originalRUN, Gene) <span class="sc">%&gt;%</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">Abundance =</span> <span class="fu">mean</span>(LogIntensities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Gene, <span class="at">values_from =</span> Abundance) <span class="sc">%&gt;%</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="st">"originalRUN"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Wide matrix: "</span>, <span class="fu">nrow</span>(wide_df), <span class="st">"runs x "</span>, <span class="fu">ncol</span>(wide_df), <span class="st">"genes</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Wide matrix:  82 runs x  5563 genes</code></pre>
+</div>
+</div>
+</section>
+<section id="build-aβ-peptide-target-vector" class="level2">
+<h2 class="anchored" data-anchor-id="build-aβ-peptide-target-vector">Build Aβ peptide target vector</h2>
+<p>Sum fragment-level <code>F.PeakArea</code> across all precursors of <code>LVFFAEDVGSNK</code> per run, then log2-transform. Runs not covered by the clean msstats data are dropped.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>target_peptide <span class="ot">&lt;-</span> <span class="st">"LVFFAEDVGSNK"</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>msstats_clean <span class="ot">&lt;-</span> <span class="fu">qs_read</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/clean_msstats_input.qs2"</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>ab_target <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(msstats_clean)[</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    PEP.StrippedSequence <span class="sc">==</span> target_peptide,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    .(<span class="at">ab_intensity =</span> <span class="fu">sum</span>(F.PeakArea, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    by <span class="ot">=</span> R.FileName</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  ] <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Ab_log2 =</span> <span class="fu">log2</span>(ab_intensity <span class="sc">+</span> <span class="dv">1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">Run =</span> R.FileName) <span class="sc">%&gt;%</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Run, Ab_log2)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(msstats_clean); <span class="fu">invisible</span>(<span class="fu">gc</span>())</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Aβ target vector: "</span>, <span class="fu">nrow</span>(ab_target), <span class="st">"runs</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Aβ target vector:  159 runs</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(ab_target<span class="sc">$</span>Ab_log2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.397   6.329   7.398   7.641   8.601  12.531 </code></pre>
+</div>
+</div>
+</section>
+<section id="metadata-and-sample-sets" class="level2">
+<h2 class="anchored" data-anchor-id="metadata-and-sample-sets">Metadata and sample sets</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>final_clean_meta <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(base_dir, <span class="st">"data/processed/run1/msstats_annotation.csv"</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>near_runs    <span class="ot">&lt;-</span> final_clean_meta<span class="sc">$</span>Run[final_clean_meta<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"plaque_near"</span>]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>nearfar_runs <span class="ot">&lt;-</span> final_clean_meta<span class="sc">$</span>Run[final_clean_meta<span class="sc">$</span>Condition <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"plaque_near"</span>, <span class="st">"plaque_far"</span>)]</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"plaque_near runs:"</span>, <span class="fu">length</span>(near_runs), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>plaque_near runs: 24 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"plaque_near + plaque_far runs:"</span>, <span class="fu">length</span>(nearfar_runs), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>plaque_near + plaque_far runs: 53 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Intersect with the runs that actually have an Aβ measurement</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"plaque_near with Aβ signal:"</span>,      <span class="fu">sum</span>(near_runs    <span class="sc">%in%</span> ab_target<span class="sc">$</span>Run), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>plaque_near with Aβ signal: 24 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"near+far with Aβ signal:"</span>,          <span class="fu">sum</span>(nearfar_runs <span class="sc">%in%</span> ab_target<span class="sc">$</span>Run), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>near+far with Aβ signal: 53 </code></pre>
+</div>
+</div>
+</section>
+<section id="correlation-function-pearson-spearman-fdr" class="level2">
+<h2 class="anchored" data-anchor-id="correlation-function-pearson-spearman-fdr">Correlation function (Pearson + Spearman + FDR)</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>correlate_to_ab <span class="ot">&lt;-</span> <span class="cf">function</span>(sample_runs, wide_df, ab_target, <span class="at">min_n =</span> <span class="dv">4</span>) {</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  runs_keep <span class="ot">&lt;-</span> <span class="fu">intersect</span>(<span class="fu">intersect</span>(sample_runs, <span class="fu">rownames</span>(wide_df)), ab_target<span class="sc">$</span>Run)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(runs_keep) <span class="sc">&lt;</span> min_n) {</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"Fewer than "</span>, min_n, <span class="st">" samples available for correlation."</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  data_sub <span class="ot">&lt;-</span> wide_df[runs_keep, , drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  ab_vec   <span class="ot">&lt;-</span> ab_target<span class="sc">$</span>Ab_log2[<span class="fu">match</span>(runs_keep, ab_target<span class="sc">$</span>Run)]</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  genes <span class="ot">&lt;-</span> <span class="fu">colnames</span>(data_sub)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(genes, <span class="cf">function</span>(g) {</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> data_sub[[g]]</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> ab_vec</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    keep <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">is.na</span>(x) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(y)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">sum</span>(keep)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (n <span class="sc">&lt;</span> min_n) <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Guard against zero-variance vectors (Spearman/Pearson throw warnings)</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">sd</span>(x[keep]) <span class="sc">==</span> <span class="dv">0</span> <span class="sc">||</span> <span class="fu">sd</span>(y[keep]) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    p_test <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(<span class="fu">cor.test</span>(x[keep], y[keep], <span class="at">method =</span> <span class="st">"pearson"</span>))</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    s_test <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(<span class="fu">cor.test</span>(x[keep], y[keep], <span class="at">method =</span> <span class="st">"spearman"</span>,</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">exact =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">Gene         =</span> g,</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>      <span class="at">n_pairs      =</span> n,</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>      <span class="at">Pearson_R    =</span> <span class="fu">unname</span>(p_test<span class="sc">$</span>estimate),</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>      <span class="at">Pearson_p    =</span> p_test<span class="sc">$</span>p.value,</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>      <span class="at">Spearman_rho =</span> <span class="fu">unname</span>(s_test<span class="sc">$</span>estimate),</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>      <span class="at">Spearman_p   =</span> s_test<span class="sc">$</span>p.value</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>  results <span class="sc">%&gt;%</span></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">Pearson_FDR  =</span> <span class="fu">p.adjust</span>(Pearson_p,  <span class="at">method =</span> <span class="st">"BH"</span>),</span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">Spearman_FDR =</span> <span class="fu">p.adjust</span>(Spearman_p, <span class="at">method =</span> <span class="st">"BH"</span>)</span>
+<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(Pearson_R))</span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="primary-analysis-plaque_near" class="level2">
+<h2 class="anchored" data-anchor-id="primary-analysis-plaque_near">Primary analysis: plaque_near</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ab_cors_near <span class="ot">&lt;-</span> <span class="fu">correlate_to_ab</span>(near_runs, wide_df, ab_target)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Primary analysis: "</span>, <span class="fu">nrow</span>(ab_cors_near), <span class="st">"genes correlated, n_pairs ="</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>(ab_cors_near<span class="sc">$</span>n_pairs), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Primary analysis:  5563 genes correlated, n_pairs = 12 24 23 22 19 21 9 20 14 18 16 6 17 15 13 10 11 8 5 7 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ab_cors_near, <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n_pairs"],"name":[2],"type":["int"],"align":["right"]},{"label":["Pearson_R"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Pearson_p"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Spearman_rho"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Spearman_p"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Pearson_FDR"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Spearman_FDR"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"Mavs","2":"12","3":"0.8987146","4":"7.066858e-05","5":"0.7272727","6":"7.355029e-03","7":"5.867602e-03","8":"9.494758e-02"},{"1":"Itm2c","2":"24","3":"0.8955044","4":"3.423027e-09","5":"0.8591304","6":"7.672131e-08","7":"1.904230e-05","8":"3.725757e-05"},{"1":"Arl8a","2":"24","3":"0.8763282","4":"1.991516e-08","5":"0.8634783","6":"5.550668e-08","7":"5.539402e-05","8":"3.430930e-05"},{"1":"Syt11","2":"23","3":"0.8713692","4":"6.243763e-08","5":"0.8152174","6":"2.157671e-06","7":"6.474590e-05","8":"3.077724e-04"},{"1":"Lamp1","2":"24","3":"0.8664612","4":"4.416806e-08","5":"0.8652174","6":"4.861520e-08","7":"6.474590e-05","8":"3.380579e-05"},{"1":"Clcn6","2":"23","3":"0.8609127","4":"1.351955e-07","5":"0.8507905","6":"2.697756e-07","7":"1.074418e-04","8":"8.761864e-05"},{"1":"Vti1b","2":"24","3":"0.8604690","4":"6.952450e-08","5":"0.8817391","6":"1.249725e-08","7":"6.474590e-05","8":"1.738055e-05"},{"1":"Acp2","2":"24","3":"0.8604093","4":"6.983200e-08","5":"0.8339130","6":"4.148692e-07","7":"6.474590e-05","8":"1.003442e-04"},{"1":"Rundc3a","2":"23","3":"0.8578191","4":"1.679118e-07","5":"0.8339921","6":"7.648752e-07","7":"1.167617e-04","8":"1.575926e-04"},{"1":"Vps18","2":"23","3":"0.8497199","4":"2.893700e-07","5":"0.8458498","6":"3.712004e-07","7":"1.380583e-04","8":"9.833276e-05"},{"1":"Lamp2","2":"23","3":"0.8463797","4":"3.588997e-07","5":"0.8092885","6":"2.923285e-06","7":"1.535815e-04","8":"4.065558e-04"},{"1":"Stx8","2":"23","3":"0.8447605","4":"3.976713e-07","5":"0.8330040","6":"8.103102e-07","7":"1.580176e-04","8":"1.591253e-04"},{"1":"Atp8a1","2":"24","3":"0.8423226","4":"2.441528e-07","5":"0.8373913","6":"3.343844e-07","7":"1.380583e-04","8":"9.300903e-05"},{"1":"Glb1","2":"24","3":"0.8415746","4":"2.562562e-07","5":"0.8573913","6":"8.706605e-08","7":"1.380583e-04","8":"3.725757e-05"},{"1":"Slc9a7","2":"22","3":"0.8395987","4":"1.031104e-06","5":"0.8114060","6":"4.596756e-06","7":"2.842173e-04","8":"6.088512e-04"},{"1":"Arfgef3","2":"24","3":"0.8392269","4":"2.978068e-07","5":"0.8791304","6":"1.568836e-08","7":"1.380583e-04","8":"1.745487e-05"},{"1":"Rraga","2":"23","3":"0.8390490","4":"5.659204e-07","5":"0.8320158","6":"8.581269e-07","7":"2.012507e-04","8":"1.591253e-04"},{"1":"Arpc1b","2":"23","3":"0.8355613","4":"6.973643e-07","5":"0.8913043","6":"1.167055e-08","7":"2.282022e-04","8":"1.738055e-05"},{"1":"Vps11","2":"23","3":"0.8310789","4":"9.057632e-07","5":"0.8221344","6":"1.493204e-06","7":"2.799312e-04","8":"2.443145e-04"},{"1":"Atp9a","2":"24","3":"0.8283821","4":"5.788264e-07","5":"0.8669565","6":"4.250113e-08","7":"2.012507e-04","8":"3.377626e-05"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(ab_cors_near, <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n_pairs"],"name":[2],"type":["int"],"align":["right"]},{"label":["Pearson_R"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Pearson_p"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Spearman_rho"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Spearman_p"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Pearson_FDR"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Spearman_FDR"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"Mbnl2","2":"20","3":"-0.5738630","4":"0.008150780","5":"-0.5924812","6":"0.0059104659","7":"0.08020691","8":"0.08565277"},{"1":"Ccm2","2":"21","3":"-0.5741470","4":"0.006492129","5":"-0.5766234","6":"0.0062133929","7":"0.07609080","8":"0.08673020"},{"1":"Raver1","2":"18","3":"-0.5777141","4":"0.012042585","5":"-0.5025800","6":"0.0335305471","7":"0.08842967","8":"0.18956090"},{"1":"Pno1","2":"14","3":"-0.5829513","4":"0.028673054","5":"-0.4989011","6":"0.0693635274","7":"0.12241612","8":"0.27040596"},{"1":"Ppp4r3a","2":"12","3":"-0.6048372","4":"0.037201718","5":"-0.6083916","6":"0.0358059971","7":"0.13687378","8":"0.19566676"},{"1":"Tub","2":"15","3":"-0.6252426","4":"0.012682616","5":"-0.6678571","6":"0.0065099567","7":"0.08942128","8":"0.08896725"},{"1":"Rrm2b","2":"11","3":"-0.6281386","4":"0.038496045","5":"-0.6272727","6":"0.0388452536","7":"0.13951368","8":"0.20386429"},{"1":"Rnf41","2":"16","3":"-0.6356408","4":"0.008136408","5":"-0.6176471","6":"0.0107879846","7":"0.08020691","8":"0.11217488"},{"1":"Rpusd2","2":"8","3":"-0.6365313","4":"0.089698818","5":"-0.7142857","6":"0.0465282323","7":"0.22691884","8":"0.22119826"},{"1":"Serpinc1","2":"10","3":"-0.6390746","4":"0.046673117","5":"-0.2848485","6":"0.4250381549","7":"0.15501048","8":"0.67249353"},{"1":"Spcs3","2":"14","3":"-0.6414289","4":"0.013418725","5":"-0.6659341","6":"0.0093229991","7":"0.09041872","8":"0.10630746"},{"1":"Slc33a1","2":"7","3":"-0.6706678","4":"0.099147019","5":"-0.6428571","6":"0.1193923734","7":"0.24244170","8":"0.35328711"},{"1":"Cbarp","2":"17","3":"-0.6791144","4":"0.002717599","5":"-0.7524510","6":"0.0004921108","7":"0.05975496","8":"0.01862317"},{"1":"Yipf6","2":"14","3":"-0.7050442","4":"0.004858650","5":"-0.6791209","6":"0.0075622570","7":"0.06923166","8":"0.09626736"},{"1":"Rnf220","2":"10","3":"-0.7393101","4":"0.014545834","5":"-0.5636364","6":"0.0897240283","7":"0.09300974","8":"0.30633515"},{"1":"Scap","2":"12","3":"-0.7444071","4":"0.005488478","5":"-0.6713287","6":"0.0168314562","7":"0.07235167","8":"0.13700600"},{"1":"Ddx54","2":"9","3":"-0.7543232","4":"0.018847666","5":"-0.6500000","6":"0.0580730580","7":"0.09938860","8":"0.24698809"},{"1":"Kcnb2","2":"9","3":"-0.7784561","4":"0.013464910","5":"-0.7000000","6":"0.0357695750","7":"0.09041872","8":"0.19565993"},{"1":"Exosc7","2":"10","3":"-0.8084961","4":"0.004636944","5":"-0.7939394","6":"0.0060999233","7":"0.06923166","8":"0.08634573"},{"1":"Slc20a2","2":"8","3":"-0.8192808","4":"0.012827808","5":"-0.7857143","6":"0.0208151273","7":"0.08949315","8":"0.15142408"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(ab_cors_near,</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">file.path</span>(objects_dir, <span class="st">"ab_correlation_near.csv"</span>),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="secondary-sensitivity-check-plaque_near-plaque_far" class="level2">
+<h2 class="anchored" data-anchor-id="secondary-sensitivity-check-plaque_near-plaque_far">Secondary (sensitivity check): plaque_near + plaque_far</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ab_cors_nearfar <span class="ot">&lt;-</span> <span class="fu">correlate_to_ab</span>(nearfar_runs, wide_df, ab_target)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Sensitivity analysis: "</span>, <span class="fu">nrow</span>(ab_cors_nearfar), <span class="st">"genes correlated, n_pairs ="</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>(ab_cors_nearfar<span class="sc">$</span>n_pairs), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Sensitivity analysis:  5563 genes correlated, n_pairs = 52 53 50 47 49 27 51 48 46 42 41 22 30 23 45 17 34 16 38 18 44 28 36 43 31 21 25 33 24 37 40 19 35 26 20 32 39 29 15 </code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ab_cors_nearfar, <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n_pairs"],"name":[2],"type":["int"],"align":["right"]},{"label":["Pearson_R"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Pearson_p"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Spearman_rho"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Spearman_p"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Pearson_FDR"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Spearman_FDR"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"Clcn6","2":"52","3":"0.8892061","4":"1.315164e-18","5":"0.8487151","6":"1.927410e-15","7":"7.316260e-15","8":"5.361090e-12"},{"1":"Arfgef3","2":"53","3":"0.8782245","4":"5.785773e-18","5":"0.8403483","6":"3.581736e-15","7":"1.609313e-14","8":"6.641732e-12"},{"1":"Syt11","2":"50","3":"0.8685945","4":"3.023705e-16","5":"0.7772869","6":"3.184435e-11","7":"4.205218e-13","8":"1.362693e-08"},{"1":"Gfap","2":"53","3":"0.8579864","4":"2.262824e-16","5":"0.8451056","6":"1.759315e-15","7":"4.196030e-13","8":"5.361090e-12"},{"1":"Cpq","2":"47","3":"0.8572314","4":"1.463093e-14","5":"0.8253932","6":"9.526498e-13","7":"1.267361e-11","8":"1.059918e-09"},{"1":"Dpp7","2":"49","3":"0.8425402","4":"3.200535e-14","5":"0.7929592","6":"1.110351e-11","7":"1.978286e-11","8":"6.176882e-09"},{"1":"Itm2c","2":"53","3":"0.8358676","4":"6.852197e-15","5":"0.7591517","6":"4.462262e-11","7":"7.623754e-12","8":"1.773112e-08"},{"1":"Acp2","2":"53","3":"0.8298251","4":"1.594737e-14","5":"0.7537494","6":"7.312481e-11","7":"1.267361e-11","8":"2.259963e-08"},{"1":"Plbd2","2":"53","3":"0.8282373","4":"1.980213e-14","5":"0.7525399","6":"8.153400e-11","7":"1.376990e-11","8":"2.387230e-08"},{"1":"Vtn","2":"27","3":"0.8203944","4":"1.614953e-07","5":"0.7991453","6":"5.776392e-07","7":"1.214052e-05","8":"4.725598e-05"},{"1":"Rragc","2":"52","3":"0.8199057","4":"1.050161e-13","5":"0.7490822","6":"1.690377e-10","7":"5.842044e-11","8":"4.088509e-08"},{"1":"Clcn7","2":"51","3":"0.8170565","4":"2.627365e-13","5":"0.7502262","6":"2.337490e-10","7":"9.744020e-11","8":"5.201382e-08"},{"1":"Rundc3b","2":"48","3":"0.8155880","4":"1.670449e-12","5":"0.7889709","6":"2.726201e-11","7":"3.717083e-10","8":"1.263822e-08"},{"1":"Vps11","2":"52","3":"0.8146994","4":"2.005350e-13","5":"0.7231281","6":"1.408168e-09","7":"9.296467e-11","8":"2.176011e-07"},{"1":"Enpp5","2":"49","3":"0.8139181","4":"1.159188e-12","5":"0.7674490","6":"1.254223e-10","7":"3.018439e-10","8":"3.322495e-08"},{"1":"Atp9a","2":"53","3":"0.8130607","4":"1.411483e-13","5":"0.7919690","6":"1.639696e-12","7":"7.138256e-11","8":"1.520272e-09"},{"1":"Lamp2","2":"52","3":"0.8126969","4":"2.558076e-13","5":"0.7882694","6":"4.018533e-12","7":"9.744020e-11","8":"2.794388e-09"},{"1":"Rraga","2":"52","3":"0.8125115","4":"2.615987e-13","5":"0.7221890","6":"1.513654e-09","7":"9.744020e-11","8":"2.275799e-07"},{"1":"Gla","2":"51","3":"0.8108521","4":"5.509602e-13","5":"0.7486878","6":"2.664175e-10","7":"1.622647e-10","8":"5.700309e-08"},{"1":"Gns","2":"52","3":"0.8096282","4":"3.694119e-13","5":"0.7600102","6":"6.400996e-11","7":"1.208846e-10","8":"2.113583e-08"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(ab_cors_nearfar, <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n_pairs"],"name":[2],"type":["int"],"align":["right"]},{"label":["Pearson_R"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Pearson_p"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Spearman_rho"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Spearman_p"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Pearson_FDR"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Spearman_FDR"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"Rnf41","2":"31","3":"-0.3837729","4":"0.0330623939","5":"-0.2649194","6":"0.149789794","7":"0.26910958","8":"0.44775960"},{"1":"Scap","2":"26","3":"-0.3952899","4":"0.0456396468","5":"-0.3080342","6":"0.125787485","7":"0.30516028","8":"0.41288036"},{"1":"Gpr37","2":"44","3":"-0.4014169","4":"0.0069199893","5":"-0.3485553","6":"0.020409333","7":"0.11223295","8":"0.16971169"},{"1":"Cwc27","2":"29","3":"-0.4072339","4":"0.0283369361","5":"-0.3295567","6":"0.080846036","7":"0.24795441","8":"0.33093929"},{"1":"Tmem222","2":"29","3":"-0.4114987","4":"0.0265675900","5":"-0.5334975","6":"0.002879682","7":"0.23944342","8":"0.05021381"},{"1":"Brd1","2":"33","3":"-0.4170559","4":"0.0157522469","5":"-0.2683824","6":"0.131004307","7":"0.18067990","8":"0.42150200"},{"1":"Exosc7","2":"25","3":"-0.4193428","4":"0.0369189761","5":"-0.4584615","6":"0.021170481","7":"0.28057413","8":"0.17384704"},{"1":"Phf5a","2":"48","3":"-0.4272575","4":"0.0024555549","5":"-0.3811333","6":"0.007524952","7":"0.05399309","8":"0.09449506"},{"1":"Ebna1bp2","2":"45","3":"-0.4336561","4":"0.0029208364","5":"-0.3625823","6":"0.014374543","7":"0.06129778","8":"0.14051744"},{"1":"S100a11","2":"44","3":"-0.4349809","4":"0.0031701721","5":"-0.3891473","6":"0.009032934","7":"0.06531729","8":"0.10556767"},{"1":"Cavin2","2":"34","3":"-0.4410582","4":"0.0090280523","5":"-0.3925134","6":"0.021668043","7":"0.12844771","8":"0.17577969"},{"1":"Phactr3","2":"42","3":"-0.4537044","4":"0.0025464686","5":"-0.3446236","6":"0.025419075","7":"0.05577167","8":"0.18980714"},{"1":"Hmga1","2":"50","3":"-0.4598356","4":"0.0007805266","5":"-0.4127251","6":"0.002895500","7":"0.02138950","8":"0.05021381"},{"1":"Rbm33","2":"28","3":"-0.4628398","4":"0.0131328941","5":"-0.3601533","6":"0.059754744","7":"0.16507398","8":"0.28981296"},{"1":"Ppp1r14a","2":"25","3":"-0.4728920","4":"0.0169715395","5":"-0.5615385","6":"0.003490854","7":"0.18870682","8":"0.05661697"},{"1":"Tle5","2":"35","3":"-0.4984228","4":"0.0023091277","5":"-0.4893557","6":"0.002850661","7":"0.05097491","8":"0.05016498"},{"1":"Rwdd2a","2":"29","3":"-0.5080979","4":"0.0048926035","5":"-0.5773399","6":"0.001041053","7":"0.08836868","8":"0.02379839"},{"1":"Dennd4c","2":"24","3":"-0.5118109","4":"0.0105706813","5":"-0.5913043","6":"0.002341953","7":"0.14324276","8":"0.04401448"},{"1":"Q7TNH6","2":"25","3":"-0.5155936","4":"0.0083411602","5":"-0.4261538","6":"0.033656495","7":"0.12352734","8":"0.21923935"},{"1":"Tmem201","2":"18","3":"-0.5367533","4":"0.0216363845","5":"-0.4922601","6":"0.037965021","7":"0.21726211","8":"0.23362767"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(ab_cors_nearfar,</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">file.path</span>(objects_dir, <span class="st">"ab_correlation_near_far.csv"</span>),</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="concordance-between-the-two-analyses" class="level2">
+<h2 class="anchored" data-anchor-id="concordance-between-the-two-analyses">Concordance between the two analyses</h2>
+<p>Top hits that survive both are the most defensible candidates.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>concord <span class="ot">&lt;-</span> ab_cors_near <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Gene,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">R_near =</span> Pearson_R,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">p_near =</span> Pearson_p,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">FDR_near =</span> Pearson_FDR) <span class="sc">%&gt;%</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    ab_cors_nearfar <span class="sc">%&gt;%</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>      dplyr<span class="sc">::</span><span class="fu">select</span>(Gene,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">R_nearfar =</span> Pearson_R,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">p_nearfar =</span> Pearson_p,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>                    <span class="at">FDR_nearfar =</span> Pearson_FDR),</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"Gene"</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(R_near))</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(concord, <span class="fu">aes</span>(R_near, R_nearfar)) <span class="sc">+</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> concord <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">abs</span>(R_near) <span class="sc">&gt;</span> <span class="fl">0.8</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(R_nearfar) <span class="sc">&gt;</span> <span class="fl">0.6</span>),</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> Gene), <span class="at">size =</span> <span class="dv">3</span>, <span class="at">max.overlaps =</span> <span class="dv">30</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Pearson R concordance: plaque_near vs plaque_near+plaque_far"</span>,</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Pearson R (plaque_near only)"</span>,</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Pearson R (plaque_near + plaque_far)"</span></span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: ggrepel: 22 unlabeled data points (too many overlaps). Consider
+increasing max.overlaps</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="10_ab_correlation_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="fu">file.path</span>(graphs_dir, <span class="st">"concordance_R_near_vs_nearfar.pdf"</span>),</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: ggrepel: 12 unlabeled data points (too many overlaps). Consider
+increasing max.overlaps</code></pre>
+</div>
+</div>
+</section>
+<section id="volcano-pearson-r-vs--log10p-primary-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="volcano-pearson-r-vs--log10p-primary-analysis">Volcano: Pearson R vs -log10(p) — primary analysis</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>volcano_df <span class="ot">&lt;-</span> ab_cors_near <span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">neg_log10_p =</span> <span class="sc">-</span><span class="fu">log10</span>(Pearson_p),</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">sig =</span> <span class="fu">case_when</span>(</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>           Pearson_FDR <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Pearson_R <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"Pos (FDR&lt;0.05)"</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>           Pearson_FDR <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Pearson_R <span class="sc">&lt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"Neg (FDR&lt;0.05)"</span>,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>           Pearson_p  <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Pearson_R <span class="sc">&gt;</span> <span class="dv">0</span>  <span class="sc">~</span> <span class="st">"Pos (p&lt;0.05)"</span>,</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>           Pearson_p  <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> Pearson_R <span class="sc">&lt;</span> <span class="dv">0</span>  <span class="sc">~</span> <span class="st">"Neg (p&lt;0.05)"</span>,</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span>                                <span class="sc">~</span> <span class="st">"n.s."</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>         ))</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>top_labels <span class="ot">&lt;-</span> volcano_df <span class="sc">%&gt;%</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Pearson_p <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span> <span class="fu">abs</span>(Pearson_R), <span class="at">n =</span> <span class="dv">30</span>)</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(volcano_df, <span class="fu">aes</span>(Pearson_R, neg_log10_p, <span class="at">colour =</span> sig)) <span class="sc">+</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="sc">-</span><span class="fu">log10</span>(<span class="fl">0.05</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> top_labels,</span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> Gene),</span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">3</span>, <span class="at">max.overlaps =</span> <span class="dv">35</span>,</span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">box.padding =</span> <span class="fl">0.4</span>, <span class="at">segment.alpha =</span> <span class="fl">0.5</span></span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Pos (FDR&lt;0.05)"</span> <span class="ot">=</span> <span class="st">"#d95f02"</span>,</span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Neg (FDR&lt;0.05)"</span> <span class="ot">=</span> <span class="st">"#1b9e77"</span>,</span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Pos (p&lt;0.05)"</span>   <span class="ot">=</span> <span class="st">"#fdb462"</span>,</span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Neg (p&lt;0.05)"</span>   <span class="ot">=</span> <span class="st">"#8dd3c7"</span>,</span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"n.s."</span>           <span class="ot">=</span> <span class="st">"grey70"</span></span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"Correlation of protein abundance with Aβ peptide ("</span>,</span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a>                   target_peptide, <span class="st">")"</span>),</span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"plaque_near samples"</span>,</span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Pearson R"</span>,</span>
+<span id="cb32-37"><a href="#cb32-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"-log10(p)"</span></span>
+<span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.title =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="10_ab_correlation_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="fu">file.path</span>(graphs_dir, <span class="st">"volcano_ab_correlation_near.pdf"</span>),</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">width =</span> <span class="dv">10</span>, <span class="at">height =</span> <span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
+conversion failure on 'Correlation of protein abundance with Aβ peptide
+(LVFFAEDVGSNK)' in 'mbcsToSbcs': for β (U+03B2)</code></pre>
+</div>
+</div>
+</section>
+<section id="sanity-check-scatter-plots-for-known-markers" class="level2">
+<h2 class="anchored" data-anchor-id="sanity-check-scatter-plots-for-known-markers">Sanity-check scatter plots for known markers</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>marker_genes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Gfap"</span>, <span class="st">"App"</span>, <span class="st">"Apoe"</span>, <span class="st">"Clu"</span>, <span class="st">"C1qa"</span>, <span class="st">"C1qb"</span>, <span class="st">"C1qc"</span>,</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"Trem2"</span>, <span class="st">"Cd44"</span>, <span class="st">"Vim"</span>, <span class="st">"S100b"</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>marker_genes <span class="ot">&lt;-</span> <span class="fu">intersect</span>(marker_genes, <span class="fu">colnames</span>(wide_df))</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>scatter_runs <span class="ot">&lt;-</span> <span class="fu">intersect</span>(nearfar_runs, ab_target<span class="sc">$</span>Run)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>scatter_runs <span class="ot">&lt;-</span> <span class="fu">intersect</span>(scatter_runs, <span class="fu">rownames</span>(wide_df))</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>scatter_df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Run =</span> scatter_runs) <span class="sc">%&gt;%</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Ab_log2 =</span> ab_target<span class="sc">$</span>Ab_log2[<span class="fu">match</span>(Run, ab_target<span class="sc">$</span>Run)]) <span class="sc">%&gt;%</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(final_clean_meta <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Run, Condition), <span class="at">by =</span> <span class="st">"Run"</span>)</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> marker_genes) {</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  scatter_df[[g]] <span class="ot">&lt;-</span> wide_df[scatter_df<span class="sc">$</span>Run, g]</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>scatter_long <span class="ot">&lt;-</span> scatter_df <span class="sc">%&gt;%</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(marker_genes),</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Gene"</span>,</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"LogIntensity"</span>)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute per-gene R within plaque_near only, for the panel annotations</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>anno_df <span class="ot">&lt;-</span> scatter_long <span class="sc">%&gt;%</span></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Condition <span class="sc">==</span> <span class="st">"plaque_near"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Gene) <span class="sc">%&gt;%</span></span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="fu">cor</span>(Ab_log2, LogIntensity, <span class="at">use =</span> <span class="st">"pairwise.complete.obs"</span>),</span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"R[near] = %.2f"</span>, R))</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(scatter_long, <span class="fu">aes</span>(Ab_log2, LogIntensity, <span class="at">colour =</span> Condition)) <span class="sc">+</span></span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">data =</span> scatter_long <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Condition <span class="sc">==</span> <span class="st">"plaque_near"</span>),</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">group =</span> <span class="dv">1</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>              <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> anno_df,</span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">y =</span> <span class="cn">Inf</span>, <span class="at">label =</span> label),</span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>            <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="fl">1.3</span>, <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Gene, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"control"</span>     <span class="ot">=</span> <span class="st">"#1b9e77"</span>,</span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">"plaque_far"</span>  <span class="ot">=</span> <span class="st">"#7570b3"</span>,</span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">"plaque_near"</span> <span class="ot">=</span> <span class="st">"#d95f02"</span></span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Known markers vs Aβ peptide intensity"</span>,</span>
+<span id="cb35-47"><a href="#cb35-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"fit line on plaque_near only"</span>,</span>
+<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Log2(Aβ peptide intensity)"</span>,</span>
+<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Log2 protein intensity (MSstats summarised)"</span></span>
+<span id="cb35-50"><a href="#cb35-50" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb35-51"><a href="#cb35-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 8 rows containing non-finite outside the scale range
+(`stat_smooth()`).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 21 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="10_ab_correlation_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="fu">file.path</span>(graphs_dir, <span class="st">"ab_marker_scatter.pdf"</span>),</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">width =</span> <span class="dv">12</span>, <span class="at">height =</span> <span class="dv">9</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 8 rows containing non-finite outside the scale range (`stat_smooth()`).
+Removed 21 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
+conversion failure on 'Log2(Aβ peptide intensity)' in 'mbcsToSbcs': for β
+(U+03B2)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :
+conversion failure on 'Known markers vs Aβ peptide intensity' in 'mbcsToSbcs':
+for β (U+03B2)</code></pre>
+</div>
+</div>
+</section>
+<section id="session-info" class="level2">
+<h2 class="anchored" data-anchor-id="session-info">Session info</h2>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.5.1 (2025-06-13)
+Platform: x86_64-pc-linux-gnu
+Running under: Rocky Linux 8.7 (Green Obsidian)
+
+Matrix products: default
+BLAS/LAPACK: FlexiBLAS OPENBLAS;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/London
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] purrr_1.2.1         ggrepel_0.9.6       ggplot2_4.0.2      
+[4] tibble_3.3.1        tidyr_1.3.2         dplyr_1.2.0        
+[7] qs2_0.1.6           data.table_1.18.2.1
+
+loaded via a namespace (and not attached):
+ [1] Matrix_1.7-4          gtable_0.3.6          jsonlite_2.0.0       
+ [4] compiler_4.5.1        tidyselect_1.2.1      Rcpp_1.1.1           
+ [7] splines_4.5.1         textshaping_1.0.3     systemfonts_1.3.1    
+[10] scales_1.4.0          yaml_2.3.12           fastmap_1.2.0        
+[13] lattice_0.22-7        R6_2.6.1              labeling_0.4.3       
+[16] generics_0.1.4        knitr_1.51            htmlwidgets_1.6.4    
+[19] stringfish_0.17.0     pillar_1.11.1         RColorBrewer_1.1-3   
+[22] rlang_1.1.7           xfun_0.56             S7_0.2.1             
+[25] RcppParallel_5.1.11-1 otel_0.2.0            cli_3.6.5            
+[28] mgcv_1.9-4            withr_3.0.2           magrittr_2.0.4       
+[31] digest_0.6.39         grid_4.5.1            nlme_3.1-168         
+[34] lifecycle_1.0.5       vctrs_0.7.1           evaluate_1.0.5       
+[37] glue_1.8.0            farver_2.1.2          ragg_1.5.0           
+[40] rmarkdown_2.30        tools_4.5.1           pkgconfig_2.0.3      
+[43] htmltools_0.5.9      </code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

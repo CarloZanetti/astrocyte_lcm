@@ -470,6 +470,411 @@
     ]
   },
   {
+    "objectID": "notebooks/10_ab_correlation.html",
+    "href": "notebooks/10_ab_correlation.html",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "",
+    "text": "Identify proteins whose MSstats-summarised abundance tracks the Aβ tryptic peptide (LVFFAEDVGSNK) signal across samples.\nPrimary analysis is restricted to plaque_near — asks “within plaque regions, what co-varies with Aβ load?”. A secondary plaque_near + plaque_far analysis serves as a sensitivity check with wider dynamic range."
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#libraries",
+    "href": "notebooks/10_ab_correlation.html#libraries",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Libraries",
+    "text": "Libraries\n\n\nCode\nsuppressPackageStartupMessages({\n  library(data.table)\n  library(qs2)\n  library(dplyr)\n  library(tidyr)\n  library(tibble)\n  library(ggplot2)\n  library(ggrepel)\n  library(purrr)\n})"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#directories",
+    "href": "notebooks/10_ab_correlation.html#directories",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Directories",
+    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run5\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\ngraphs_dir &lt;- file.path(results_dir, \"ab_correlation\")\n\ndir.create(graphs_dir, recursive = TRUE, showWarnings = FALSE)"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#load-protein-level-data-and-build-wide-matrix",
+    "href": "notebooks/10_ab_correlation.html#load-protein-level-data-and-build-wide-matrix",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Load protein-level data and build wide matrix",
+    "text": "Load protein-level data and build wide matrix\n\n\nCode\nprocessed_data &lt;- qs_read(file.path(objects_dir, \"processed_msstats_data.qs2\"))\n\nprotein_dict &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\")) %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, Gene = PG.Genes) %&gt;%\n  distinct()\n\nwide_df &lt;- processed_data$ProteinLevelData %&gt;%\n  left_join(protein_dict, by = \"Protein\") %&gt;%\n  mutate(Gene = ifelse(is.na(Gene) | Gene == \"\", Protein, Gene)) %&gt;%\n  group_by(originalRUN, Gene) %&gt;%\n  summarize(Abundance = mean(LogIntensities, na.rm = TRUE), .groups = \"drop\") %&gt;%\n  pivot_wider(names_from = Gene, values_from = Abundance) %&gt;%\n  column_to_rownames(\"originalRUN\")\n\ncat(\"Wide matrix: \", nrow(wide_df), \"runs x \", ncol(wide_df), \"genes\\n\")\n\n\nWide matrix:  82 runs x  5563 genes"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#build-aβ-peptide-target-vector",
+    "href": "notebooks/10_ab_correlation.html#build-aβ-peptide-target-vector",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Build Aβ peptide target vector",
+    "text": "Build Aβ peptide target vector\nSum fragment-level F.PeakArea across all precursors of LVFFAEDVGSNK per run, then log2-transform. Runs not covered by the clean msstats data are dropped.\n\n\nCode\ntarget_peptide &lt;- \"LVFFAEDVGSNK\"\n\nmsstats_clean &lt;- qs_read(file.path(base_dir, \"data/processed/run1/clean_msstats_input.qs2\"))\n\nab_target &lt;- as.data.table(msstats_clean)[\n    PEP.StrippedSequence == target_peptide,\n    .(ab_intensity = sum(F.PeakArea, na.rm = TRUE)),\n    by = R.FileName\n  ] %&gt;%\n  as_tibble() %&gt;%\n  mutate(Ab_log2 = log2(ab_intensity + 1)) %&gt;%\n  dplyr::rename(Run = R.FileName) %&gt;%\n  dplyr::select(Run, Ab_log2)\n\nrm(msstats_clean); invisible(gc())\n\ncat(\"Aβ target vector: \", nrow(ab_target), \"runs\\n\")\n\n\nAβ target vector:  159 runs\n\n\nCode\nsummary(ab_target$Ab_log2)\n\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n  2.397   6.329   7.398   7.641   8.601  12.531"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#metadata-and-sample-sets",
+    "href": "notebooks/10_ab_correlation.html#metadata-and-sample-sets",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Metadata and sample sets",
+    "text": "Metadata and sample sets\n\n\nCode\nfinal_clean_meta &lt;- read.csv(file.path(base_dir, \"data/processed/run1/msstats_annotation.csv\"))\n\nnear_runs    &lt;- final_clean_meta$Run[final_clean_meta$Condition == \"plaque_near\"]\nnearfar_runs &lt;- final_clean_meta$Run[final_clean_meta$Condition %in% c(\"plaque_near\", \"plaque_far\")]\n\ncat(\"plaque_near runs:\", length(near_runs), \"\\n\")\n\n\nplaque_near runs: 24 \n\n\nCode\ncat(\"plaque_near + plaque_far runs:\", length(nearfar_runs), \"\\n\")\n\n\nplaque_near + plaque_far runs: 53 \n\n\nCode\n# Intersect with the runs that actually have an Aβ measurement\ncat(\"plaque_near with Aβ signal:\",      sum(near_runs    %in% ab_target$Run), \"\\n\")\n\n\nplaque_near with Aβ signal: 24 \n\n\nCode\ncat(\"near+far with Aβ signal:\",          sum(nearfar_runs %in% ab_target$Run), \"\\n\")\n\n\nnear+far with Aβ signal: 53"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#correlation-function-pearson-spearman-fdr",
+    "href": "notebooks/10_ab_correlation.html#correlation-function-pearson-spearman-fdr",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Correlation function (Pearson + Spearman + FDR)",
+    "text": "Correlation function (Pearson + Spearman + FDR)\n\n\nCode\ncorrelate_to_ab &lt;- function(sample_runs, wide_df, ab_target, min_n = 4) {\n\n  runs_keep &lt;- intersect(intersect(sample_runs, rownames(wide_df)), ab_target$Run)\n  if (length(runs_keep) &lt; min_n) {\n    stop(\"Fewer than \", min_n, \" samples available for correlation.\")\n  }\n\n  data_sub &lt;- wide_df[runs_keep, , drop = FALSE]\n  ab_vec   &lt;- ab_target$Ab_log2[match(runs_keep, ab_target$Run)]\n\n  genes &lt;- colnames(data_sub)\n\n  results &lt;- map_dfr(genes, function(g) {\n    x &lt;- data_sub[[g]]\n    y &lt;- ab_vec\n    keep &lt;- !is.na(x) & !is.na(y)\n    n &lt;- sum(keep)\n    if (n &lt; min_n) return(NULL)\n\n    # Guard against zero-variance vectors (Spearman/Pearson throw warnings)\n    if (sd(x[keep]) == 0 || sd(y[keep]) == 0) return(NULL)\n\n    p_test &lt;- suppressWarnings(cor.test(x[keep], y[keep], method = \"pearson\"))\n    s_test &lt;- suppressWarnings(cor.test(x[keep], y[keep], method = \"spearman\",\n                                        exact = FALSE))\n\n    tibble(\n      Gene         = g,\n      n_pairs      = n,\n      Pearson_R    = unname(p_test$estimate),\n      Pearson_p    = p_test$p.value,\n      Spearman_rho = unname(s_test$estimate),\n      Spearman_p   = s_test$p.value\n    )\n  })\n\n  results %&gt;%\n    mutate(\n      Pearson_FDR  = p.adjust(Pearson_p,  method = \"BH\"),\n      Spearman_FDR = p.adjust(Spearman_p, method = \"BH\")\n    ) %&gt;%\n    arrange(desc(Pearson_R))\n}"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#primary-analysis-plaque_near",
+    "href": "notebooks/10_ab_correlation.html#primary-analysis-plaque_near",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Primary analysis: plaque_near",
+    "text": "Primary analysis: plaque_near\n\n\nCode\nab_cors_near &lt;- correlate_to_ab(near_runs, wide_df, ab_target)\n\ncat(\"Primary analysis: \", nrow(ab_cors_near), \"genes correlated, n_pairs =\",\n    unique(ab_cors_near$n_pairs), \"\\n\\n\")\n\n\nPrimary analysis:  5563 genes correlated, n_pairs = 12 24 23 22 19 21 9 20 14 18 16 6 17 15 13 10 11 8 5 7 \n\n\nCode\nhead(ab_cors_near, 20)\n\n\n\n  \n\n\n\nCode\ntail(ab_cors_near, 20)\n\n\n\n  \n\n\n\nCode\nwrite.csv(ab_cors_near,\n          file.path(objects_dir, \"ab_correlation_near.csv\"),\n          row.names = FALSE)"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#secondary-sensitivity-check-plaque_near-plaque_far",
+    "href": "notebooks/10_ab_correlation.html#secondary-sensitivity-check-plaque_near-plaque_far",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Secondary (sensitivity check): plaque_near + plaque_far",
+    "text": "Secondary (sensitivity check): plaque_near + plaque_far\n\n\nCode\nab_cors_nearfar &lt;- correlate_to_ab(nearfar_runs, wide_df, ab_target)\n\ncat(\"Sensitivity analysis: \", nrow(ab_cors_nearfar), \"genes correlated, n_pairs =\",\n    unique(ab_cors_nearfar$n_pairs), \"\\n\\n\")\n\n\nSensitivity analysis:  5563 genes correlated, n_pairs = 52 53 50 47 49 27 51 48 46 42 41 22 30 23 45 17 34 16 38 18 44 28 36 43 31 21 25 33 24 37 40 19 35 26 20 32 39 29 15 \n\n\nCode\nhead(ab_cors_nearfar, 20)\n\n\n\n  \n\n\n\nCode\ntail(ab_cors_nearfar, 20)\n\n\n\n  \n\n\n\nCode\nwrite.csv(ab_cors_nearfar,\n          file.path(objects_dir, \"ab_correlation_near_far.csv\"),\n          row.names = FALSE)"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#concordance-between-the-two-analyses",
+    "href": "notebooks/10_ab_correlation.html#concordance-between-the-two-analyses",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Concordance between the two analyses",
+    "text": "Concordance between the two analyses\nTop hits that survive both are the most defensible candidates.\n\n\nCode\nconcord &lt;- ab_cors_near %&gt;%\n  dplyr::select(Gene,\n                R_near = Pearson_R,\n                p_near = Pearson_p,\n                FDR_near = Pearson_FDR) %&gt;%\n  inner_join(\n    ab_cors_nearfar %&gt;%\n      dplyr::select(Gene,\n                    R_nearfar = Pearson_R,\n                    p_nearfar = Pearson_p,\n                    FDR_nearfar = Pearson_FDR),\n    by = \"Gene\"\n  ) %&gt;%\n  arrange(desc(R_near))\n\nggplot(concord, aes(R_near, R_nearfar)) +\n  geom_hline(yintercept = 0, colour = \"grey70\") +\n  geom_vline(xintercept = 0, colour = \"grey70\") +\n  geom_point(alpha = 0.4, size = 1) +\n  geom_abline(slope = 1, intercept = 0, linetype = \"dashed\", colour = \"red\") +\n  geom_text_repel(\n    data = concord %&gt;% filter(abs(R_near) &gt; 0.8 & abs(R_nearfar) &gt; 0.6),\n    aes(label = Gene), size = 3, max.overlaps = 30\n  ) +\n  labs(\n    title = \"Pearson R concordance: plaque_near vs plaque_near+plaque_far\",\n    x = \"Pearson R (plaque_near only)\",\n    y = \"Pearson R (plaque_near + plaque_far)\"\n  ) +\n  theme_minimal()\n\n\nWarning: ggrepel: 22 unlabeled data points (too many overlaps). Consider\nincreasing max.overlaps\n\n\n\n\n\n\n\n\n\nCode\nggsave(file.path(graphs_dir, \"concordance_R_near_vs_nearfar.pdf\"),\n       width = 8, height = 7)\n\n\nWarning: ggrepel: 12 unlabeled data points (too many overlaps). Consider\nincreasing max.overlaps"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#volcano-pearson-r-vs--log10p-primary-analysis",
+    "href": "notebooks/10_ab_correlation.html#volcano-pearson-r-vs--log10p-primary-analysis",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Volcano: Pearson R vs -log10(p) — primary analysis",
+    "text": "Volcano: Pearson R vs -log10(p) — primary analysis\n\n\nCode\nvolcano_df &lt;- ab_cors_near %&gt;%\n  mutate(neg_log10_p = -log10(Pearson_p),\n         sig = case_when(\n           Pearson_FDR &lt; 0.05 & Pearson_R &gt; 0 ~ \"Pos (FDR&lt;0.05)\",\n           Pearson_FDR &lt; 0.05 & Pearson_R &lt; 0 ~ \"Neg (FDR&lt;0.05)\",\n           Pearson_p  &lt; 0.05 & Pearson_R &gt; 0  ~ \"Pos (p&lt;0.05)\",\n           Pearson_p  &lt; 0.05 & Pearson_R &lt; 0  ~ \"Neg (p&lt;0.05)\",\n           TRUE                                ~ \"n.s.\"\n         ))\n\ntop_labels &lt;- volcano_df %&gt;%\n  filter(Pearson_p &lt; 0.05) %&gt;%\n  slice_max(order_by = abs(Pearson_R), n = 30)\n\nggplot(volcano_df, aes(Pearson_R, neg_log10_p, colour = sig)) +\n  geom_point(alpha = 0.5, size = 1) +\n  geom_vline(xintercept = 0, colour = \"grey70\") +\n  geom_hline(yintercept = -log10(0.05), linetype = \"dashed\", colour = \"grey50\") +\n  geom_text_repel(\n    data = top_labels,\n    aes(label = Gene),\n    size = 3, max.overlaps = 35,\n    box.padding = 0.4, segment.alpha = 0.5\n  ) +\n  scale_colour_manual(values = c(\n    \"Pos (FDR&lt;0.05)\" = \"#d95f02\",\n    \"Neg (FDR&lt;0.05)\" = \"#1b9e77\",\n    \"Pos (p&lt;0.05)\"   = \"#fdb462\",\n    \"Neg (p&lt;0.05)\"   = \"#8dd3c7\",\n    \"n.s.\"           = \"grey70\"\n  )) +\n  labs(\n    title = paste0(\"Correlation of protein abundance with Aβ peptide (\",\n                   target_peptide, \")\"),\n    subtitle = \"plaque_near samples\",\n    x = \"Pearson R\",\n    y = \"-log10(p)\"\n  ) +\n  theme_minimal() +\n  theme(legend.title = element_blank())\n\n\n\n\n\n\n\n\n\nCode\nggsave(file.path(graphs_dir, \"volcano_ab_correlation_near.pdf\"),\n       width = 10, height = 7)\n\n\nWarning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :\nconversion failure on 'Correlation of protein abundance with Aβ peptide\n(LVFFAEDVGSNK)' in 'mbcsToSbcs': for β (U+03B2)"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#sanity-check-scatter-plots-for-known-markers",
+    "href": "notebooks/10_ab_correlation.html#sanity-check-scatter-plots-for-known-markers",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Sanity-check scatter plots for known markers",
+    "text": "Sanity-check scatter plots for known markers\n\n\nCode\nmarker_genes &lt;- c(\"Gfap\", \"App\", \"Apoe\", \"Clu\", \"C1qa\", \"C1qb\", \"C1qc\",\n                  \"Trem2\", \"Cd44\", \"Vim\", \"S100b\")\nmarker_genes &lt;- intersect(marker_genes, colnames(wide_df))\n\nscatter_runs &lt;- intersect(nearfar_runs, ab_target$Run)\nscatter_runs &lt;- intersect(scatter_runs, rownames(wide_df))\n\nscatter_df &lt;- tibble(Run = scatter_runs) %&gt;%\n  mutate(Ab_log2 = ab_target$Ab_log2[match(Run, ab_target$Run)]) %&gt;%\n  left_join(final_clean_meta %&gt;% dplyr::select(Run, Condition), by = \"Run\")\n\nfor (g in marker_genes) {\n  scatter_df[[g]] &lt;- wide_df[scatter_df$Run, g]\n}\n\nscatter_long &lt;- scatter_df %&gt;%\n  pivot_longer(cols = all_of(marker_genes),\n               names_to = \"Gene\",\n               values_to = \"LogIntensity\")\n\n# Compute per-gene R within plaque_near only, for the panel annotations\nanno_df &lt;- scatter_long %&gt;%\n  filter(Condition == \"plaque_near\") %&gt;%\n  group_by(Gene) %&gt;%\n  summarise(\n    R = cor(Ab_log2, LogIntensity, use = \"pairwise.complete.obs\"),\n    .groups = \"drop\"\n  ) %&gt;%\n  mutate(label = sprintf(\"R[near] = %.2f\", R))\n\nggplot(scatter_long, aes(Ab_log2, LogIntensity, colour = Condition)) +\n  geom_point(size = 2, alpha = 0.8) +\n  geom_smooth(data = scatter_long %&gt;% filter(Condition == \"plaque_near\"),\n              aes(group = 1), method = \"lm\", se = FALSE,\n              colour = \"black\", linewidth = 0.6) +\n  geom_text(data = anno_df,\n            aes(x = -Inf, y = Inf, label = label),\n            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 3) +\n  facet_wrap(~ Gene, scales = \"free_y\") +\n  scale_colour_manual(values = c(\n    \"control\"     = \"#1b9e77\",\n    \"plaque_far\"  = \"#7570b3\",\n    \"plaque_near\" = \"#d95f02\"\n  )) +\n  labs(\n    title = \"Known markers vs Aβ peptide intensity\",\n    subtitle = \"fit line on plaque_near only\",\n    x = \"Log2(Aβ peptide intensity)\",\n    y = \"Log2 protein intensity (MSstats summarised)\"\n  ) +\n  theme_minimal()\n\n\n`geom_smooth()` using formula = 'y ~ x'\n\n\nWarning: Removed 8 rows containing non-finite outside the scale range\n(`stat_smooth()`).\n\n\nWarning: Removed 21 rows containing missing values or values outside the scale range\n(`geom_point()`).\n\n\n\n\n\n\n\n\n\nCode\nggsave(file.path(graphs_dir, \"ab_marker_scatter.pdf\"),\n       width = 12, height = 9)\n\n\n`geom_smooth()` using formula = 'y ~ x'\n\n\nWarning: Removed 8 rows containing non-finite outside the scale range (`stat_smooth()`).\nRemoved 21 rows containing missing values or values outside the scale range\n(`geom_point()`).\n\n\nWarning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :\nconversion failure on 'Log2(Aβ peptide intensity)' in 'mbcsToSbcs': for β\n(U+03B2)\n\n\nWarning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, :\nconversion failure on 'Known markers vs Aβ peptide intensity' in 'mbcsToSbcs':\nfor β (U+03B2)"
+  },
+  {
+    "objectID": "notebooks/10_ab_correlation.html#session-info",
+    "href": "notebooks/10_ab_correlation.html#session-info",
+    "title": "10. Aβ tryptic peptide correlation",
+    "section": "Session info",
+    "text": "Session info\n\n\nCode\nsessionInfo()\n\n\nR version 4.5.1 (2025-06-13)\nPlatform: x86_64-pc-linux-gnu\nRunning under: Rocky Linux 8.7 (Green Obsidian)\n\nMatrix products: default\nBLAS/LAPACK: FlexiBLAS OPENBLAS;  LAPACK version 3.12.0\n\nlocale:\n [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              \n [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    \n [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   \n [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 \n [9] LC_ADDRESS=C               LC_TELEPHONE=C            \n[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       \n\ntime zone: Europe/London\ntzcode source: system (glibc)\n\nattached base packages:\n[1] stats     graphics  grDevices utils     datasets  methods   base     \n\nother attached packages:\n[1] purrr_1.2.1         ggrepel_0.9.6       ggplot2_4.0.2      \n[4] tibble_3.3.1        tidyr_1.3.2         dplyr_1.2.0        \n[7] qs2_0.1.6           data.table_1.18.2.1\n\nloaded via a namespace (and not attached):\n [1] Matrix_1.7-4          gtable_0.3.6          jsonlite_2.0.0       \n [4] compiler_4.5.1        tidyselect_1.2.1      Rcpp_1.1.1           \n [7] splines_4.5.1         textshaping_1.0.3     systemfonts_1.3.1    \n[10] scales_1.4.0          yaml_2.3.12           fastmap_1.2.0        \n[13] lattice_0.22-7        R6_2.6.1              labeling_0.4.3       \n[16] generics_0.1.4        knitr_1.51            htmlwidgets_1.6.4    \n[19] stringfish_0.17.0     pillar_1.11.1         RColorBrewer_1.1-3   \n[22] rlang_1.1.7           xfun_0.56             S7_0.2.1             \n[25] RcppParallel_5.1.11-1 otel_0.2.0            cli_3.6.5            \n[28] mgcv_1.9-4            withr_3.0.2           magrittr_2.0.4       \n[31] digest_0.6.39         grid_4.5.1            nlme_3.1-168         \n[34] lifecycle_1.0.5       vctrs_0.7.1           evaluate_1.0.5       \n[37] glue_1.8.0            farver_2.1.2          ragg_1.5.0           \n[40] rmarkdown_2.30        tools_4.5.1           pkgconfig_2.0.3      \n[43] htmltools_0.5.9"
+  },
+  {
+    "objectID": "notebooks/04_gsea.html",
+    "href": "notebooks/04_gsea.html",
+    "title": "4. GSEA",
+    "section": "",
+    "text": "==================================================================",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#workflow-overview",
+    "href": "notebooks/04_gsea.html#workflow-overview",
+    "title": "4. GSEA",
+    "section": "Workflow overview",
+    "text": "Workflow overview\n1. Data Loading: Imports DE tables (CSV) from the msstats step.\n2. Gene Set Prep: Loads pathways from multiple sources (GO / KEGG / cell type signatures (C8)/ DAA signature)\n3. Ranking: Ranks proteins by Log2FC for every comparison.\n4. Analysis Loop: Runs GSEA for every combination of [Comparison x Gene Set Database].\n5. Visualization:\n\nGenerates summary bar plots of top 10 and bottom 10 NES.\n\n\n\nGenerates specific enrichment plots (mountain plots) for key pathways of choice.\n\n==================================================================",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#load-libraries",
+    "href": "notebooks/04_gsea.html#load-libraries",
+    "title": "4. GSEA",
+    "section": "Load libraries",
+    "text": "Load libraries\n\n\nCode\nsuppressPackageStartupMessages({\nlibrary(data.table)\nlibrary(qs2)\nlibrary(ggrepel)\nlibrary(ggplot2)\nlibrary(stringr)\nlibrary(glue)\nlibrary(dplyr)\nlibrary(msigdbr)\nlibrary(fgsea)\nlibrary(viridis)\nlibrary(readxl)\n})",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#set-directories",
+    "href": "notebooks/04_gsea.html#set-directories",
+    "title": "4. GSEA",
+    "section": "Set directories",
+    "text": "Set directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\n\nrun_num &lt;- \"run5\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\nraw_dir &lt;- file.path(base_dir, \"data\", \"raw\")\n\ndir.create(results_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#read-in-de-data",
+    "href": "notebooks/04_gsea.html#read-in-de-data",
+    "title": "4. GSEA",
+    "section": "Read in DE data",
+    "text": "Read in DE data\n\n\nCode\n#seurat &lt;- qs_read(glue(\"output/{run_num}/objects/prelabelled_integrated_rpca.qs2\"))\nres_df &lt;- fread(file.path(results_dir, \"Full_GroupComparison_Results.csv\"))\nclean_spec_raw &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\"))\n\nprotein_dictionary &lt;- clean_spec_raw %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, \n         Gene = PG.Genes, \n         Description = PG.ProteinDescriptions) %&gt;%\n  distinct()\n\nres_df",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#define-helper-functions",
+    "href": "notebooks/04_gsea.html#define-helper-functions",
+    "title": "4. GSEA",
+    "section": "Define helper functions",
+    "text": "Define helper functions\n\n\nCode\n# ==============================================================================\n# 1. HELPER FUNCTIONS\n# ==============================================================================\n\n# A. Create Rank Vector from MSstats Data\nprep_msstats_ranks &lt;- function(msstats_res, dict, comp_label) {\n  df &lt;- msstats_res %&gt;%\n    filter(Label == comp_label) %&gt;%\n    # Keep only finite log2FC values (removes Inf and -Inf)\n    filter(is.finite(log2FC)) %&gt;%\n    left_join(dict, by = \"Protein\") %&gt;%\n    filter(!is.na(Gene) & Gene != \"\") %&gt;%\n    mutate(Gene = toupper(Gene)) %&gt;%\n    mutate(adj.pvalue = ifelse(adj.pvalue == 0, 1e-300, adj.pvalue)) %&gt;%\n    group_by(Gene) %&gt;%\n    slice_max(order_by = abs(log2FC), n = 1, with_ties = FALSE) %&gt;%\n    ungroup()\n  \n  #rank by logFC\n  ranks &lt;- df$log2FC\n  names(ranks) &lt;- df$Gene\n  \n  # Remove any unexpected NAs in names or values\n  ranks &lt;- ranks[!is.na(ranks) & !is.na(names(ranks))]\n  \n  return(sort(ranks, decreasing = TRUE))\n}\n\n# B. Core GSEA & Plotting Function\nrun_gsea_analysis &lt;- function(ranks, \n                              comparison_name, \n                              geneset_name,    \n                              pathways, \n                              base_objects_dir, \n                              base_graphs_dir,  \n                              color_A = \"firebrick3\",\n                              color_B = \"navy\") {\n  \n  message(glue(\"Running GSEA | Set: {geneset_name} | Comp: {comparison_name}\"))\n  \n  # --- DYNAMIC LABEL GENERATION ---\n  # Split the comparison name to get the two groups (e.g., \"PlaqueNear\" and \"PlaqueFar\")\n  comp_parts &lt;- str_split(comparison_name, \"_vs_\")[[1]]\n  if(length(comp_parts) == 2) {\n    group_A_label &lt;- glue(\"{comp_parts[1]} Enriched\") # Positive NES\n    group_B_label &lt;- glue(\"{comp_parts[2]} Enriched\") # Negative NES\n  } else {\n    group_A_label &lt;- \"Group A Enriched\"\n    group_B_label &lt;- \"Group B Enriched\"\n  }\n  \n  # Clean title for the plot\n  clean_comp_title &lt;- gsub(\"_\", \" \", comparison_name)\n  plot_title &lt;- glue(\"{clean_comp_title} ({geneset_name})\")\n\n  # --- Directories ---\n  current_objects_dir &lt;- file.path(base_objects_dir, \"GSEA_Analysis_logfc_x_pval\", comparison_name)\n  current_graphs_dir  &lt;- file.path(base_graphs_dir, \"GSEA_Analysis_logfc_x_pval\", comparison_name)\n  dir.create(current_objects_dir, recursive = TRUE, showWarnings = FALSE)\n  dir.create(current_graphs_dir, recursive = TRUE, showWarnings = FALSE)\n  \n  # --- Run FGSEA ---\n  pathways_upper &lt;- lapply(pathways, toupper)\n  set.seed(42)\n  fgsea_res &lt;- fgsea(\n    pathways = pathways_upper,\n    stats    = ranks,\n    minSize  = 15,\n    maxSize  = 3000,\n    nproc    = 4, \n    nPermSimple = 10000 #changed this \n  )\n  \n  if (nrow(fgsea_res) == 0) {\n    warning(glue(\"No significant pathways for {geneset_name} in {comparison_name}\"))\n    return(NULL)\n  }\n  \n  # --- Tidy & Save ---\n  fgsea_res_tidy &lt;- fgsea_res %&gt;%\n    as_tibble() %&gt;%\n    mutate(leadingEdge = sapply(leadingEdge, paste, collapse = \",\")) %&gt;%\n    mutate(pathway = gsub(\"_geneset\", \"\", pathway)) %&gt;% \n    arrange(padj)\n  \n  write.csv(fgsea_res_tidy, file.path(current_objects_dir, glue(\"Table_{geneset_name}.csv\")), row.names = FALSE)\n  \n  # --- Barplot ---\n  top_gsea &lt;- fgsea_res_tidy %&gt;%\n    arrange(desc(NES)) %&gt;%\n    slice_head(n = 10) %&gt;%\n    bind_rows(fgsea_res_tidy %&gt;% arrange(NES) %&gt;% slice_head(n = 10)) %&gt;%\n    distinct(pathway, .keep_all = TRUE) %&gt;%\n    mutate(\n      sig_label = case_when(\n        padj &lt; 0.001 ~ \"***\",\n        padj &lt; 0.01  ~ \"**\",\n        padj &lt; 0.05  ~ \"*\",\n        TRUE         ~ \"\"\n      ),\n      # Apply dynamic labels based on NES direction\n      fill_group = ifelse(NES &gt; 0, group_A_label, group_B_label),\n      pathway = factor(pathway, levels = unique(pathway[order(NES)]))\n    )\n  \n  if (nrow(top_gsea) == 0) return(fgsea_res_tidy)\n  \n  axis_zoom &lt;- 3.5 \n  \n  p_bar &lt;- ggplot(top_gsea, aes(x = NES, y = pathway, fill = fill_group)) +\n    geom_col(width = 0.7) +\n    geom_text(aes(label = sig_label, hjust = ifelse(NES &gt; 0, 1.2, -0.2)), \n              color = \"white\", size = 5, vjust = 0.75, fontface = \"bold\") +\n    scale_fill_manual(values = setNames(c(color_A, color_B), c(group_A_label, group_B_label))) +\n    scale_x_continuous(breaks = seq(-axis_zoom, axis_zoom, 0.5),\n                       labels = function(x) ifelse(x %% 1 == 0, x, \"\")) + \n    labs(x = \"Normalized Enrichment Score (NES)\", y = NULL, title = plot_title) +\n    theme_bw(base_size = 14) +\n    theme(\n      panel.grid.major.x = element_line(color = \"grey92\", linewidth = 0.5),\n      panel.grid.major.y = element_blank(),\n      panel.grid.minor   = element_blank(),\n      panel.border = element_rect(colour = \"black\", fill = NA, linewidth = 1.5),\n      legend.position = \"none\",\n      plot.title = element_text(hjust = 0.5, face = \"bold\", size = 16, margin = margin(b = 40)),\n      plot.margin = margin(t = 40, r = 20, b = 20, l = 20, unit = \"pt\"),\n      #ensure y axis has enough room, and tightens lines together\n      axis.text.y = element_text(size = 9, lineheight = 0.8)\n    ) +\n    scale_y_discrete(labels = function(x) str_wrap(gsub(\"_\", \" \", x), width = 30)) +\n    # Dynamic text annotations at the top of the plot\n    annotate(\"text\", x = -axis_zoom/2, y = Inf, \n             label = glue(\"^ {group_B_label}\"), color = color_B, size = 5, fontface = \"bold\", vjust = -1.0) +\n    annotate(\"text\", x = axis_zoom/2, y = Inf, \n             label = glue(\"^ {group_A_label}\"), color = color_A, size = 5, fontface = \"bold\", vjust = -1.0) +\n    coord_cartesian(xlim = c(-axis_zoom, axis_zoom), clip = \"off\")\n  \n  dyn_h &lt;- 2 + (nrow(top_gsea) * 0.3)\n  dyn_w &lt;- 5 + (max(nchar(as.character(top_gsea$pathway))) * 0.12)\n  \n  print(p_bar)\n  \n  ggsave(filename = file.path(current_graphs_dir, glue(\"Barplot_{geneset_name}.pdf\")), \n         plot = p_bar, width = dyn_w, height = dyn_h, limitsize = FALSE)\n  \n  # --- Dotplot (Top 10 Highest NES) ---\n  top_nes_gsea &lt;- fgsea_res_tidy %&gt;%\n    arrange(desc(NES)) %&gt;%   \n    slice_head(n = 10) %&gt;%   \n    mutate(pathway = factor(pathway, levels = unique(pathway[order(NES)])))\n\n  if (nrow(top_nes_gsea) &gt; 0) {\n    # Define our wrap width\n    wrap_width &lt;- 45\n    \n    p_sig &lt;- ggplot(top_nes_gsea, aes(x = NES, y = pathway, color = NES, size = -log10(padj))) +\n      geom_vline(xintercept = 0, linetype = \"dashed\", color = \"grey60\") +\n      geom_point(alpha = 0.8) +\n      scale_color_gradient2(low = color_B, mid = \"grey90\", high = color_A, midpoint = 0, name = \"NES\") +\n      scale_size_continuous(range = c(3, 8), name = \"-log10(padj)\") +\n      labs(x = \"Normalized Enrichment Score (NES)\", y = NULL, \n           title = glue(\"Top 10 Highest NES:\\n{clean_comp_title} ({geneset_name})\")) +\n      theme_bw(base_size = 14) +\n      theme(\n        panel.grid.major.x = element_line(color = \"grey92\", linewidth = 0.5),\n        panel.grid.major.y = element_line(color = \"grey92\", linewidth = 0.5, linetype = \"dotted\"),\n        panel.grid.minor   = element_blank(),\n        panel.border = element_rect(colour = \"black\", fill = NA, linewidth = 1.5),\n        plot.title = element_text(hjust = 0.5, face = \"bold\", size = 14, margin = margin(b = 20)),\n        plot.margin = margin(t = 20, r = 10, b = 10, l = 10, unit = \"pt\"),\n        axis.text.y = element_text(lineheight = 0.8) \n      ) +\n      scale_y_discrete(labels = function(x) str_wrap(gsub(\"_\", \" \", x), width = wrap_width))\n\n    # --- DYNAMIC SIZING ---\n    # Cap the character count at wrap_width so the plot doesn't stretch endlessly horizontally\n    max_chars &lt;- min(max(nchar(as.character(top_nes_gsea$pathway))), wrap_width)\n    \n    # Calculate dimensions: enough base room for the plot/legends + scaled room for text/points\n    dyn_h_sig &lt;- 3 + (nrow(top_nes_gsea) * 0.4)\n    dyn_w_sig &lt;- 4.5 + (max_chars * 0.1) \n    \n    ggsave(filename = file.path(current_graphs_dir, glue(\"Dotplot_Top10_NES_{geneset_name}.pdf\")), \n           plot = p_sig, width = dyn_w_sig, height = dyn_h_sig, limitsize = FALSE)\n  }\n  \n  \n  return(fgsea_res_tidy)\n}",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#load-data",
+    "href": "notebooks/04_gsea.html#load-data",
+    "title": "4. GSEA",
+    "section": "Load data",
+    "text": "Load data\n\n\nCode\n# ==============================================================================\n# 2. CONFIG & DATA LOADING\n# ==============================================================================\n\nGLOBAL_CONFIG &lt;- list(\n  output_dir = file.path(results_dir, \"GSEA_Results_Master\"), \n  group_A    = \"Plaque Enriched\",\n  group_B    = \"Control Enriched\",\n  col_A      = \"firebrick3\",\n  col_B      = \"navy\"\n)\n\n# Load Gene Sets\n\n#go and kegg sets\ngo_pathways &lt;- gmtPathways(\"../../GO_human_all_genesets.gmt\")\nkegg_df &lt;- msigdbr(species = \"Mus musculus\", collection = \"C2\", subcollection = \"CP:KEGG_MEDICUS\")\n\n\nUsing human MSigDB with ortholog mapping to mouse. Use `db_species = \"MM\"` for mouse-native gene sets.\nThis message is displayed once per session.\n\n\nCode\nkegg_list &lt;- split(x = kegg_df$gene_symbol, f = kegg_df$gs_name)\ngo_kegg_list &lt;- c(go_pathways, kegg_list)\n\n#cell type signature sets\nc8_df &lt;- msigdbr(species = \"Mus musculus\", category = \"C8\")\n\n\nWarning: The `category` argument of `msigdbr()` is deprecated as of msigdbr 10.0.0.\nℹ Please use the `collection` argument instead.\n\n\nCode\nc8_list &lt;- split(x = c8_df$gene_symbol, f = c8_df$gs_name)\n\n#DAA signature from from https://www.nature.com/articles/s41593-020-0624-8\ndaa_df &lt;- read_excel(path = file.path(raw_dir, \"DAA_Habib_2020.xlsx\"), col_types = \"text\")\n\n#Extract the genes as a character vector \ndaa_vector &lt;- daa_df %&gt;%\n  pull(Gene) %&gt;%\n  toupper() %&gt;%\n  unique()\ndaa_vector\n\n\n  [1] \"CST3\"          \"APOE\"          \"CLU\"           \"GFAP\"         \n  [5] \"CPE\"           \"MT1\"           \"CD81\"          \"CD9\"          \n  [9] \"MT2\"           \"ID3\"           \"CKB\"           \"FXYD1\"        \n [13] \"VIM\"           \"PRDX6\"         \"CTSB\"          \"CSMD1\"        \n [17] \"DBI\"           \"FTH1\"          \"HSD17B4\"       \"ALDOC\"        \n [21] \"IGFBP5\"        \"MLC1\"          \"C4B\"           \"NTRK2\"        \n [25] \"GSN\"           \"KCNIP4\"        \"GPM6B\"         \"CNN3\"         \n [29] \"FTL1\"          \"ATP1B2\"        \"ID4\"           \"PSAP\"         \n [33] \"PLCE1\"         \"AQP4\"          \"TAGLN3\"        \"SORBS1\"       \n [37] \"TMEM47\"        \"ITM2C\"         \"SCD2\"          \"ITM2B\"        \n [41] \"GPC5\"          \"PRDX1\"         \"CD63\"          \"LAPTM4A\"      \n [45] \"LAMP1\"         \"GSTM1\"         \"TRPM3\"         \"TSPAN3\"       \n [49] \"GPR37L1\"       \"S100A6\"        \"CTSD\"          \"SPARC\"        \n [53] \"TMBIM6\"        \"SCG3\"          \"B2M\"           \"NCAM2\"        \n [57] \"GM14964\"       \"GGTA1\"         \"ENOX1\"         \"GLIS3\"        \n [61] \"S100A16\"       \"TUBA1A\"        \"CTSL\"          \"S100B\"        \n [65] \"6330403K07RIK\" \"CHST2\"         \"CHL1\"          \"MATN4\"        \n [69] \"ANGPT1\"        \"ADD3\"          \"SERPINA3N\"     \"TMEM176B\"     \n [73] \"ARHGEF4\"       \"MGST1\"         \"TUBB2B\"        \"IFITM3\"       \n [77] \"GRM5\"          \"ID2\"           \"DHRS1\"         \"SDC4\"         \n [81] \"OSMR\"          \"CADPS\"         \"LSAMP\"         \"DST\"          \n [85] \"GADD45G\"       \"THBS4\"         \"DDR1\"          \"SEMA6D\"       \n [89] \"RCN2\"          \"CPNE8\"         \"UBE2E2\"        \"SELK\"         \n [93] \"SBNO2\"         \"FBXO2\"         \"TSC22D4\"       \"SARAF\"        \n [97] \"TMEM176A\"      \"PRKCA\"         \"LAMP2\"         \"ASPG\"         \n[101] \"MAN1A\"         \"SLC38A1\"       \"CAV2\"          \"S100A1\"       \n[105] \"ABCA1\"         \"CHIL1\"         \"TST\"           \"PRUNE2\"       \n[109] \"HIST1H2BC\"     \"SLC3A2\"        \"SYT11\"         \"ERBB2IP\"      \n[113] \"GM10116\"       \"KIF1A\"         \"HRSP12\"        \"SGCD\"         \n[117] \"STAT3\"         \"LGALS1\"        \"SLC16A1\"       \"GPX4\"         \n[121] \"PDPN\"          \"CD151\"         \"USP53\"         \"GRIK2\"        \n[125] \"PARD3B\"        \"FXYD7\"         \"FOS\"           \"ID1\"          \n[129] \"CACNB2\"        \"UBC\"           \"PDIA4\"         \"NKAIN2\"       \n[133] \"NRG2\"          \"LXN\"           \"HOPX\"          \"SREBF1\"       \n[137] \"SLC35F1\"       \"PDLIM4\"        \"CEBPB\"         \"CYR61\"        \n[141] \"SOX9\"          \"SERPINF1\"      \"NFKBIA\"        \"NFE2L2\"       \n[145] \"SLC14A1\"       \"ARHGAP6\"       \"HSPA5\"         \"SULF2\"        \n[149] \"NAALADL2\"      \"TSPAN4\"        \"NAV2\"          \"CTNNBIP1\"     \n[153] \"BCAP31\"        \"SLC39A14\"      \"SHISA6\"        \"APLP2\"        \n[157] \"SERPING1\"      \"SPCS2\"         \"EZR\"           \"SCARB2\"       \n[161] \"RAB18\"         \"GNAI2\"         \"JUNB\"          \"CLIC1\"        \n[165] \"PFKP\"          \"HSPA2\"         \"AEBP1\"         \"IDH2\"         \n[169] \"PPIB\"          \"ATRAID\"        \"DGKI\"          \"ATP6V0E\"      \n[173] \"JUND\"          \"HNRNPK\"        \"SULF1\"         \"1700030F04RIK\"\n[177] \"ITGB8\"         \"MFAP3L\"        \"S100A10\"       \"NPC2\"         \n[181] \"SLC7A10\"       \"REEP5\"         \"VWA1\"          \"SHISA5\"       \n[185] \"GM4876\"        \"LGMN\"          \"LGALS3BP\"      \"GM3448\"       \n[189] \"TMCO1\"         \"GM3764\"        \"RAP1B\"         \"TMEM59\"       \n[193] \"2810459M11RIK\" \"DEGS1\"         \"EFCAB14\"       \"1810058I24RIK\"\n[197] \"GNA13\"         \"SAMD4\"         \"S1PR3\"         \"MMP16\"        \n[201] \"HSD17B12\"      \"SORBS2\"        \"TUBB2A\"        \"ATP6AP2\"      \n[205] \"KCNJ3\"         \"RHOB\"          \"NRG1\"          \"EPDR1\"        \n[209] \"PDZD2\"         \"TM9SF3\"        \"SLC20A1\"       \"CLDND1\"       \n[213] \"HIVEP2\"        \"PLXDC2\"        \"SOX2\"          \"LUZP2\"        \n[217] \"SYNPO2\"        \"TPRGL\"         \"H2-K1\"         \"PKP4\"         \n[221] \"FABP7\"         \"USP24\"         \"PDGFD\"         \"ATP1A1\"       \n[225] \"ENPP5\"         \"TIMP2\"         \"HMGCLL1\"       \"CACNA2D3\"     \n[229] \"DAPK1\"         \"SEPT15\"        \"RASSF8\"        \"TGOLN1\"       \n[233] \"VIMP\"          \"ZFP706\"        \"GM2A\"          \"H2-D1\"        \n[237] \"PCYT2\"         \"UQCRC2\"        \"UPF2\"          \"PPP2CA\"       \n[241] \"TMEM100\"       \"NNAT\"          \"LYSMD2\"        \"C1QA\"         \n[245] \"ST6GALNAC5\"    \"SMPDL3A\"       \"GRIA2\"         \"NDUFV3\"       \n[249] \"NRXN1\"         \"AGT\"           \"MGAT4C\"        \"CDH10\"        \n[253] \"RPL36-PS3\"     \"KIRREL3\"      \n\n\nCode\n# Create master list\ngene_sets_master &lt;- list(\n  \"GO_KEGG\" = go_kegg_list,\n  \"cell_type_sigs_c8\" = c8_list,\n  \"Habib_2020_DAA\" = list(\"Habib_2020_DAA\" = daa_vector)\n)\n\n#Create Rank Vectors directly from MSstats output\ncomparisons_master &lt;- list(\n  \"PlaqueNear_vs_Control\" = prep_msstats_ranks(res_df, protein_dictionary, \"PlaqueNear_vs_Control\"),\n  \"PlaqueFar_vs_Control\"  = prep_msstats_ranks(res_df, protein_dictionary, \"PlaqueFar_vs_Control\"),\n  \"PlaqueNear_vs_PlaqueFar\" = prep_msstats_ranks(res_df, protein_dictionary, \"PlaqueNear_vs_PlaqueFar\")\n)",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#execute-the-gsea-function",
+    "href": "notebooks/04_gsea.html#execute-the-gsea-function",
+    "title": "4. GSEA",
+    "section": "Execute the GSEA function",
+    "text": "Execute the GSEA function\n\n\nCode\n# ==============================================================================\n# 3. EXECUTION LOOP\n# ==============================================================================\n\npurrr::walk2(names(gene_sets_master), gene_sets_master, function(gset_name, gset_pathways) {\n  purrr::walk2(comparisons_master, names(comparisons_master), function(ranks, comp_name) {\n    \n    run_gsea_analysis(\n      ranks            = ranks,\n      comparison_name  = comp_name,\n      geneset_name     = gset_name,     \n      pathways         = gset_pathways, \n      base_objects_dir = objects_dir,   \n      base_graphs_dir  = results_dir,    \n      color_A          = GLOBAL_CONFIG$col_A,\n      color_B          = GLOBAL_CONFIG$col_B\n    )\n    \n    gc() # Memory cleanup\n  })\n})",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#specific-term-plotting",
+    "href": "notebooks/04_gsea.html#specific-term-plotting",
+    "title": "4. GSEA",
+    "section": "Specific term plotting",
+    "text": "Specific term plotting\n\n\nCode\n# ==============================================================================\n# SPECIFIC TERM PLOTTING\n# ==============================================================================\n\nterm_to_plot &lt;- \"Habib_2020_DAA\"\n# 1. Flatten master gene list\nall_pathways_flat &lt;- do.call(c, unname(gene_sets_master))\n\n# Check if the term exists before looping - in case typo\nif (!term_to_plot %in% names(all_pathways_flat)) {\n  stop(glue(\"Could not find pathway '{term_to_plot}' in gene_sets_master.\"))\n}\n\npathway_genes &lt;- all_pathways_flat[[term_to_plot]]\n\n# Create a specific output folder\nspecific_graphs_dir &lt;- file.path(results_dir, \"Specific_Pathway_Plots\")\ndir.create(specific_graphs_dir, showWarnings = FALSE, recursive = TRUE)\n\n# Loop and Plot\npurrr::walk2(comparisons_master, names(comparisons_master), function(ranks, comp_name) {\n  \n  message(glue(\"Plotting {term_to_plot} for {comp_name}...\"))\n  \n  # Generate the GSEA enrichment plot\n  gsea_plot &lt;- plotEnrichment(pathway_genes, ranks) +\n    labs(\n      title = term_to_plot,\n      subtitle = glue(\"Comparison: {comp_name}\"),\n      x = \"Rank\",\n      y = \"Enrichment Score\"\n    ) +\n    theme_bw(base_size = 14) +\n    theme(\n      plot.title = element_text(face = \"bold\", hjust = 0.5),\n      plot.subtitle = element_text(hjust = 0.5, color = \"grey40\"),\n      panel.grid = element_blank()\n    )\n  print(gsea_plot)\n  \n  # Save\n  ggsave(\n    filename = file.path(specific_graphs_dir, glue(\"{term_to_plot}_{comp_name}.pdf\")),\n    plot = gsea_plot,\n    width = 8, \n    height = 5\n  )\n})\n\n\nPlotting Habib_2020_DAA for PlaqueNear_vs_Control...\n\n\n\n\n\n\n\n\n\nPlotting Habib_2020_DAA for PlaqueFar_vs_Control...\n\n\n\n\n\n\n\n\n\nPlotting Habib_2020_DAA for PlaqueNear_vs_PlaqueFar...",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/04_gsea.html#hypergeometric-test-plaque-near-vs-plaque-far-top-10-vs-habib-2020-top-10",
+    "href": "notebooks/04_gsea.html#hypergeometric-test-plaque-near-vs-plaque-far-top-10-vs-habib-2020-top-10",
+    "title": "4. GSEA",
+    "section": "Hypergeometric test: Plaque Near vs Plaque Far top 10 vs Habib 2020 top 10",
+    "text": "Hypergeometric test: Plaque Near vs Plaque Far top 10 vs Habib 2020 top 10\n\n\nCode\n# Get top 10 upregulated proteins from PlaqueNear vs PlaqueFar\ntop10_near_vs_far &lt;- comparisons_master[[\"PlaqueNear_vs_PlaqueFar\"]] %&gt;%\n  sort(decreasing = TRUE) %&gt;%\n  head(10) %&gt;%\n  names()\n\n# Get top 10 from Habib 2020 DAA signature\ntop10_habib &lt;- head(daa_vector, 10)\n\n# Define the background population\n# Use all genes present in the rank list as the background\nbackground_genes &lt;- names(comparisons_master[[\"PlaqueNear_vs_PlaqueFar\"]])\nN &lt;- length(background_genes)\n\n# Calculate overlap\noverlap &lt;- intersect(top10_near_vs_far, top10_habib)\nk &lt;- length(overlap)  # observed overlap\nm &lt;- sum(top10_habib %in% background_genes)  # Habib top10 genes present in background\nn &lt;- N - m            # genes NOT in Habib top10\nq &lt;- length(top10_near_vs_far)  # size of your top10\n\n# Hypergeometric test\n# phyper(k-1) gives P(X &gt;= k) i.e. probability of overlap &gt;= observed by chance\np_val &lt;- phyper(k - 1, m, n, q, lower.tail = FALSE)\n\ncat(\"=== Hypergeometric Test: PlaqueNear vs PlaqueFar vs Habib 2020 DAA ===\\n\")\n\n\n=== Hypergeometric Test: PlaqueNear vs PlaqueFar vs Habib 2020 DAA ===\n\n\nCode\ncat(\"Background (total detected proteins):\", N, \"\\n\")\n\n\nBackground (total detected proteins): 5532 \n\n\nCode\ncat(\"Habib top 10 genes found in background:\", m, \"\\n\")\n\n\nHabib top 10 genes found in background: 6 \n\n\nCode\ncat(\"Your top 10 Near vs Far proteins:\", q, \"\\n\")\n\n\nYour top 10 Near vs Far proteins: 10 \n\n\nCode\ncat(\"Observed overlap:\", k, \"\\n\")\n\n\nObserved overlap: 1 \n\n\nCode\ncat(\"Overlapping genes:\", paste(overlap, collapse = \", \"), \"\\n\")\n\n\nOverlapping genes: GFAP \n\n\nCode\ncat(\"P-value:\", p_val, \"\\n\\n\")\n\n\nP-value: 0.01080195 \n\n\nCode\n# Visualise the overlap with a simple table\noverlap_df &lt;- data.frame(\n  Gene = background_genes,\n  In_Habib_Top10 = background_genes %in% top10_habib,\n  In_NearFar_Top10 = background_genes %in% top10_near_vs_far\n) %&gt;%\n  filter(In_Habib_Top10 | In_NearFar_Top10) %&gt;%\n  mutate(\n    Overlap = In_Habib_Top10 & In_NearFar_Top10\n  ) %&gt;%\n  arrange(desc(Overlap))\n\nprint(overlap_df)\n\n\n       Gene In_Habib_Top10 In_NearFar_Top10 Overlap\n1      GFAP           TRUE             TRUE    TRUE\n2     NCOR1          FALSE             TRUE   FALSE\n3     CLCN6          FALSE             TRUE   FALSE\n4     DIDO1          FALSE             TRUE   FALSE\n5      DPP7          FALSE             TRUE   FALSE\n6   ARFGEF3          FALSE             TRUE   FALSE\n7  SERPINC1          FALSE             TRUE   FALSE\n8     ARL8B          FALSE             TRUE   FALSE\n9     ABCA3          FALSE             TRUE   FALSE\n10    PTPN6          FALSE             TRUE   FALSE\n11     APOE           TRUE            FALSE   FALSE\n12      CLU           TRUE            FALSE   FALSE\n13      CPE           TRUE            FALSE   FALSE\n14     CST3           TRUE            FALSE   FALSE\n15     CD81           TRUE            FALSE   FALSE",
+    "crumbs": [
+      "4. GSEA"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html",
+    "href": "notebooks/05_gfap_correlation.html",
+    "title": "5. GFAP correlation",
+    "section": "",
+    "text": "This script is meant to identify proteins whose expression levels correlate with GFAP, within the plaque near condition.",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html#libraries",
+    "href": "notebooks/05_gfap_correlation.html#libraries",
+    "title": "5. GFAP correlation",
+    "section": "Libraries",
+    "text": "Libraries\n\n\nCode\nsuppressPackageStartupMessages({\nlibrary(data.table)\nlibrary(qs2)\nlibrary(dplyr)\nlibrary(tidyr)\nlibrary(tibble)\nlibrary(ggplot2)\nlibrary(ggrepel)\n})",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html#directories",
+    "href": "notebooks/05_gfap_correlation.html#directories",
+    "title": "5. GFAP correlation",
+    "section": "Directories",
+    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run5\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\n\ndir.create(results_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html#load-objects-and-extract-summarised-protein-levels",
+    "href": "notebooks/05_gfap_correlation.html#load-objects-and-extract-summarised-protein-levels",
+    "title": "5. GFAP correlation",
+    "section": "Load objects and extract summarised protein levels",
+    "text": "Load objects and extract summarised protein levels\n\n\nCode\n#Map protein IDs to readable gene IDs\nprocessed_data &lt;- qs_read(file.path(objects_dir, \"processed_msstats_data.qs2\"))\nprotein_dict &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\")) %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, Gene = PG.Genes) %&gt;%\n  distinct()\n\n# Extract Summarized Abundances\n# Using ProteinLevelData (summarized by MSstats) for cleaner correlations\n\n#transform to wide format (rows per run, columns per gene) to calculate column-wise correlations\n\nwide_df &lt;- processed_data$ProteinLevelData %&gt;%\n  left_join(protein_dict, by = \"Protein\") %&gt;%\n  mutate(Gene = ifelse(is.na(Gene) | Gene == \"\", Protein, Gene)) %&gt;%\n  # Handle duplicates (e.g., multiple Protein IDs mapping to one Gene)\n  group_by(originalRUN, Gene) %&gt;%\n  summarize(Abundance = mean(LogIntensities, na.rm = TRUE), .groups = \"drop\") %&gt;%\n  pivot_wider(names_from = Gene, values_from = Abundance) %&gt;%\n  column_to_rownames(\"originalRUN\")",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html#correlate-gene-protein-levels-to-gfap",
+    "href": "notebooks/05_gfap_correlation.html#correlate-gene-protein-levels-to-gfap",
+    "title": "5. GFAP correlation",
+    "section": "Correlate gene (protein) levels to Gfap",
+    "text": "Correlate gene (protein) levels to Gfap\n\n\nCode\nfinal_clean_meta &lt;- read.csv(file.path(base_dir,\"data/processed/run1/msstats_annotation.csv\"))\nplaque_near_runs &lt;- final_clean_meta$Run[final_clean_meta$Condition == \"plaque_near\"]\n\n# Subset the data to just plaque near samples\npn_data &lt;- wide_df[rownames(wide_df) %in% plaque_near_runs, ]\n\n#calculate R between every protein's abundance and GFAP. \npn_gfap_cors &lt;- data.frame(Gene = colnames(pn_data)) %&gt;%\n  mutate(\n    Pearson_R = sapply(Gene, function(x) {\n      if(sum(!is.na(pn_data$Gfap) & !is.na(pn_data[[x]])) &gt; 3) {\n        cor(pn_data$Gfap, pn_data[[x]], use = \"pairwise.complete.obs\")\n      } else { NA }\n    })\n  ) %&gt;%\n  filter(!is.na(Pearson_R)) %&gt;%\n  arrange(desc(Pearson_R))\n\npn_gfap_cors\n\n\n\n  \n\n\n\nCode\nwrite.csv(pn_gfap_cors, file.path(objects_dir, \"gfap_correlation.csv\"))",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html#view-cd44-correlation-with-gfap",
+    "href": "notebooks/05_gfap_correlation.html#view-cd44-correlation-with-gfap",
+    "title": "5. GFAP correlation",
+    "section": "View Cd44 correlation with Gfap",
+    "text": "View Cd44 correlation with Gfap\n\n\nCode\npn_gfap_cors %&gt;% filter(Gene == \"Cd44\")",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "notebooks/05_gfap_correlation.html#proteins-correlated-to-cd44",
+    "href": "notebooks/05_gfap_correlation.html#proteins-correlated-to-cd44",
+    "title": "5. GFAP correlation",
+    "section": "Proteins correlated to Cd44",
+    "text": "Proteins correlated to Cd44\n\n\nCode\npn_cd44_cors &lt;- data.frame(Gene = colnames(pn_data)) %&gt;%\n  mutate(\n    Pearson_R = sapply(Gene, function(x) {\n      if(sum(!is.na(pn_data$Cd44) & !is.na(pn_data[[x]])) &gt; 3) {\n        cor(pn_data$Cd44, pn_data[[x]], use = \"pairwise.complete.obs\")\n      } else { NA }\n    })\n  ) %&gt;%\n  filter(!is.na(Pearson_R)) %&gt;%\n  arrange(desc(Pearson_R))\n\npn_cd44_cors\n\n\n\n  \n\n\n\nCode\nwrite.csv(pn_cd44_cors, file.path(objects_dir, \"cd44_correlation.csv\"))",
+    "crumbs": [
+      "5. GFAP correlation"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "LCM Proteomics Pipeline",
+    "section": "",
+    "text": "Documentation for Millie’s Proteomics project. This site tracks the processing of LCM samples from initial QC to Differential abundance analysis."
+  },
+  {
+    "objectID": "index.html#update-parameter-changes-run3---130326",
+    "href": "index.html#update-parameter-changes-run3---130326",
+    "title": "LCM Proteomics Pipeline",
+    "section": "Update Parameter changes (run3) - 13/03/26",
+    "text": "Update Parameter changes (run3) - 13/03/26\nUpdated data filtering criteria to be more stringent: * Filtering Rule: Proteins must have ≥ 50% non-missing values in at least one condition, ensuring that differential abundance analysis is on robustly detected features.\n\nPipeline Stages\n\nInitial QC\nDAA marker sense check\nDE plots\nGSEA\nGFAP correlation\nMSstats limma correlation\nMSstats limma comparison\nCell-cell interactions\nPPI network\nTripartite Astrocyte Signature"
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html",
+    "href": "notebooks/01b_DAA_marker_check.html",
+    "title": "1b: DAA marker check",
+    "section": "",
+    "text": "Code\nknitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')\n\nlibrary(data.table)\nlibrary(dplyr)\n\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:data.table':\n\n    between, first, last\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\n\nCode\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(qs2)\n\n\nqs2 0.1.6",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html#libraries",
+    "href": "notebooks/01b_DAA_marker_check.html#libraries",
+    "title": "1b: DAA marker check",
+    "section": "",
+    "text": "Code\nknitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')\n\nlibrary(data.table)\nlibrary(dplyr)\n\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:data.table':\n\n    between, first, last\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\n\nCode\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(qs2)\n\n\nqs2 0.1.6",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html#directories",
+    "href": "notebooks/01b_DAA_marker_check.html#directories",
+    "title": "1b: DAA marker check",
+    "section": "Directories",
+    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run1\"\n\n# Pointing to where you saved the clean data, and where to output the plot\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html#read-in-raw-files",
+    "href": "notebooks/01b_DAA_marker_check.html#read-in-raw-files",
+    "title": "1b: DAA marker check",
+    "section": "Read in raw files",
+    "text": "Read in raw files\n\n\nCode\nclean_meta &lt;- fread(file.path(objects_dir, \"clean_metadata.csv\"))\nclean_spec_raw &lt;- fread(file.path(objects_dir, \"clean_spec_raw.csv\"))",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html#define-function-to-calculate-specific-gene-per-condition-with-the-dot-coloured-by-batch",
+    "href": "notebooks/01b_DAA_marker_check.html#define-function-to-calculate-specific-gene-per-condition-with-the-dot-coloured-by-batch",
+    "title": "1b: DAA marker check",
+    "section": "Define function to calculate specific gene per condition, with the dot coloured by Batch",
+    "text": "Define function to calculate specific gene per condition, with the dot coloured by Batch\n\n\nCode\nplot_target_genes &lt;- function(genes_to_plot, raw_data, meta_data) {\n  \n  # 1. Subset raw data using regex pattern\n  pattern &lt;- paste(genes_to_plot, collapse=\"|\")\n  marker_raw &lt;- raw_data[grepl(pattern, PG.Genes, ignore.case = TRUE)]\n  \n  if(nrow(marker_raw) == 0) {\n    stop(\"None of the specified genes were found in the dataset.\")\n  }\n  \n  # 2. Pivot and clean\n  marker_long &lt;- marker_raw %&gt;%\n    select(PG.Genes, all_of(meta_data$Run)) %&gt;%\n    pivot_longer(cols = -PG.Genes, names_to = \"Run\", values_to = \"Intensity\") %&gt;%\n    # Extract the specific matched gene name for cleaner facet labels\n    mutate(Marker = str_extract(PG.Genes, regex(pattern, ignore_case = TRUE))) %&gt;%\n    mutate(Marker = str_to_title(Marker)) %&gt;% # Normalizes capitalization (e.g., gfap -&gt; Gfap)\n    mutate(Log2_Intensity = log2(Intensity + 1)) %&gt;%\n    mutate(Log2_Intensity = ifelse(Log2_Intensity == 0, NA, Log2_Intensity))\n  \n  # 3. Merge with metadata\n  marker_plot_data &lt;- merge(marker_long, meta_data, by = \"Run\")\n  \n  # 4. Generate Plot: Boxes = Condition, Dots = Batch\n  p &lt;- ggplot(marker_plot_data, aes(x = Condition, y = Log2_Intensity)) +\n    # Boxplot colored by Condition\n    geom_boxplot(aes(fill = Condition), outlier.shape = NA, alpha = 0.5) +\n    # Jittered dots colored by Batch\n    geom_jitter(aes(color = as.factor(Batch)), width = 0.2, size = 2, alpha = 0.8) +\n    facet_wrap(~ Marker, scales = \"free_y\") +\n    theme_minimal(base_size = 14) +\n    # Reusing your established condition colors\n    scale_fill_manual(values = c(\"control\" = \"#1b9e77\", \"plaque_near\" = \"#d95f02\", \"plaque_far\" = \"#7570b3\")) +\n    # High-contrast palette for the batch dots\n    scale_color_brewer(palette = \"Set1\") +\n    labs(\n         x = \"Biological Condition\", \n         y = \"Log2 Intensity\", \n         fill = \"Condition\",\n         color = \"Batch\") +\n    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = \"bold\"),\n          strip.text = element_text(face = \"bold\", size = 14))\n  \n  return(p)\n}",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html#daa-markers-are-inverted-to-what-would-be-expected-for-batch-2-and-5",
+    "href": "notebooks/01b_DAA_marker_check.html#daa-markers-are-inverted-to-what-would-be-expected-for-batch-2-and-5",
+    "title": "1b: DAA marker check",
+    "section": "DAA markers are inverted to what would be expected for Batch 2 and 5",
+    "text": "DAA markers are inverted to what would be expected for Batch 2 and 5\nIndicates some sort of Batch mix up.\n\n\nCode\nmy_genes &lt;- c(\"Gfap\", \"App\", \"Clu\", \"Apoe\")\n\n# Run the function\np_markers &lt;- plot_target_genes(my_genes, clean_spec_raw, clean_meta)\n\n# Display inline\nprint(p_markers)\n\n\nWarning: Removed 672 rows containing non-finite outside the scale range\n(`stat_boxplot()`).\n\n\nWarning: Removed 672 rows containing missing values or values outside the scale range\n(`geom_point()`).\n\n\n\n\n\n\n\n\n\nCode\nmarker_pdf_path &lt;- file.path(results_dir, \"Target_Genes_Check.pdf\")\nggsave(marker_pdf_path, plot = p_markers, width = 10, height = 8)\n\n\nWarning: Removed 672 rows containing non-finite outside the scale range\n(`stat_boxplot()`).\nRemoved 672 rows containing missing values or values outside the scale range\n(`geom_point()`).",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/01b_DAA_marker_check.html#pull-in-msstats-data-to-display-aß-tryptic-peptide-plot",
+    "href": "notebooks/01b_DAA_marker_check.html#pull-in-msstats-data-to-display-aß-tryptic-peptide-plot",
+    "title": "1b: DAA marker check",
+    "section": "Pull in MSstats data to display Aß tryptic peptide plot",
+    "text": "Pull in MSstats data to display Aß tryptic peptide plot\n\n\nCode\ntarget_peptide &lt;- \"LVFFAEDVGSNK\"\n\nmsstats_clean &lt;- qs_read(file.path(objects_dir, \"clean_msstats_input.qs2\"))\n\ncolnames(msstats_clean)\n\n\n [1] \"R.Condition\"                  \"R.FileName\"                  \n [3] \"R.Replicate\"                  \"PG.ProteinAccessions\"        \n [5] \"PG.ProteinGroups\"             \"PG.Qvalue\"                   \n [7] \"PG.Quantity\"                  \"PEP.GroupingKey\"             \n [9] \"PEP.StrippedSequence\"         \"PEP.Quantity\"                \n[11] \"EG.iRTPredicted\"              \"EG.Library\"                  \n[13] \"EG.ModifiedSequence\"          \"EG.PrecursorId\"              \n[15] \"EG.Qvalue\"                    \"FG.Charge\"                   \n[17] \"FG.Id\"                        \"FG.PrecMz\"                   \n[19] \"FG.Quantity\"                  \"F.Charge\"                    \n[21] \"F.FrgIon\"                     \"F.FrgLossType\"               \n[23] \"F.FrgMz\"                      \"F.FrgNum\"                    \n[25] \"F.FrgType\"                    \"F.ExcludedFromQuantification\"\n[27] \"F.NormalizedPeakArea\"         \"F.NormalizedPeakHeight\"      \n[29] \"F.PeakArea\"                   \"F.PeakHeight\"                \n[31] \"Chip_location\"                \"Batch\"                       \n[33] \"Condition\"                    \"BioReplicate\"                \n\n\nCode\n# Filter the cleaned MSstats data for the Aß peptide\nab_check_data &lt;- msstats_clean %&gt;%\n  filter(PEP.StrippedSequence == target_peptide) %&gt;%\n  # Use F.PeakArea or F.NormalizedPeakArea for the raw intensity values\n  group_by(R.FileName, Condition, Batch) %&gt;%\n  summarise(\n    Total_Intensity = sum(F.PeakArea, na.rm = TRUE),\n    .groups = \"drop\"\n  ) %&gt;%\n  mutate(Log2_Intensity = log2(Total_Intensity + 1))\n\n\n# 1. Clean up the data labels (Factor names)\nab_check_data$Condition &lt;- factor(ab_check_data$Condition, \n                                  levels = c(\"control\", \"plaque_far\", \"plaque_near\"),\n                                  labels = c(\"Control\", \"Plaque Far\", \"Plaque Near\"))\n\n# 2. Update the plot\np_ab_check &lt;- ggplot(ab_check_data, aes(x = Condition, y = Log2_Intensity, fill = Condition)) +\n  geom_boxplot(outlier.shape = NA, alpha = 0.7) +\n  geom_jitter(width = 0.2, alpha = 0.8) +\n  facet_wrap(~ Batch, scales = \"free_y\", labeller = label_both) + \n  theme_minimal() +\n  theme(\n    legend.position = \"top\",\n    legend.justification = \"center\",\n    # Bold and larger Batch labels\n    strip.text = element_text(face = \"bold\", size = 12),\n    \n    # Bold Axis Titles\n    axis.title.x = element_text(face = \"bold\", size = 12, margin = margin(t = 10)),\n    axis.title.y = element_text(face = \"bold\", size = 12, margin = margin(r = 10)),\n    \n    # Smaller, tilted X-axis labels to prevent overlap\n    axis.text.x = element_text(size = 9, angle = 45, vjust = 1, hjust = 1),\n    axis.text.y = element_text(size = 10),\n    \n    # Larger Legend\n    legend.text = element_text(size = 11),\n    legend.title = element_text(size = 12, face = \"bold\"),\n    legend.key.size = unit(1.2, \"lines\"),\n    \n    # Remove plot title\n    plot.title = element_blank()\n  ) +\n  # Map colors to the new \"text-friendly\" label names\n  scale_fill_manual(values = c(\n    \"Control\" = \"#1b9e77\", \n    \"Plaque Far\" = \"#7570b3\",\n    \"Plaque Near\" = \"#d95f02\"\n  )) +\n  labs(\n    x = \"Labelled Condition\",\n    y = \"Log2(AB Peptide Intensity)\",\n    fill = \"Condition\"\n  )\n\nprint(p_ab_check)\n\n\n\n\n\n\n\n\n\nCode\n# Save the plot\nggsave(file.path(results_dir, \"AB_Peptide_Batch_Verification.pdf\"), p_ab_check, width = 6, height = 6)",
+    "crumbs": [
+      "1b. DAA marker check"
+    ]
+  },
+  {
+    "objectID": "notebooks/03_DE_plots.html#directories",
+    "href": "notebooks/03_DE_plots.html#directories",
+    "title": "3. DE plots",
+    "section": "Directories",
+    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run6\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\nraw_dir &lt;- file.path(base_dir, \"data\", \"raw\")\n\ndir.create(results_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)",
+    "crumbs": [
+      "3. DE plots"
+    ]
+  },
+  {
+    "objectID": "notebooks/03_DE_plots.html#read-in-msstats-output",
+    "href": "notebooks/03_DE_plots.html#read-in-msstats-output",
+    "title": "3. DE plots",
+    "section": "Read in MSstats output",
+    "text": "Read in MSstats output\n\n\nCode\nres_df &lt;- fread(file.path(results_dir, \"Full_GroupComparison_Results.csv\"))",
+    "crumbs": [
+      "3. DE plots"
+    ]
+  },
+  {
+    "objectID": "notebooks/03_DE_plots.html#mapping-protein-ids-to-gene-names",
+    "href": "notebooks/03_DE_plots.html#mapping-protein-ids-to-gene-names",
+    "title": "3. DE plots",
+    "section": "Mapping protein IDs to gene names",
+    "text": "Mapping protein IDs to gene names\n\n\nCode\nclean_spec_raw &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\"))\n\nprotein_dictionary &lt;- clean_spec_raw %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, \n         Gene = PG.Genes, \n         Description = PG.ProteinDescriptions) %&gt;%\n  distinct()",
+    "crumbs": [
+      "3. DE plots"
+    ]
+  },
+  {
+    "objectID": "notebooks/03_DE_plots.html#volcano-function",
+    "href": "notebooks/03_DE_plots.html#volcano-function",
+    "title": "3. DE plots",
+    "section": "Volcano function",
+    "text": "Volcano function\nBoundary cut-offs of 0.05 FDR and +/- 0.58 Log2FC (1.5x).\n\n\nCode\n# Define colours\nvolcano_cols &lt;- c(\"Upregulated\" = \"firebrick3\", \n                  \"Downregulated\" = \"navy\", \n                  \"Not Significant\" = \"grey80\")\n\ngenerate_swanky_volcano &lt;- function(msstats_results, dict, comparison_label, logfc_cutoff = 0.5, graphs_dir = \"results\") {\n  \n  # --- Data Processing ---\n  volcano_data &lt;- msstats_results %&gt;%\n    # Isolate the specific comparison and drop missing values\n    filter(Label == comparison_label, !is.na(adj.pvalue), is.finite(log2FC)) %&gt;%\n    # Map the Gene names from the dictionary\n    left_join(dict, by = \"Protein\") %&gt;%\n    mutate(\n      # Fallback to Protein ID if Gene name is missing\n      Gene = ifelse(is.na(Gene) | Gene == \"\", Protein, Gene),\n      # Define significance categories\n      Status = case_when(\n        adj.pvalue &lt; 0.05 & log2FC &gt; logfc_cutoff ~ \"Upregulated\",\n        adj.pvalue &lt; 0.05 & log2FC &lt; -logfc_cutoff ~ \"Downregulated\",\n        TRUE ~ \"Not Significant\"\n      )\n    ) %&gt;%\n    # Group by Status to rank Upregulated and Downregulated separately\n    group_by(Status) %&gt;%\n    # Rank by FDR (smallest adj.pvalue = 1)\n    mutate(GroupRank = rank(adj.pvalue, ties.method = \"first\")) %&gt;%\n    ungroup() %&gt;%\n    mutate(\n      # Label top 20 for each significant category\n      PlotLabel = case_when(\n        Status != \"Not Significant\" & GroupRank &lt;= 20 ~ Gene, \n        TRUE ~ NA_character_\n      )\n    )\n  \n  # --- Plotting ---\n  p &lt;- ggplot(volcano_data, aes(x = log2FC, y = -log10(adj.pvalue), fill = Status, color = Status)) +\n    geom_point(aes(size = Status, alpha = Status), shape = 21, stroke = 0.2) +\n    scale_fill_manual(values = volcano_cols) +\n    scale_color_manual(values = c(\"Upregulated\" = \"black\", \"Downregulated\" = \"black\", \"Not Significant\" = \"grey90\")) +\n    scale_size_manual(values = c(\"Upregulated\" = 3, \"Downregulated\" = 3, \"Not Significant\" = 1.5)) +\n    scale_alpha_manual(values = c(\"Upregulated\" = 1, \"Downregulated\" = 1, \"Not Significant\" = 0.3)) +\n    geom_hline(yintercept = -log10(0.05), linetype = \"dashed\", color = \"grey30\", linewidth = 0.8) +\n    geom_vline(xintercept = c(-logfc_cutoff, logfc_cutoff), linetype = \"dashed\", color = \"grey30\", linewidth = 0.8) +\n    geom_label_repel(\n      aes(label = PlotLabel),\n      fill = \"white\", color = \"black\", fontface = \"bold\", size = 3.5,\n      box.padding = 0.5, point.padding = 0.5,\n      min.segment.length = 0, segment.color = \"grey50\", max.overlaps = 50\n    ) +\n    labs(\n      title = paste0(\"Differential Abundance: \", gsub(\"_\", \" \", comparison_label)),\n      subtitle = paste0(\"Top 20 Genes Labeled | FDR &lt; 0.05 | |log2FC| &gt; \", logfc_cutoff),\n      x = bquote(bold(\"Log\"[2] ~ \"Fold Change\")),\n      y = bquote(bold(\"-Log\"[10] ~ \"FDR\"))\n    ) +\n    theme_minimal(base_size = 14) +\n    theme(\n      plot.title = element_text(face = \"bold\", size = 18, hjust = 0),\n      plot.subtitle = element_text(size = 12, color = \"grey40\", margin = margin(b = 10)),\n      axis.title = element_text(face = \"bold\", size = 14),\n      axis.text = element_text(face = \"bold\", color = \"black\"),\n      axis.line = element_line(color = \"black\", linewidth = 1),\n      axis.ticks = element_line(color = \"black\", linewidth = 1),\n      legend.position = \"top\",\n      legend.title = element_blank(),\n      legend.text = element_text(size = 12, face = \"bold\"),\n      panel.grid.minor = element_blank(),\n      panel.grid.major = element_line(color = \"grey95\")\n    )\n  \n  # --- Output Generation ---\n  # Ensure directory exists\n  dir.create(graphs_dir, showWarnings = FALSE, recursive = TRUE)\n  safe_name &lt;- gsub(\" \", \"_\", comparison_label)\n  \n  # Save Plot\n  ggsave(\n    filename = file.path(graphs_dir, paste0(\"Volcano_\", safe_name, \"_Swanky.pdf\")), \n    plot = p, \n    width = 10, height = 7, dpi = 300,\n    device = cairo_pdf \n  )\n  \n  # Save Data Table\n  # Select only the most useful columns and sort by significance for easy reading\n  export_data &lt;- volcano_data %&gt;%\n    dplyr::select(Protein, Gene, Description, log2FC, pvalue, adj.pvalue, Status) %&gt;%\n    arrange(adj.pvalue)\n  \n  fwrite(export_data, file = file.path(graphs_dir, paste0(\"Volcano_Data_\", safe_name, \".csv\")))\n  \n  return(p)\n}",
+    "crumbs": [
+      "3. DE plots"
+    ]
+  },
+  {
+    "objectID": "notebooks/03_DE_plots.html#iterate-through-comparisons-to-generate-plots-and-useful-de-tables",
+    "href": "notebooks/03_DE_plots.html#iterate-through-comparisons-to-generate-plots-and-useful-de-tables",
+    "title": "3. DE plots",
+    "section": "Iterate through comparisons to generate plots and useful DE tables",
+    "text": "Iterate through comparisons to generate plots and useful DE tables\n\n\nCode\nall_comparisons &lt;- unique(res_df$Label)\n\n# 2. Loop through each comparison, generate the plot/data, and store the plots in a list\nplot_list &lt;- list()\n\nfor (comp in all_comparisons) {\n  p &lt;- generate_swanky_volcano(\n    msstats_results = res_df, \n    dict = protein_dictionary, \n    comparison_label = comp, \n    logfc_cutoff = 0.5, \n    graphs_dir = results_dir\n  )\n  \n  # Store the plot in our list\n  plot_list[[comp]] &lt;- p\n  \n  # Print the plot so it appears in HTML output\n  print(p)\n}\n\n\nWarning: Removed 5533 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\nRemoved 5533 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\nWarning: Removed 5527 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\n\n\n\n\n\n\n\nWarning: Removed 5527 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\nWarning: Removed 5543 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\n\n\n\n\n\n\n\nWarning: Removed 5543 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).",
+    "crumbs": [
+      "3. DE plots"
+    ]
+  },
+  {
+    "objectID": "notebooks/03_DE_plots.html#interrogation-of-floor-genes-from-near-vs-far-plaque-volcano-plots",
+    "href": "notebooks/03_DE_plots.html#interrogation-of-floor-genes-from-near-vs-far-plaque-volcano-plots",
+    "title": "3. DE plots",
+    "section": "Interrogation of floor genes from Near vs Far plaque volcano plots",
+    "text": "Interrogation of floor genes from Near vs Far plaque volcano plots\n\n\nCode\nres_df\n\n\n\n  \n\n\n\nCode\nfloor_check &lt;- res_df %&gt;%\n  filter(Label == \"PlaqueNear_vs_Control\", adj.pvalue &gt; 0.99) %&gt;%\n  dplyr::select(Protein, log2FC, pvalue, adj.pvalue, SE, DF) %&gt;%\n  arrange(desc(abs(log2FC)))\n\n# Look at the top results\nhead(floor_check, 10)\n\n\n\n  \n\n\n\n\n\nCode\n#filtered for top 4 logFC proteins with &gt;0.99 FDR\ntarget_proteins &lt;- res_df %&gt;%\n  filter(Label == \"PlaqueNear_vs_PlaqueFar\", adj.pvalue &gt; 0.99) %&gt;%\n  arrange(desc(abs(log2FC))) %&gt;%\n  slice_head(n = 4) %&gt;%\n  pull(Protein)\n\n#read in msstats data\nprocessed_data &lt;- qs_read(file.path(objects_dir, \"processed_msstats_data.qs2\"))\n\n# extract their summarized abundances from the processed MSstats object\nabundance_data &lt;- processed_data$ProteinLevelData %&gt;%\n  filter(Protein %in% target_proteins) %&gt;%\n  # Filter to just the two conditions of interest for clarity\n  filter(GROUP %in% c(\"plaque_near\", \"plaque_far\")) %&gt;%\n  group_by(Protein, GROUP, SUBJECT) %&gt;%\n  summarise(LogIntensities = mean(LogIntensities, na.rm = TRUE), .groups = \"drop\")\n#plot abundances\n#each dot represents the summarised abundance for a biological replicate \np_abundance &lt;- ggplot(abundance_data, aes(x = GROUP, y = LogIntensities, fill = GROUP)) +\n  geom_boxplot(alpha = 0.5, outlier.shape = NA) +\n  geom_jitter(width = 0.2, size = 2, alpha = 0.8) +\n  facet_wrap(~ Protein, scales = \"free_y\") +\n  theme_minimal(base_size = 14) +\n  scale_fill_manual(values = c(\"plaque_near\" = \"#d95f02\", \"plaque_far\" = \"#7570b3\")) +\n  labs(\n    title = \"Abundance Profile of High-FC 'Floor' Proteins\",\n    subtitle = \"FDR = 1.0 despite high Log2FC\",\n    x = \"Condition\",\n    y = \"Log2 Intensity\"\n  ) +\n  theme(legend.position = \"none\")\n\n# Print the plot\nprint(p_abundance)",
+    "crumbs": [
+      "3. DE plots"
+    ]
+  },
+  {
     "objectID": "notebooks/08_PPI.html",
     "href": "notebooks/08_PPI.html",
     "title": "08: PPI Network Analysis",
@@ -587,320 +992,6 @@
     "text": "Session info\n\n\nCode\nsessionInfo()\n\n\nR version 4.5.1 (2025-06-13)\nPlatform: x86_64-pc-linux-gnu\nRunning under: Rocky Linux 8.7 (Green Obsidian)\n\nMatrix products: default\nBLAS/LAPACK: FlexiBLAS OPENBLAS;  LAPACK version 3.12.0\n\nlocale:\n [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              \n [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    \n [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   \n [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 \n [9] LC_ADDRESS=C               LC_TELEPHONE=C            \n[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       \n\ntime zone: Europe/London\ntzcode source: system (glibc)\n\nattached base packages:\n[1] stats     graphics  grDevices utils     datasets  methods   base     \n\nother attached packages:\n[1] qs2_0.1.6           igraph_2.2.2        STRINGdb_2.22.0    \n[4] stringr_1.6.0       ggrepel_0.9.6       ggplot2_4.0.2      \n[7] tidyr_1.3.2         dplyr_1.2.0         data.table_1.18.2.1\n\nloaded via a namespace (and not attached):\n [1] generics_0.1.4        gplots_3.3.0          bitops_1.0-9         \n [4] KernSmooth_2.23-26    gtools_3.9.5          RSQLite_2.4.5        \n [7] stringi_1.8.7         digest_0.6.39         magrittr_2.0.4       \n[10] caTools_1.18.3        evaluate_1.0.5        grid_4.5.1           \n[13] RColorBrewer_1.1-3    blob_1.2.4            fastmap_1.2.0        \n[16] plyr_1.8.9            jsonlite_2.0.0        DBI_1.2.3            \n[19] httr_1.4.8            purrr_1.2.1           scales_1.4.0         \n[22] cli_3.6.5             rlang_1.1.7           bit64_4.6.0-1        \n[25] plotrix_3.8-14        gsubfn_0.7            cachem_1.1.0         \n[28] withr_3.0.2           yaml_2.3.12           otel_0.2.0           \n[31] proto_1.0.0           tools_4.5.1           memoise_2.0.1        \n[34] hash_2.2.6.4          vctrs_0.7.1           R6_2.6.1             \n[37] png_0.1-8             lifecycle_1.0.5       stringfish_0.17.0    \n[40] bit_4.6.0             htmlwidgets_1.6.4     pkgconfig_2.0.3      \n[43] RcppParallel_5.1.11-1 pillar_1.11.1         gtable_0.3.6         \n[46] glue_1.8.0            Rcpp_1.1.1            xfun_0.56            \n[49] tibble_3.3.1          tidyselect_1.2.1      knitr_1.51           \n[52] farver_2.1.2          sqldf_0.4-12          htmltools_0.5.9      \n[55] rmarkdown_2.30        compiler_4.5.1        S7_0.2.1             \n[58] chron_2.3-62",
     "crumbs": [
       "8: PPI Network analysis"
-    ]
-  },
-  {
-    "objectID": "notebooks/03_DE_plots.html#directories",
-    "href": "notebooks/03_DE_plots.html#directories",
-    "title": "3. DE plots",
-    "section": "Directories",
-    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run6\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\nraw_dir &lt;- file.path(base_dir, \"data\", \"raw\")\n\ndir.create(results_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)",
-    "crumbs": [
-      "3. DE plots"
-    ]
-  },
-  {
-    "objectID": "notebooks/03_DE_plots.html#read-in-msstats-output",
-    "href": "notebooks/03_DE_plots.html#read-in-msstats-output",
-    "title": "3. DE plots",
-    "section": "Read in MSstats output",
-    "text": "Read in MSstats output\n\n\nCode\nres_df &lt;- fread(file.path(results_dir, \"Full_GroupComparison_Results.csv\"))",
-    "crumbs": [
-      "3. DE plots"
-    ]
-  },
-  {
-    "objectID": "notebooks/03_DE_plots.html#mapping-protein-ids-to-gene-names",
-    "href": "notebooks/03_DE_plots.html#mapping-protein-ids-to-gene-names",
-    "title": "3. DE plots",
-    "section": "Mapping protein IDs to gene names",
-    "text": "Mapping protein IDs to gene names\n\n\nCode\nclean_spec_raw &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\"))\n\nprotein_dictionary &lt;- clean_spec_raw %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, \n         Gene = PG.Genes, \n         Description = PG.ProteinDescriptions) %&gt;%\n  distinct()",
-    "crumbs": [
-      "3. DE plots"
-    ]
-  },
-  {
-    "objectID": "notebooks/03_DE_plots.html#volcano-function",
-    "href": "notebooks/03_DE_plots.html#volcano-function",
-    "title": "3. DE plots",
-    "section": "Volcano function",
-    "text": "Volcano function\nBoundary cut-offs of 0.05 FDR and +/- 0.58 Log2FC (1.5x).\n\n\nCode\n# Define colours\nvolcano_cols &lt;- c(\"Upregulated\" = \"firebrick3\", \n                  \"Downregulated\" = \"navy\", \n                  \"Not Significant\" = \"grey80\")\n\ngenerate_swanky_volcano &lt;- function(msstats_results, dict, comparison_label, logfc_cutoff = 0.5, graphs_dir = \"results\") {\n  \n  # --- Data Processing ---\n  volcano_data &lt;- msstats_results %&gt;%\n    # Isolate the specific comparison and drop missing values\n    filter(Label == comparison_label, !is.na(adj.pvalue), is.finite(log2FC)) %&gt;%\n    # Map the Gene names from the dictionary\n    left_join(dict, by = \"Protein\") %&gt;%\n    mutate(\n      # Fallback to Protein ID if Gene name is missing\n      Gene = ifelse(is.na(Gene) | Gene == \"\", Protein, Gene),\n      # Define significance categories\n      Status = case_when(\n        adj.pvalue &lt; 0.05 & log2FC &gt; logfc_cutoff ~ \"Upregulated\",\n        adj.pvalue &lt; 0.05 & log2FC &lt; -logfc_cutoff ~ \"Downregulated\",\n        TRUE ~ \"Not Significant\"\n      )\n    ) %&gt;%\n    # Group by Status to rank Upregulated and Downregulated separately\n    group_by(Status) %&gt;%\n    # Rank by FDR (smallest adj.pvalue = 1)\n    mutate(GroupRank = rank(adj.pvalue, ties.method = \"first\")) %&gt;%\n    ungroup() %&gt;%\n    mutate(\n      # Label top 20 for each significant category\n      PlotLabel = case_when(\n        Status != \"Not Significant\" & GroupRank &lt;= 20 ~ Gene, \n        TRUE ~ NA_character_\n      )\n    )\n  \n  # --- Plotting ---\n  p &lt;- ggplot(volcano_data, aes(x = log2FC, y = -log10(adj.pvalue), fill = Status, color = Status)) +\n    geom_point(aes(size = Status, alpha = Status), shape = 21, stroke = 0.2) +\n    scale_fill_manual(values = volcano_cols) +\n    scale_color_manual(values = c(\"Upregulated\" = \"black\", \"Downregulated\" = \"black\", \"Not Significant\" = \"grey90\")) +\n    scale_size_manual(values = c(\"Upregulated\" = 3, \"Downregulated\" = 3, \"Not Significant\" = 1.5)) +\n    scale_alpha_manual(values = c(\"Upregulated\" = 1, \"Downregulated\" = 1, \"Not Significant\" = 0.3)) +\n    geom_hline(yintercept = -log10(0.05), linetype = \"dashed\", color = \"grey30\", linewidth = 0.8) +\n    geom_vline(xintercept = c(-logfc_cutoff, logfc_cutoff), linetype = \"dashed\", color = \"grey30\", linewidth = 0.8) +\n    geom_label_repel(\n      aes(label = PlotLabel),\n      fill = \"white\", color = \"black\", fontface = \"bold\", size = 3.5,\n      box.padding = 0.5, point.padding = 0.5,\n      min.segment.length = 0, segment.color = \"grey50\", max.overlaps = 50\n    ) +\n    labs(\n      title = paste0(\"Differential Abundance: \", gsub(\"_\", \" \", comparison_label)),\n      subtitle = paste0(\"Top 20 Genes Labeled | FDR &lt; 0.05 | |log2FC| &gt; \", logfc_cutoff),\n      x = bquote(bold(\"Log\"[2] ~ \"Fold Change\")),\n      y = bquote(bold(\"-Log\"[10] ~ \"FDR\"))\n    ) +\n    theme_minimal(base_size = 14) +\n    theme(\n      plot.title = element_text(face = \"bold\", size = 18, hjust = 0),\n      plot.subtitle = element_text(size = 12, color = \"grey40\", margin = margin(b = 10)),\n      axis.title = element_text(face = \"bold\", size = 14),\n      axis.text = element_text(face = \"bold\", color = \"black\"),\n      axis.line = element_line(color = \"black\", linewidth = 1),\n      axis.ticks = element_line(color = \"black\", linewidth = 1),\n      legend.position = \"top\",\n      legend.title = element_blank(),\n      legend.text = element_text(size = 12, face = \"bold\"),\n      panel.grid.minor = element_blank(),\n      panel.grid.major = element_line(color = \"grey95\")\n    )\n  \n  # --- Output Generation ---\n  # Ensure directory exists\n  dir.create(graphs_dir, showWarnings = FALSE, recursive = TRUE)\n  safe_name &lt;- gsub(\" \", \"_\", comparison_label)\n  \n  # Save Plot\n  ggsave(\n    filename = file.path(graphs_dir, paste0(\"Volcano_\", safe_name, \"_Swanky.pdf\")), \n    plot = p, \n    width = 10, height = 7, dpi = 300,\n    device = cairo_pdf \n  )\n  \n  # Save Data Table\n  # Select only the most useful columns and sort by significance for easy reading\n  export_data &lt;- volcano_data %&gt;%\n    dplyr::select(Protein, Gene, Description, log2FC, pvalue, adj.pvalue, Status) %&gt;%\n    arrange(adj.pvalue)\n  \n  fwrite(export_data, file = file.path(graphs_dir, paste0(\"Volcano_Data_\", safe_name, \".csv\")))\n  \n  return(p)\n}",
-    "crumbs": [
-      "3. DE plots"
-    ]
-  },
-  {
-    "objectID": "notebooks/03_DE_plots.html#iterate-through-comparisons-to-generate-plots-and-useful-de-tables",
-    "href": "notebooks/03_DE_plots.html#iterate-through-comparisons-to-generate-plots-and-useful-de-tables",
-    "title": "3. DE plots",
-    "section": "Iterate through comparisons to generate plots and useful DE tables",
-    "text": "Iterate through comparisons to generate plots and useful DE tables\n\n\nCode\nall_comparisons &lt;- unique(res_df$Label)\n\n# 2. Loop through each comparison, generate the plot/data, and store the plots in a list\nplot_list &lt;- list()\n\nfor (comp in all_comparisons) {\n  p &lt;- generate_swanky_volcano(\n    msstats_results = res_df, \n    dict = protein_dictionary, \n    comparison_label = comp, \n    logfc_cutoff = 0.5, \n    graphs_dir = results_dir\n  )\n  \n  # Store the plot in our list\n  plot_list[[comp]] &lt;- p\n  \n  # Print the plot so it appears in HTML output\n  print(p)\n}\n\n\nWarning: Removed 5533 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\nRemoved 5533 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\nWarning: Removed 5527 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\n\n\n\n\n\n\n\nWarning: Removed 5527 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\nWarning: Removed 5543 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).\n\n\n\n\n\n\n\n\n\nWarning: Removed 5543 rows containing missing values or values outside the scale range\n(`geom_label_repel()`).",
-    "crumbs": [
-      "3. DE plots"
-    ]
-  },
-  {
-    "objectID": "notebooks/03_DE_plots.html#interrogation-of-floor-genes-from-near-vs-far-plaque-volcano-plots",
-    "href": "notebooks/03_DE_plots.html#interrogation-of-floor-genes-from-near-vs-far-plaque-volcano-plots",
-    "title": "3. DE plots",
-    "section": "Interrogation of floor genes from Near vs Far plaque volcano plots",
-    "text": "Interrogation of floor genes from Near vs Far plaque volcano plots\n\n\nCode\nres_df\n\n\n\n  \n\n\n\nCode\nfloor_check &lt;- res_df %&gt;%\n  filter(Label == \"PlaqueNear_vs_Control\", adj.pvalue &gt; 0.99) %&gt;%\n  dplyr::select(Protein, log2FC, pvalue, adj.pvalue, SE, DF) %&gt;%\n  arrange(desc(abs(log2FC)))\n\n# Look at the top results\nhead(floor_check, 10)\n\n\n\n  \n\n\n\n\n\nCode\n#filtered for top 4 logFC proteins with &gt;0.99 FDR\ntarget_proteins &lt;- res_df %&gt;%\n  filter(Label == \"PlaqueNear_vs_PlaqueFar\", adj.pvalue &gt; 0.99) %&gt;%\n  arrange(desc(abs(log2FC))) %&gt;%\n  slice_head(n = 4) %&gt;%\n  pull(Protein)\n\n#read in msstats data\nprocessed_data &lt;- qs_read(file.path(objects_dir, \"processed_msstats_data.qs2\"))\n\n# extract their summarized abundances from the processed MSstats object\nabundance_data &lt;- processed_data$ProteinLevelData %&gt;%\n  filter(Protein %in% target_proteins) %&gt;%\n  # Filter to just the two conditions of interest for clarity\n  filter(GROUP %in% c(\"plaque_near\", \"plaque_far\")) %&gt;%\n  group_by(Protein, GROUP, SUBJECT) %&gt;%\n  summarise(LogIntensities = mean(LogIntensities, na.rm = TRUE), .groups = \"drop\")\n#plot abundances\n#each dot represents the summarised abundance for a biological replicate \np_abundance &lt;- ggplot(abundance_data, aes(x = GROUP, y = LogIntensities, fill = GROUP)) +\n  geom_boxplot(alpha = 0.5, outlier.shape = NA) +\n  geom_jitter(width = 0.2, size = 2, alpha = 0.8) +\n  facet_wrap(~ Protein, scales = \"free_y\") +\n  theme_minimal(base_size = 14) +\n  scale_fill_manual(values = c(\"plaque_near\" = \"#d95f02\", \"plaque_far\" = \"#7570b3\")) +\n  labs(\n    title = \"Abundance Profile of High-FC 'Floor' Proteins\",\n    subtitle = \"FDR = 1.0 despite high Log2FC\",\n    x = \"Condition\",\n    y = \"Log2 Intensity\"\n  ) +\n  theme(legend.position = \"none\")\n\n# Print the plot\nprint(p_abundance)",
-    "crumbs": [
-      "3. DE plots"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html",
-    "href": "notebooks/01b_DAA_marker_check.html",
-    "title": "1b: DAA marker check",
-    "section": "",
-    "text": "Code\nknitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')\n\nlibrary(data.table)\nlibrary(dplyr)\n\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:data.table':\n\n    between, first, last\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\n\nCode\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(qs2)\n\n\nqs2 0.1.6",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html#libraries",
-    "href": "notebooks/01b_DAA_marker_check.html#libraries",
-    "title": "1b: DAA marker check",
-    "section": "",
-    "text": "Code\nknitr::opts_knit$set(root.dir = '/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics')\n\nlibrary(data.table)\nlibrary(dplyr)\n\n\n\nAttaching package: 'dplyr'\n\n\nThe following objects are masked from 'package:data.table':\n\n    between, first, last\n\n\nThe following objects are masked from 'package:stats':\n\n    filter, lag\n\n\nThe following objects are masked from 'package:base':\n\n    intersect, setdiff, setequal, union\n\n\nCode\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(qs2)\n\n\nqs2 0.1.6",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html#directories",
-    "href": "notebooks/01b_DAA_marker_check.html#directories",
-    "title": "1b: DAA marker check",
-    "section": "Directories",
-    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run1\"\n\n# Pointing to where you saved the clean data, and where to output the plot\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html#read-in-raw-files",
-    "href": "notebooks/01b_DAA_marker_check.html#read-in-raw-files",
-    "title": "1b: DAA marker check",
-    "section": "Read in raw files",
-    "text": "Read in raw files\n\n\nCode\nclean_meta &lt;- fread(file.path(objects_dir, \"clean_metadata.csv\"))\nclean_spec_raw &lt;- fread(file.path(objects_dir, \"clean_spec_raw.csv\"))",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html#define-function-to-calculate-specific-gene-per-condition-with-the-dot-coloured-by-batch",
-    "href": "notebooks/01b_DAA_marker_check.html#define-function-to-calculate-specific-gene-per-condition-with-the-dot-coloured-by-batch",
-    "title": "1b: DAA marker check",
-    "section": "Define function to calculate specific gene per condition, with the dot coloured by Batch",
-    "text": "Define function to calculate specific gene per condition, with the dot coloured by Batch\n\n\nCode\nplot_target_genes &lt;- function(genes_to_plot, raw_data, meta_data) {\n  \n  # 1. Subset raw data using regex pattern\n  pattern &lt;- paste(genes_to_plot, collapse=\"|\")\n  marker_raw &lt;- raw_data[grepl(pattern, PG.Genes, ignore.case = TRUE)]\n  \n  if(nrow(marker_raw) == 0) {\n    stop(\"None of the specified genes were found in the dataset.\")\n  }\n  \n  # 2. Pivot and clean\n  marker_long &lt;- marker_raw %&gt;%\n    select(PG.Genes, all_of(meta_data$Run)) %&gt;%\n    pivot_longer(cols = -PG.Genes, names_to = \"Run\", values_to = \"Intensity\") %&gt;%\n    # Extract the specific matched gene name for cleaner facet labels\n    mutate(Marker = str_extract(PG.Genes, regex(pattern, ignore_case = TRUE))) %&gt;%\n    mutate(Marker = str_to_title(Marker)) %&gt;% # Normalizes capitalization (e.g., gfap -&gt; Gfap)\n    mutate(Log2_Intensity = log2(Intensity + 1)) %&gt;%\n    mutate(Log2_Intensity = ifelse(Log2_Intensity == 0, NA, Log2_Intensity))\n  \n  # 3. Merge with metadata\n  marker_plot_data &lt;- merge(marker_long, meta_data, by = \"Run\")\n  \n  # 4. Generate Plot: Boxes = Condition, Dots = Batch\n  p &lt;- ggplot(marker_plot_data, aes(x = Condition, y = Log2_Intensity)) +\n    # Boxplot colored by Condition\n    geom_boxplot(aes(fill = Condition), outlier.shape = NA, alpha = 0.5) +\n    # Jittered dots colored by Batch\n    geom_jitter(aes(color = as.factor(Batch)), width = 0.2, size = 2, alpha = 0.8) +\n    facet_wrap(~ Marker, scales = \"free_y\") +\n    theme_minimal(base_size = 14) +\n    # Reusing your established condition colors\n    scale_fill_manual(values = c(\"control\" = \"#1b9e77\", \"plaque_near\" = \"#d95f02\", \"plaque_far\" = \"#7570b3\")) +\n    # High-contrast palette for the batch dots\n    scale_color_brewer(palette = \"Set1\") +\n    labs(\n         x = \"Biological Condition\", \n         y = \"Log2 Intensity\", \n         fill = \"Condition\",\n         color = \"Batch\") +\n    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = \"bold\"),\n          strip.text = element_text(face = \"bold\", size = 14))\n  \n  return(p)\n}",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html#daa-markers-are-inverted-to-what-would-be-expected-for-batch-2-and-5",
-    "href": "notebooks/01b_DAA_marker_check.html#daa-markers-are-inverted-to-what-would-be-expected-for-batch-2-and-5",
-    "title": "1b: DAA marker check",
-    "section": "DAA markers are inverted to what would be expected for Batch 2 and 5",
-    "text": "DAA markers are inverted to what would be expected for Batch 2 and 5\nIndicates some sort of Batch mix up.\n\n\nCode\nmy_genes &lt;- c(\"Gfap\", \"App\", \"Clu\", \"Apoe\")\n\n# Run the function\np_markers &lt;- plot_target_genes(my_genes, clean_spec_raw, clean_meta)\n\n# Display inline\nprint(p_markers)\n\n\nWarning: Removed 672 rows containing non-finite outside the scale range\n(`stat_boxplot()`).\n\n\nWarning: Removed 672 rows containing missing values or values outside the scale range\n(`geom_point()`).\n\n\n\n\n\n\n\n\n\nCode\nmarker_pdf_path &lt;- file.path(results_dir, \"Target_Genes_Check.pdf\")\nggsave(marker_pdf_path, plot = p_markers, width = 10, height = 8)\n\n\nWarning: Removed 672 rows containing non-finite outside the scale range\n(`stat_boxplot()`).\nRemoved 672 rows containing missing values or values outside the scale range\n(`geom_point()`).",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "notebooks/01b_DAA_marker_check.html#pull-in-msstats-data-to-display-aß-tryptic-peptide-plot",
-    "href": "notebooks/01b_DAA_marker_check.html#pull-in-msstats-data-to-display-aß-tryptic-peptide-plot",
-    "title": "1b: DAA marker check",
-    "section": "Pull in MSstats data to display Aß tryptic peptide plot",
-    "text": "Pull in MSstats data to display Aß tryptic peptide plot\n\n\nCode\ntarget_peptide &lt;- \"LVFFAEDVGSNK\"\n\nmsstats_clean &lt;- qs_read(file.path(objects_dir, \"clean_msstats_input.qs2\"))\n\ncolnames(msstats_clean)\n\n\n [1] \"R.Condition\"                  \"R.FileName\"                  \n [3] \"R.Replicate\"                  \"PG.ProteinAccessions\"        \n [5] \"PG.ProteinGroups\"             \"PG.Qvalue\"                   \n [7] \"PG.Quantity\"                  \"PEP.GroupingKey\"             \n [9] \"PEP.StrippedSequence\"         \"PEP.Quantity\"                \n[11] \"EG.iRTPredicted\"              \"EG.Library\"                  \n[13] \"EG.ModifiedSequence\"          \"EG.PrecursorId\"              \n[15] \"EG.Qvalue\"                    \"FG.Charge\"                   \n[17] \"FG.Id\"                        \"FG.PrecMz\"                   \n[19] \"FG.Quantity\"                  \"F.Charge\"                    \n[21] \"F.FrgIon\"                     \"F.FrgLossType\"               \n[23] \"F.FrgMz\"                      \"F.FrgNum\"                    \n[25] \"F.FrgType\"                    \"F.ExcludedFromQuantification\"\n[27] \"F.NormalizedPeakArea\"         \"F.NormalizedPeakHeight\"      \n[29] \"F.PeakArea\"                   \"F.PeakHeight\"                \n[31] \"Chip_location\"                \"Batch\"                       \n[33] \"Condition\"                    \"BioReplicate\"                \n\n\nCode\n# Filter the cleaned MSstats data for the Aß peptide\nab_check_data &lt;- msstats_clean %&gt;%\n  filter(PEP.StrippedSequence == target_peptide) %&gt;%\n  # Use F.PeakArea or F.NormalizedPeakArea for the raw intensity values\n  group_by(R.FileName, Condition, Batch) %&gt;%\n  summarise(\n    Total_Intensity = sum(F.PeakArea, na.rm = TRUE),\n    .groups = \"drop\"\n  ) %&gt;%\n  mutate(Log2_Intensity = log2(Total_Intensity + 1))\n\n\n# 1. Clean up the data labels (Factor names)\nab_check_data$Condition &lt;- factor(ab_check_data$Condition, \n                                  levels = c(\"control\", \"plaque_far\", \"plaque_near\"),\n                                  labels = c(\"Control\", \"Plaque Far\", \"Plaque Near\"))\n\n# 2. Update the plot\np_ab_check &lt;- ggplot(ab_check_data, aes(x = Condition, y = Log2_Intensity, fill = Condition)) +\n  geom_boxplot(outlier.shape = NA, alpha = 0.7) +\n  geom_jitter(width = 0.2, alpha = 0.8) +\n  facet_wrap(~ Batch, scales = \"free_y\", labeller = label_both) + \n  theme_minimal() +\n  theme(\n    legend.position = \"top\",\n    legend.justification = \"center\",\n    # Bold and larger Batch labels\n    strip.text = element_text(face = \"bold\", size = 12),\n    \n    # Bold Axis Titles\n    axis.title.x = element_text(face = \"bold\", size = 12, margin = margin(t = 10)),\n    axis.title.y = element_text(face = \"bold\", size = 12, margin = margin(r = 10)),\n    \n    # Smaller, tilted X-axis labels to prevent overlap\n    axis.text.x = element_text(size = 9, angle = 45, vjust = 1, hjust = 1),\n    axis.text.y = element_text(size = 10),\n    \n    # Larger Legend\n    legend.text = element_text(size = 11),\n    legend.title = element_text(size = 12, face = \"bold\"),\n    legend.key.size = unit(1.2, \"lines\"),\n    \n    # Remove plot title\n    plot.title = element_blank()\n  ) +\n  # Map colors to the new \"text-friendly\" label names\n  scale_fill_manual(values = c(\n    \"Control\" = \"#1b9e77\", \n    \"Plaque Far\" = \"#7570b3\",\n    \"Plaque Near\" = \"#d95f02\"\n  )) +\n  labs(\n    x = \"Labelled Condition\",\n    y = \"Log2(AB Peptide Intensity)\",\n    fill = \"Condition\"\n  )\n\nprint(p_ab_check)\n\n\n\n\n\n\n\n\n\nCode\n# Save the plot\nggsave(file.path(results_dir, \"AB_Peptide_Batch_Verification.pdf\"), p_ab_check, width = 6, height = 6)",
-    "crumbs": [
-      "1b. DAA marker check"
-    ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "LCM Proteomics Pipeline",
-    "section": "",
-    "text": "Documentation for Millie’s Proteomics project. This site tracks the processing of LCM samples from initial QC to Differential abundance analysis."
-  },
-  {
-    "objectID": "index.html#update-parameter-changes-run3---130326",
-    "href": "index.html#update-parameter-changes-run3---130326",
-    "title": "LCM Proteomics Pipeline",
-    "section": "Update Parameter changes (run3) - 13/03/26",
-    "text": "Update Parameter changes (run3) - 13/03/26\nUpdated data filtering criteria to be more stringent: * Filtering Rule: Proteins must have ≥ 50% non-missing values in at least one condition, ensuring that differential abundance analysis is on robustly detected features.\n\nPipeline Stages\n\nInitial QC\nDAA marker sense check\nDE plots\nGSEA\nGFAP correlation\nMSstats limma correlation\nMSstats limma comparison\nCell-cell interactions\nPPI network\nTripartite Astrocyte Signature"
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html",
-    "href": "notebooks/05_gfap_correlation.html",
-    "title": "5. GFAP correlation",
-    "section": "",
-    "text": "This script is meant to identify proteins whose expression levels correlate with GFAP, within the plaque near condition.",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html#libraries",
-    "href": "notebooks/05_gfap_correlation.html#libraries",
-    "title": "5. GFAP correlation",
-    "section": "Libraries",
-    "text": "Libraries\n\n\nCode\nsuppressPackageStartupMessages({\nlibrary(data.table)\nlibrary(qs2)\nlibrary(dplyr)\nlibrary(tidyr)\nlibrary(tibble)\nlibrary(ggplot2)\nlibrary(ggrepel)\n})",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html#directories",
-    "href": "notebooks/05_gfap_correlation.html#directories",
-    "title": "5. GFAP correlation",
-    "section": "Directories",
-    "text": "Directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\nrun_num &lt;- \"run5\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\n\ndir.create(results_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html#load-objects-and-extract-summarised-protein-levels",
-    "href": "notebooks/05_gfap_correlation.html#load-objects-and-extract-summarised-protein-levels",
-    "title": "5. GFAP correlation",
-    "section": "Load objects and extract summarised protein levels",
-    "text": "Load objects and extract summarised protein levels\n\n\nCode\n#Map protein IDs to readable gene IDs\nprocessed_data &lt;- qs_read(file.path(objects_dir, \"processed_msstats_data.qs2\"))\nprotein_dict &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\")) %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, Gene = PG.Genes) %&gt;%\n  distinct()\n\n# Extract Summarized Abundances\n# Using ProteinLevelData (summarized by MSstats) for cleaner correlations\n\n#transform to wide format (rows per run, columns per gene) to calculate column-wise correlations\n\nwide_df &lt;- processed_data$ProteinLevelData %&gt;%\n  left_join(protein_dict, by = \"Protein\") %&gt;%\n  mutate(Gene = ifelse(is.na(Gene) | Gene == \"\", Protein, Gene)) %&gt;%\n  # Handle duplicates (e.g., multiple Protein IDs mapping to one Gene)\n  group_by(originalRUN, Gene) %&gt;%\n  summarize(Abundance = mean(LogIntensities, na.rm = TRUE), .groups = \"drop\") %&gt;%\n  pivot_wider(names_from = Gene, values_from = Abundance) %&gt;%\n  column_to_rownames(\"originalRUN\")",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html#correlate-gene-protein-levels-to-gfap",
-    "href": "notebooks/05_gfap_correlation.html#correlate-gene-protein-levels-to-gfap",
-    "title": "5. GFAP correlation",
-    "section": "Correlate gene (protein) levels to Gfap",
-    "text": "Correlate gene (protein) levels to Gfap\n\n\nCode\nfinal_clean_meta &lt;- read.csv(file.path(base_dir,\"data/processed/run1/msstats_annotation.csv\"))\nplaque_near_runs &lt;- final_clean_meta$Run[final_clean_meta$Condition == \"plaque_near\"]\n\n# Subset the data to just plaque near samples\npn_data &lt;- wide_df[rownames(wide_df) %in% plaque_near_runs, ]\n\n#calculate R between every protein's abundance and GFAP. \npn_gfap_cors &lt;- data.frame(Gene = colnames(pn_data)) %&gt;%\n  mutate(\n    Pearson_R = sapply(Gene, function(x) {\n      if(sum(!is.na(pn_data$Gfap) & !is.na(pn_data[[x]])) &gt; 3) {\n        cor(pn_data$Gfap, pn_data[[x]], use = \"pairwise.complete.obs\")\n      } else { NA }\n    })\n  ) %&gt;%\n  filter(!is.na(Pearson_R)) %&gt;%\n  arrange(desc(Pearson_R))\n\npn_gfap_cors\n\n\n\n  \n\n\n\nCode\nwrite.csv(pn_gfap_cors, file.path(objects_dir, \"gfap_correlation.csv\"))",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html#view-cd44-correlation-with-gfap",
-    "href": "notebooks/05_gfap_correlation.html#view-cd44-correlation-with-gfap",
-    "title": "5. GFAP correlation",
-    "section": "View Cd44 correlation with Gfap",
-    "text": "View Cd44 correlation with Gfap\n\n\nCode\npn_gfap_cors %&gt;% filter(Gene == \"Cd44\")",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/05_gfap_correlation.html#proteins-correlated-to-cd44",
-    "href": "notebooks/05_gfap_correlation.html#proteins-correlated-to-cd44",
-    "title": "5. GFAP correlation",
-    "section": "Proteins correlated to Cd44",
-    "text": "Proteins correlated to Cd44\n\n\nCode\npn_cd44_cors &lt;- data.frame(Gene = colnames(pn_data)) %&gt;%\n  mutate(\n    Pearson_R = sapply(Gene, function(x) {\n      if(sum(!is.na(pn_data$Cd44) & !is.na(pn_data[[x]])) &gt; 3) {\n        cor(pn_data$Cd44, pn_data[[x]], use = \"pairwise.complete.obs\")\n      } else { NA }\n    })\n  ) %&gt;%\n  filter(!is.na(Pearson_R)) %&gt;%\n  arrange(desc(Pearson_R))\n\npn_cd44_cors\n\n\n\n  \n\n\n\nCode\nwrite.csv(pn_cd44_cors, file.path(objects_dir, \"cd44_correlation.csv\"))",
-    "crumbs": [
-      "5. GFAP correlation"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html",
-    "href": "notebooks/04_gsea.html",
-    "title": "4. GSEA",
-    "section": "",
-    "text": "==================================================================",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#workflow-overview",
-    "href": "notebooks/04_gsea.html#workflow-overview",
-    "title": "4. GSEA",
-    "section": "Workflow overview",
-    "text": "Workflow overview\n1. Data Loading: Imports DE tables (CSV) from the msstats step.\n2. Gene Set Prep: Loads pathways from multiple sources (GO / KEGG / cell type signatures (C8)/ DAA signature)\n3. Ranking: Ranks proteins by Log2FC for every comparison.\n4. Analysis Loop: Runs GSEA for every combination of [Comparison x Gene Set Database].\n5. Visualization:\n\nGenerates summary bar plots of top 10 and bottom 10 NES.\n\n\n\nGenerates specific enrichment plots (mountain plots) for key pathways of choice.\n\n==================================================================",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#load-libraries",
-    "href": "notebooks/04_gsea.html#load-libraries",
-    "title": "4. GSEA",
-    "section": "Load libraries",
-    "text": "Load libraries\n\n\nCode\nsuppressPackageStartupMessages({\nlibrary(data.table)\nlibrary(qs2)\nlibrary(ggrepel)\nlibrary(ggplot2)\nlibrary(stringr)\nlibrary(glue)\nlibrary(dplyr)\nlibrary(msigdbr)\nlibrary(fgsea)\nlibrary(viridis)\nlibrary(readxl)\n})",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#set-directories",
-    "href": "notebooks/04_gsea.html#set-directories",
-    "title": "4. GSEA",
-    "section": "Set directories",
-    "text": "Set directories\n\n\nCode\nbase_dir &lt;- \"/nemo/lab/destrooperb/home/shared/zanettc/millie_proteomics\"\n\nrun_num &lt;- \"run5\"\n\nresults_dir &lt;- file.path(base_dir, \"results\", run_num)\nobjects_dir &lt;- file.path(base_dir, \"data\", \"processed\", run_num)\nraw_dir &lt;- file.path(base_dir, \"data\", \"raw\")\n\ndir.create(results_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(objects_dir, recursive = TRUE, showWarnings = FALSE)\ndir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#read-in-de-data",
-    "href": "notebooks/04_gsea.html#read-in-de-data",
-    "title": "4. GSEA",
-    "section": "Read in DE data",
-    "text": "Read in DE data\n\n\nCode\n#seurat &lt;- qs_read(glue(\"output/{run_num}/objects/prelabelled_integrated_rpca.qs2\"))\nres_df &lt;- fread(file.path(results_dir, \"Full_GroupComparison_Results.csv\"))\nclean_spec_raw &lt;- fread(file.path(base_dir, \"data/processed/run1/clean_spec_raw.csv\"))\n\nprotein_dictionary &lt;- clean_spec_raw %&gt;%\n  dplyr::select(Protein = PG.ProteinGroups, \n         Gene = PG.Genes, \n         Description = PG.ProteinDescriptions) %&gt;%\n  distinct()\n\nres_df",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#define-helper-functions",
-    "href": "notebooks/04_gsea.html#define-helper-functions",
-    "title": "4. GSEA",
-    "section": "Define helper functions",
-    "text": "Define helper functions\n\n\nCode\n# ==============================================================================\n# 1. HELPER FUNCTIONS\n# ==============================================================================\n\n# A. Create Rank Vector from MSstats Data\nprep_msstats_ranks &lt;- function(msstats_res, dict, comp_label) {\n  df &lt;- msstats_res %&gt;%\n    filter(Label == comp_label) %&gt;%\n    # Keep only finite log2FC values (removes Inf and -Inf)\n    filter(is.finite(log2FC)) %&gt;%\n    left_join(dict, by = \"Protein\") %&gt;%\n    filter(!is.na(Gene) & Gene != \"\") %&gt;%\n    mutate(Gene = toupper(Gene)) %&gt;%\n    mutate(adj.pvalue = ifelse(adj.pvalue == 0, 1e-300, adj.pvalue)) %&gt;%\n    group_by(Gene) %&gt;%\n    slice_max(order_by = abs(log2FC), n = 1, with_ties = FALSE) %&gt;%\n    ungroup()\n  \n  #rank by logFC\n  ranks &lt;- df$log2FC\n  names(ranks) &lt;- df$Gene\n  \n  # Remove any unexpected NAs in names or values\n  ranks &lt;- ranks[!is.na(ranks) & !is.na(names(ranks))]\n  \n  return(sort(ranks, decreasing = TRUE))\n}\n\n# B. Core GSEA & Plotting Function\nrun_gsea_analysis &lt;- function(ranks, \n                              comparison_name, \n                              geneset_name,    \n                              pathways, \n                              base_objects_dir, \n                              base_graphs_dir,  \n                              color_A = \"firebrick3\",\n                              color_B = \"navy\") {\n  \n  message(glue(\"Running GSEA | Set: {geneset_name} | Comp: {comparison_name}\"))\n  \n  # --- DYNAMIC LABEL GENERATION ---\n  # Split the comparison name to get the two groups (e.g., \"PlaqueNear\" and \"PlaqueFar\")\n  comp_parts &lt;- str_split(comparison_name, \"_vs_\")[[1]]\n  if(length(comp_parts) == 2) {\n    group_A_label &lt;- glue(\"{comp_parts[1]} Enriched\") # Positive NES\n    group_B_label &lt;- glue(\"{comp_parts[2]} Enriched\") # Negative NES\n  } else {\n    group_A_label &lt;- \"Group A Enriched\"\n    group_B_label &lt;- \"Group B Enriched\"\n  }\n  \n  # Clean title for the plot\n  clean_comp_title &lt;- gsub(\"_\", \" \", comparison_name)\n  plot_title &lt;- glue(\"{clean_comp_title} ({geneset_name})\")\n\n  # --- Directories ---\n  current_objects_dir &lt;- file.path(base_objects_dir, \"GSEA_Analysis_logfc_x_pval\", comparison_name)\n  current_graphs_dir  &lt;- file.path(base_graphs_dir, \"GSEA_Analysis_logfc_x_pval\", comparison_name)\n  dir.create(current_objects_dir, recursive = TRUE, showWarnings = FALSE)\n  dir.create(current_graphs_dir, recursive = TRUE, showWarnings = FALSE)\n  \n  # --- Run FGSEA ---\n  pathways_upper &lt;- lapply(pathways, toupper)\n  set.seed(42)\n  fgsea_res &lt;- fgsea(\n    pathways = pathways_upper,\n    stats    = ranks,\n    minSize  = 15,\n    maxSize  = 3000,\n    nproc    = 4, \n    nPermSimple = 10000 #changed this \n  )\n  \n  if (nrow(fgsea_res) == 0) {\n    warning(glue(\"No significant pathways for {geneset_name} in {comparison_name}\"))\n    return(NULL)\n  }\n  \n  # --- Tidy & Save ---\n  fgsea_res_tidy &lt;- fgsea_res %&gt;%\n    as_tibble() %&gt;%\n    mutate(leadingEdge = sapply(leadingEdge, paste, collapse = \",\")) %&gt;%\n    mutate(pathway = gsub(\"_geneset\", \"\", pathway)) %&gt;% \n    arrange(padj)\n  \n  write.csv(fgsea_res_tidy, file.path(current_objects_dir, glue(\"Table_{geneset_name}.csv\")), row.names = FALSE)\n  \n  # --- Barplot ---\n  top_gsea &lt;- fgsea_res_tidy %&gt;%\n    arrange(desc(NES)) %&gt;%\n    slice_head(n = 10) %&gt;%\n    bind_rows(fgsea_res_tidy %&gt;% arrange(NES) %&gt;% slice_head(n = 10)) %&gt;%\n    distinct(pathway, .keep_all = TRUE) %&gt;%\n    mutate(\n      sig_label = case_when(\n        padj &lt; 0.001 ~ \"***\",\n        padj &lt; 0.01  ~ \"**\",\n        padj &lt; 0.05  ~ \"*\",\n        TRUE         ~ \"\"\n      ),\n      # Apply dynamic labels based on NES direction\n      fill_group = ifelse(NES &gt; 0, group_A_label, group_B_label),\n      pathway = factor(pathway, levels = unique(pathway[order(NES)]))\n    )\n  \n  if (nrow(top_gsea) == 0) return(fgsea_res_tidy)\n  \n  axis_zoom &lt;- 3.5 \n  \n  p_bar &lt;- ggplot(top_gsea, aes(x = NES, y = pathway, fill = fill_group)) +\n    geom_col(width = 0.7) +\n    geom_text(aes(label = sig_label, hjust = ifelse(NES &gt; 0, 1.2, -0.2)), \n              color = \"white\", size = 5, vjust = 0.75, fontface = \"bold\") +\n    scale_fill_manual(values = setNames(c(color_A, color_B), c(group_A_label, group_B_label))) +\n    scale_x_continuous(breaks = seq(-axis_zoom, axis_zoom, 0.5),\n                       labels = function(x) ifelse(x %% 1 == 0, x, \"\")) + \n    labs(x = \"Normalized Enrichment Score (NES)\", y = NULL, title = plot_title) +\n    theme_bw(base_size = 14) +\n    theme(\n      panel.grid.major.x = element_line(color = \"grey92\", linewidth = 0.5),\n      panel.grid.major.y = element_blank(),\n      panel.grid.minor   = element_blank(),\n      panel.border = element_rect(colour = \"black\", fill = NA, linewidth = 1.5),\n      legend.position = \"none\",\n      plot.title = element_text(hjust = 0.5, face = \"bold\", size = 16, margin = margin(b = 40)),\n      plot.margin = margin(t = 40, r = 20, b = 20, l = 20, unit = \"pt\"),\n      #ensure y axis has enough room, and tightens lines together\n      axis.text.y = element_text(size = 9, lineheight = 0.8)\n    ) +\n    scale_y_discrete(labels = function(x) str_wrap(gsub(\"_\", \" \", x), width = 30)) +\n    # Dynamic text annotations at the top of the plot\n    annotate(\"text\", x = -axis_zoom/2, y = Inf, \n             label = glue(\"^ {group_B_label}\"), color = color_B, size = 5, fontface = \"bold\", vjust = -1.0) +\n    annotate(\"text\", x = axis_zoom/2, y = Inf, \n             label = glue(\"^ {group_A_label}\"), color = color_A, size = 5, fontface = \"bold\", vjust = -1.0) +\n    coord_cartesian(xlim = c(-axis_zoom, axis_zoom), clip = \"off\")\n  \n  dyn_h &lt;- 2 + (nrow(top_gsea) * 0.3)\n  dyn_w &lt;- 5 + (max(nchar(as.character(top_gsea$pathway))) * 0.12)\n  \n  print(p_bar)\n  \n  ggsave(filename = file.path(current_graphs_dir, glue(\"Barplot_{geneset_name}.pdf\")), \n         plot = p_bar, width = dyn_w, height = dyn_h, limitsize = FALSE)\n  \n  # --- Dotplot (Top 10 Highest NES) ---\n  top_nes_gsea &lt;- fgsea_res_tidy %&gt;%\n    arrange(desc(NES)) %&gt;%   \n    slice_head(n = 10) %&gt;%   \n    mutate(pathway = factor(pathway, levels = unique(pathway[order(NES)])))\n\n  if (nrow(top_nes_gsea) &gt; 0) {\n    # Define our wrap width\n    wrap_width &lt;- 45\n    \n    p_sig &lt;- ggplot(top_nes_gsea, aes(x = NES, y = pathway, color = NES, size = -log10(padj))) +\n      geom_vline(xintercept = 0, linetype = \"dashed\", color = \"grey60\") +\n      geom_point(alpha = 0.8) +\n      scale_color_gradient2(low = color_B, mid = \"grey90\", high = color_A, midpoint = 0, name = \"NES\") +\n      scale_size_continuous(range = c(3, 8), name = \"-log10(padj)\") +\n      labs(x = \"Normalized Enrichment Score (NES)\", y = NULL, \n           title = glue(\"Top 10 Highest NES:\\n{clean_comp_title} ({geneset_name})\")) +\n      theme_bw(base_size = 14) +\n      theme(\n        panel.grid.major.x = element_line(color = \"grey92\", linewidth = 0.5),\n        panel.grid.major.y = element_line(color = \"grey92\", linewidth = 0.5, linetype = \"dotted\"),\n        panel.grid.minor   = element_blank(),\n        panel.border = element_rect(colour = \"black\", fill = NA, linewidth = 1.5),\n        plot.title = element_text(hjust = 0.5, face = \"bold\", size = 14, margin = margin(b = 20)),\n        plot.margin = margin(t = 20, r = 10, b = 10, l = 10, unit = \"pt\"),\n        axis.text.y = element_text(lineheight = 0.8) \n      ) +\n      scale_y_discrete(labels = function(x) str_wrap(gsub(\"_\", \" \", x), width = wrap_width))\n\n    # --- DYNAMIC SIZING ---\n    # Cap the character count at wrap_width so the plot doesn't stretch endlessly horizontally\n    max_chars &lt;- min(max(nchar(as.character(top_nes_gsea$pathway))), wrap_width)\n    \n    # Calculate dimensions: enough base room for the plot/legends + scaled room for text/points\n    dyn_h_sig &lt;- 3 + (nrow(top_nes_gsea) * 0.4)\n    dyn_w_sig &lt;- 4.5 + (max_chars * 0.1) \n    \n    ggsave(filename = file.path(current_graphs_dir, glue(\"Dotplot_Top10_NES_{geneset_name}.pdf\")), \n           plot = p_sig, width = dyn_w_sig, height = dyn_h_sig, limitsize = FALSE)\n  }\n  \n  \n  return(fgsea_res_tidy)\n}",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#load-data",
-    "href": "notebooks/04_gsea.html#load-data",
-    "title": "4. GSEA",
-    "section": "Load data",
-    "text": "Load data\n\n\nCode\n# ==============================================================================\n# 2. CONFIG & DATA LOADING\n# ==============================================================================\n\nGLOBAL_CONFIG &lt;- list(\n  output_dir = file.path(results_dir, \"GSEA_Results_Master\"), \n  group_A    = \"Plaque Enriched\",\n  group_B    = \"Control Enriched\",\n  col_A      = \"firebrick3\",\n  col_B      = \"navy\"\n)\n\n# Load Gene Sets\n\n#go and kegg sets\ngo_pathways &lt;- gmtPathways(\"../../GO_human_all_genesets.gmt\")\nkegg_df &lt;- msigdbr(species = \"Mus musculus\", collection = \"C2\", subcollection = \"CP:KEGG_MEDICUS\")\n\n\nUsing human MSigDB with ortholog mapping to mouse. Use `db_species = \"MM\"` for mouse-native gene sets.\nThis message is displayed once per session.\n\n\nCode\nkegg_list &lt;- split(x = kegg_df$gene_symbol, f = kegg_df$gs_name)\ngo_kegg_list &lt;- c(go_pathways, kegg_list)\n\n#cell type signature sets\nc8_df &lt;- msigdbr(species = \"Mus musculus\", category = \"C8\")\n\n\nWarning: The `category` argument of `msigdbr()` is deprecated as of msigdbr 10.0.0.\nℹ Please use the `collection` argument instead.\n\n\nCode\nc8_list &lt;- split(x = c8_df$gene_symbol, f = c8_df$gs_name)\n\n#DAA signature from from https://www.nature.com/articles/s41593-020-0624-8\ndaa_df &lt;- read_excel(path = file.path(raw_dir, \"DAA_Habib_2020.xlsx\"), col_types = \"text\")\n\n#Extract the genes as a character vector \ndaa_vector &lt;- daa_df %&gt;%\n  pull(Gene) %&gt;%\n  toupper() %&gt;%\n  unique()\ndaa_vector\n\n\n  [1] \"CST3\"          \"APOE\"          \"CLU\"           \"GFAP\"         \n  [5] \"CPE\"           \"MT1\"           \"CD81\"          \"CD9\"          \n  [9] \"MT2\"           \"ID3\"           \"CKB\"           \"FXYD1\"        \n [13] \"VIM\"           \"PRDX6\"         \"CTSB\"          \"CSMD1\"        \n [17] \"DBI\"           \"FTH1\"          \"HSD17B4\"       \"ALDOC\"        \n [21] \"IGFBP5\"        \"MLC1\"          \"C4B\"           \"NTRK2\"        \n [25] \"GSN\"           \"KCNIP4\"        \"GPM6B\"         \"CNN3\"         \n [29] \"FTL1\"          \"ATP1B2\"        \"ID4\"           \"PSAP\"         \n [33] \"PLCE1\"         \"AQP4\"          \"TAGLN3\"        \"SORBS1\"       \n [37] \"TMEM47\"        \"ITM2C\"         \"SCD2\"          \"ITM2B\"        \n [41] \"GPC5\"          \"PRDX1\"         \"CD63\"          \"LAPTM4A\"      \n [45] \"LAMP1\"         \"GSTM1\"         \"TRPM3\"         \"TSPAN3\"       \n [49] \"GPR37L1\"       \"S100A6\"        \"CTSD\"          \"SPARC\"        \n [53] \"TMBIM6\"        \"SCG3\"          \"B2M\"           \"NCAM2\"        \n [57] \"GM14964\"       \"GGTA1\"         \"ENOX1\"         \"GLIS3\"        \n [61] \"S100A16\"       \"TUBA1A\"        \"CTSL\"          \"S100B\"        \n [65] \"6330403K07RIK\" \"CHST2\"         \"CHL1\"          \"MATN4\"        \n [69] \"ANGPT1\"        \"ADD3\"          \"SERPINA3N\"     \"TMEM176B\"     \n [73] \"ARHGEF4\"       \"MGST1\"         \"TUBB2B\"        \"IFITM3\"       \n [77] \"GRM5\"          \"ID2\"           \"DHRS1\"         \"SDC4\"         \n [81] \"OSMR\"          \"CADPS\"         \"LSAMP\"         \"DST\"          \n [85] \"GADD45G\"       \"THBS4\"         \"DDR1\"          \"SEMA6D\"       \n [89] \"RCN2\"          \"CPNE8\"         \"UBE2E2\"        \"SELK\"         \n [93] \"SBNO2\"         \"FBXO2\"         \"TSC22D4\"       \"SARAF\"        \n [97] \"TMEM176A\"      \"PRKCA\"         \"LAMP2\"         \"ASPG\"         \n[101] \"MAN1A\"         \"SLC38A1\"       \"CAV2\"          \"S100A1\"       \n[105] \"ABCA1\"         \"CHIL1\"         \"TST\"           \"PRUNE2\"       \n[109] \"HIST1H2BC\"     \"SLC3A2\"        \"SYT11\"         \"ERBB2IP\"      \n[113] \"GM10116\"       \"KIF1A\"         \"HRSP12\"        \"SGCD\"         \n[117] \"STAT3\"         \"LGALS1\"        \"SLC16A1\"       \"GPX4\"         \n[121] \"PDPN\"          \"CD151\"         \"USP53\"         \"GRIK2\"        \n[125] \"PARD3B\"        \"FXYD7\"         \"FOS\"           \"ID1\"          \n[129] \"CACNB2\"        \"UBC\"           \"PDIA4\"         \"NKAIN2\"       \n[133] \"NRG2\"          \"LXN\"           \"HOPX\"          \"SREBF1\"       \n[137] \"SLC35F1\"       \"PDLIM4\"        \"CEBPB\"         \"CYR61\"        \n[141] \"SOX9\"          \"SERPINF1\"      \"NFKBIA\"        \"NFE2L2\"       \n[145] \"SLC14A1\"       \"ARHGAP6\"       \"HSPA5\"         \"SULF2\"        \n[149] \"NAALADL2\"      \"TSPAN4\"        \"NAV2\"          \"CTNNBIP1\"     \n[153] \"BCAP31\"        \"SLC39A14\"      \"SHISA6\"        \"APLP2\"        \n[157] \"SERPING1\"      \"SPCS2\"         \"EZR\"           \"SCARB2\"       \n[161] \"RAB18\"         \"GNAI2\"         \"JUNB\"          \"CLIC1\"        \n[165] \"PFKP\"          \"HSPA2\"         \"AEBP1\"         \"IDH2\"         \n[169] \"PPIB\"          \"ATRAID\"        \"DGKI\"          \"ATP6V0E\"      \n[173] \"JUND\"          \"HNRNPK\"        \"SULF1\"         \"1700030F04RIK\"\n[177] \"ITGB8\"         \"MFAP3L\"        \"S100A10\"       \"NPC2\"         \n[181] \"SLC7A10\"       \"REEP5\"         \"VWA1\"          \"SHISA5\"       \n[185] \"GM4876\"        \"LGMN\"          \"LGALS3BP\"      \"GM3448\"       \n[189] \"TMCO1\"         \"GM3764\"        \"RAP1B\"         \"TMEM59\"       \n[193] \"2810459M11RIK\" \"DEGS1\"         \"EFCAB14\"       \"1810058I24RIK\"\n[197] \"GNA13\"         \"SAMD4\"         \"S1PR3\"         \"MMP16\"        \n[201] \"HSD17B12\"      \"SORBS2\"        \"TUBB2A\"        \"ATP6AP2\"      \n[205] \"KCNJ3\"         \"RHOB\"          \"NRG1\"          \"EPDR1\"        \n[209] \"PDZD2\"         \"TM9SF3\"        \"SLC20A1\"       \"CLDND1\"       \n[213] \"HIVEP2\"        \"PLXDC2\"        \"SOX2\"          \"LUZP2\"        \n[217] \"SYNPO2\"        \"TPRGL\"         \"H2-K1\"         \"PKP4\"         \n[221] \"FABP7\"         \"USP24\"         \"PDGFD\"         \"ATP1A1\"       \n[225] \"ENPP5\"         \"TIMP2\"         \"HMGCLL1\"       \"CACNA2D3\"     \n[229] \"DAPK1\"         \"SEPT15\"        \"RASSF8\"        \"TGOLN1\"       \n[233] \"VIMP\"          \"ZFP706\"        \"GM2A\"          \"H2-D1\"        \n[237] \"PCYT2\"         \"UQCRC2\"        \"UPF2\"          \"PPP2CA\"       \n[241] \"TMEM100\"       \"NNAT\"          \"LYSMD2\"        \"C1QA\"         \n[245] \"ST6GALNAC5\"    \"SMPDL3A\"       \"GRIA2\"         \"NDUFV3\"       \n[249] \"NRXN1\"         \"AGT\"           \"MGAT4C\"        \"CDH10\"        \n[253] \"RPL36-PS3\"     \"KIRREL3\"      \n\n\nCode\n# Create master list\ngene_sets_master &lt;- list(\n  \"GO_KEGG\" = go_kegg_list,\n  \"cell_type_sigs_c8\" = c8_list,\n  \"Habib_2020_DAA\" = list(\"Habib_2020_DAA\" = daa_vector)\n)\n\n#Create Rank Vectors directly from MSstats output\ncomparisons_master &lt;- list(\n  \"PlaqueNear_vs_Control\" = prep_msstats_ranks(res_df, protein_dictionary, \"PlaqueNear_vs_Control\"),\n  \"PlaqueFar_vs_Control\"  = prep_msstats_ranks(res_df, protein_dictionary, \"PlaqueFar_vs_Control\"),\n  \"PlaqueNear_vs_PlaqueFar\" = prep_msstats_ranks(res_df, protein_dictionary, \"PlaqueNear_vs_PlaqueFar\")\n)",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#execute-the-gsea-function",
-    "href": "notebooks/04_gsea.html#execute-the-gsea-function",
-    "title": "4. GSEA",
-    "section": "Execute the GSEA function",
-    "text": "Execute the GSEA function\n\n\nCode\n# ==============================================================================\n# 3. EXECUTION LOOP\n# ==============================================================================\n\npurrr::walk2(names(gene_sets_master), gene_sets_master, function(gset_name, gset_pathways) {\n  purrr::walk2(comparisons_master, names(comparisons_master), function(ranks, comp_name) {\n    \n    run_gsea_analysis(\n      ranks            = ranks,\n      comparison_name  = comp_name,\n      geneset_name     = gset_name,     \n      pathways         = gset_pathways, \n      base_objects_dir = objects_dir,   \n      base_graphs_dir  = results_dir,    \n      color_A          = GLOBAL_CONFIG$col_A,\n      color_B          = GLOBAL_CONFIG$col_B\n    )\n    \n    gc() # Memory cleanup\n  })\n})",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#specific-term-plotting",
-    "href": "notebooks/04_gsea.html#specific-term-plotting",
-    "title": "4. GSEA",
-    "section": "Specific term plotting",
-    "text": "Specific term plotting\n\n\nCode\n# ==============================================================================\n# SPECIFIC TERM PLOTTING\n# ==============================================================================\n\nterm_to_plot &lt;- \"Habib_2020_DAA\"\n# 1. Flatten master gene list\nall_pathways_flat &lt;- do.call(c, unname(gene_sets_master))\n\n# Check if the term exists before looping - in case typo\nif (!term_to_plot %in% names(all_pathways_flat)) {\n  stop(glue(\"Could not find pathway '{term_to_plot}' in gene_sets_master.\"))\n}\n\npathway_genes &lt;- all_pathways_flat[[term_to_plot]]\n\n# Create a specific output folder\nspecific_graphs_dir &lt;- file.path(results_dir, \"Specific_Pathway_Plots\")\ndir.create(specific_graphs_dir, showWarnings = FALSE, recursive = TRUE)\n\n# Loop and Plot\npurrr::walk2(comparisons_master, names(comparisons_master), function(ranks, comp_name) {\n  \n  message(glue(\"Plotting {term_to_plot} for {comp_name}...\"))\n  \n  # Generate the GSEA enrichment plot\n  gsea_plot &lt;- plotEnrichment(pathway_genes, ranks) +\n    labs(\n      title = term_to_plot,\n      subtitle = glue(\"Comparison: {comp_name}\"),\n      x = \"Rank\",\n      y = \"Enrichment Score\"\n    ) +\n    theme_bw(base_size = 14) +\n    theme(\n      plot.title = element_text(face = \"bold\", hjust = 0.5),\n      plot.subtitle = element_text(hjust = 0.5, color = \"grey40\"),\n      panel.grid = element_blank()\n    )\n  print(gsea_plot)\n  \n  # Save\n  ggsave(\n    filename = file.path(specific_graphs_dir, glue(\"{term_to_plot}_{comp_name}.pdf\")),\n    plot = gsea_plot,\n    width = 8, \n    height = 5\n  )\n})\n\n\nPlotting Habib_2020_DAA for PlaqueNear_vs_Control...\n\n\n\n\n\n\n\n\n\nPlotting Habib_2020_DAA for PlaqueFar_vs_Control...\n\n\n\n\n\n\n\n\n\nPlotting Habib_2020_DAA for PlaqueNear_vs_PlaqueFar...",
-    "crumbs": [
-      "4. GSEA"
-    ]
-  },
-  {
-    "objectID": "notebooks/04_gsea.html#hypergeometric-test-plaque-near-vs-plaque-far-top-10-vs-habib-2020-top-10",
-    "href": "notebooks/04_gsea.html#hypergeometric-test-plaque-near-vs-plaque-far-top-10-vs-habib-2020-top-10",
-    "title": "4. GSEA",
-    "section": "Hypergeometric test: Plaque Near vs Plaque Far top 10 vs Habib 2020 top 10",
-    "text": "Hypergeometric test: Plaque Near vs Plaque Far top 10 vs Habib 2020 top 10\n\n\nCode\n# Get top 10 upregulated proteins from PlaqueNear vs PlaqueFar\ntop10_near_vs_far &lt;- comparisons_master[[\"PlaqueNear_vs_PlaqueFar\"]] %&gt;%\n  sort(decreasing = TRUE) %&gt;%\n  head(10) %&gt;%\n  names()\n\n# Get top 10 from Habib 2020 DAA signature\ntop10_habib &lt;- head(daa_vector, 10)\n\n# Define the background population\n# Use all genes present in the rank list as the background\nbackground_genes &lt;- names(comparisons_master[[\"PlaqueNear_vs_PlaqueFar\"]])\nN &lt;- length(background_genes)\n\n# Calculate overlap\noverlap &lt;- intersect(top10_near_vs_far, top10_habib)\nk &lt;- length(overlap)  # observed overlap\nm &lt;- sum(top10_habib %in% background_genes)  # Habib top10 genes present in background\nn &lt;- N - m            # genes NOT in Habib top10\nq &lt;- length(top10_near_vs_far)  # size of your top10\n\n# Hypergeometric test\n# phyper(k-1) gives P(X &gt;= k) i.e. probability of overlap &gt;= observed by chance\np_val &lt;- phyper(k - 1, m, n, q, lower.tail = FALSE)\n\ncat(\"=== Hypergeometric Test: PlaqueNear vs PlaqueFar vs Habib 2020 DAA ===\\n\")\n\n\n=== Hypergeometric Test: PlaqueNear vs PlaqueFar vs Habib 2020 DAA ===\n\n\nCode\ncat(\"Background (total detected proteins):\", N, \"\\n\")\n\n\nBackground (total detected proteins): 5532 \n\n\nCode\ncat(\"Habib top 10 genes found in background:\", m, \"\\n\")\n\n\nHabib top 10 genes found in background: 6 \n\n\nCode\ncat(\"Your top 10 Near vs Far proteins:\", q, \"\\n\")\n\n\nYour top 10 Near vs Far proteins: 10 \n\n\nCode\ncat(\"Observed overlap:\", k, \"\\n\")\n\n\nObserved overlap: 1 \n\n\nCode\ncat(\"Overlapping genes:\", paste(overlap, collapse = \", \"), \"\\n\")\n\n\nOverlapping genes: GFAP \n\n\nCode\ncat(\"P-value:\", p_val, \"\\n\\n\")\n\n\nP-value: 0.01080195 \n\n\nCode\n# Visualise the overlap with a simple table\noverlap_df &lt;- data.frame(\n  Gene = background_genes,\n  In_Habib_Top10 = background_genes %in% top10_habib,\n  In_NearFar_Top10 = background_genes %in% top10_near_vs_far\n) %&gt;%\n  filter(In_Habib_Top10 | In_NearFar_Top10) %&gt;%\n  mutate(\n    Overlap = In_Habib_Top10 & In_NearFar_Top10\n  ) %&gt;%\n  arrange(desc(Overlap))\n\nprint(overlap_df)\n\n\n       Gene In_Habib_Top10 In_NearFar_Top10 Overlap\n1      GFAP           TRUE             TRUE    TRUE\n2     NCOR1          FALSE             TRUE   FALSE\n3     CLCN6          FALSE             TRUE   FALSE\n4     DIDO1          FALSE             TRUE   FALSE\n5      DPP7          FALSE             TRUE   FALSE\n6   ARFGEF3          FALSE             TRUE   FALSE\n7  SERPINC1          FALSE             TRUE   FALSE\n8     ARL8B          FALSE             TRUE   FALSE\n9     ABCA3          FALSE             TRUE   FALSE\n10    PTPN6          FALSE             TRUE   FALSE\n11     APOE           TRUE            FALSE   FALSE\n12      CLU           TRUE            FALSE   FALSE\n13      CPE           TRUE            FALSE   FALSE\n14     CST3           TRUE            FALSE   FALSE\n15     CD81           TRUE            FALSE   FALSE",
-    "crumbs": [
-      "4. GSEA"
     ]
   },
   {
